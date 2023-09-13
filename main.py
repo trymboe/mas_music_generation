@@ -12,11 +12,12 @@ from agents import (
 )
 
 from data_processing import extract_chords_from_files, Notes_Dataset
+from utils import get_timed_notes
 
 
 if __name__ == "__main__":
-    mac = True
-    load = True
+    mac: bool = True
+    load: bool = True
 
     if mac:
         # for training on GPU for M1 mac
@@ -27,12 +28,21 @@ if __name__ == "__main__":
 
     root_directory: str = "data"
     number_of_chords: int = 1000
-    chords, notes = extract_chords_from_files(root_directory, number_of_chords, True)
+    chords, notes, beats = extract_chords_from_files(
+        root_directory, number_of_chords, True
+    )
 
-    notes_dataset: Notes_Dataset = Notes_Dataset(notes)
+    timed_notes = get_timed_notes(notes, beats)
+
+    notes_dataset: Notes_Dataset = Notes_Dataset(timed_notes)
 
     bass_agent = create_bass_agent()
-    primer_sequence = notes_dataset[random.randint(0, len(notes_dataset) - 1)][0]
+
+    primer_part = random.randint(0, len(notes_dataset) - 1)
+    primer_sequence = (
+        notes_dataset[primer_part][0],
+        notes_dataset[primer_part][1],
+    )
 
     if load:
         bass_agent.load_state_dict(torch.load("models/bass/bass_model.pth"))
@@ -40,7 +50,6 @@ if __name__ == "__main__":
     else:
         train_bass(bass_agent, notes_dataset)
 
-    predicted_sequence = predict_next_k_notes(bass_agent, primer_sequence, 10)
-    full_sequence = primer_sequence.tolist() + predicted_sequence
+    predicted_sequence = predict_next_k_notes(bass_agent, primer_sequence, 30)
 
-    play_bass(full_sequence)
+    play_bass(primer_sequence, predicted_sequence)

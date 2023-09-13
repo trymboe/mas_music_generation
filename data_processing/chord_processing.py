@@ -5,7 +5,9 @@ from torch.utils.data import Dataset, DataLoader
 
 
 def extract_chords_from_files(root_dir, limit, only_triads):
-    all_chords: tuple(str, str) = []
+    all_chords: list[list[tuple(str, str)]] = []
+    all_beats: list[list[int]] = []
+
     endless = True if limit == 0 else False
 
     # Traverse through the directory structure
@@ -22,6 +24,8 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                 # If there is a keychange in the song, skip it
                 if len(key) > 1:
                     continue
+                chords: list[tuple(str, str)] = []
+                num_beats_list: list[int] = []
                 with open(os.path.join(dir_name, file_name), "r") as file:
                     for line in file:
                         # Split the line into components
@@ -39,8 +43,8 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                         if only_triads:
                             version = remove_non_triad(version)
 
-                        print(root, version, num_beats)
                         chords.append((root, version))
+                        num_beats_list.append(num_beats)
 
                     chords = flat_to_sharp(chords)
                     key = flat_to_sharp_key(key[0])
@@ -49,6 +53,7 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                     if key[-1] == "j" and key != "C:maj":
                         chords = transpose_major(chords, key)
                         all_chords.append(chords)
+                        all_beats.append(num_beats_list)
 
                     # for minor
                     if key[-1] == "n" and key != "A:min":
@@ -57,10 +62,11 @@ def extract_chords_from_files(root_dir, limit, only_triads):
 
                     if not endless and total_length(all_chords) >= limit:
                         all_notes = get_notes_from_chords(all_chords)
-                        return all_chords, all_notes
+
+                        return all_chords, all_notes, all_beats
 
     all_notes = get_notes_from_chords(all_chords)
-    return all_chords, all_notes
+    return all_chords, all_notes, all_beats
 
 
 def find_chord_length(chord_start, chord_end, beat_list):
@@ -85,6 +91,8 @@ def find_chord_length(chord_start, chord_end, beat_list):
     # The last note is not represented like the rest, defaults to 2 beats
     if beat_time < 0:
         beat_time = 2
+    if beat_time > 8:
+        beat_time = 8
     return beat_time
 
 
