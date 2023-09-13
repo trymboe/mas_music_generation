@@ -9,10 +9,11 @@ from agents import (
     create_bass_agent,
     predict_next_k_notes,
     play_bass,
+    play_agents,
 )
 
 from data_processing import extract_chords_from_files, Notes_Dataset
-from utils import get_timed_notes
+from utils import get_timed_notes, get_full_bass_sequence
 
 
 if __name__ == "__main__":
@@ -51,5 +52,6 @@ if __name__ == "__main__":
         train_bass(bass_agent, notes_dataset)
 
     predicted_sequence = predict_next_k_notes(bass_agent, primer_sequence, 30)
+    full_bass_sequence = get_full_bass_sequence(primer_sequence, predicted_sequence)
 
-    play_bass(primer_sequence, predicted_sequence)
+    play_agents(full_bass_sequence, "results/bass_and_piano.mid")

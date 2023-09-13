@@ -5,3 +5,4 @@ from .bass import (
     predict_next_k_notes,
     play_bass,
 )
+from .coplay import play_agents
