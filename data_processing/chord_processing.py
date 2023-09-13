@@ -36,10 +36,10 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                         num_beats = find_chord_length(chord_start, chord_end, beat_list)
 
                         root, version = components[2].split(":")
-                        print(root, version, num_beats)
                         if only_triads:
                             version = remove_non_triad(version)
 
+                        print(root, version, num_beats)
                         chords.append((root, version))
 
                     chords = flat_to_sharp(chords)
@@ -140,11 +140,14 @@ def flat_to_sharp_key(key):
 
 
 def remove_non_triad(string):
-    # Replace numbers that aren't 2 or 4 with an empty string
-    modified_str = re.sub(r"(?<!\d)(?:(?!2|4)\d)+(?!\d)", "", string)
+    # Remove everything inside parentheses and after
+    modified_str = re.sub(r"\(.*?\)", "", string)
 
-    # Remove non-letter characters at the end of the string
-    modified_str = re.sub(r"[^a-zA-Z]+$", "", modified_str)
+    # # Replace numbers that aren't 2 or 4 with an empty string
+    modified_str = re.sub(r"(?<!\d)(?:(?!2|4)\d)+(?!\d)", "", modified_str)
+
+    # # Remove non-letter characters at the end of the string
+    modified_str = re.sub(r"[^a-zA-Z24]+$", "", modified_str)
 
     # If the resulting string is empty, replace with "maj"
     if not modified_str:
