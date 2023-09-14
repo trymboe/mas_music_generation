@@ -1,4 +1,19 @@
-from config import INT_TO_NOTE
+from config import INT_TO_NOTE, NUMBER_OF_NOTES_FOR_TRAINING
+from data_processing import extract_chords_from_files, Notes_Dataset, Chords_Dataset
+
+
+def get_datasets() -> Notes_Dataset:
+    root_directory: str = "data"
+    chords, notes, beats = extract_chords_from_files(
+        root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
+    )
+
+    timed_notes = get_timed_notes(notes, beats)
+
+    notes_dataset: Notes_Dataset = Notes_Dataset(timed_notes)
+    chords_dataset: Chords_Dataset = Chords_Dataset(chords)
+
+    return notes_dataset, chords_dataset
 
 
 def get_timed_notes(

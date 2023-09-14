@@ -148,6 +148,9 @@ def flat_to_sharp_key(key):
 
 
 def remove_non_triad(string):
+    # Remove anything after a forward slash '/'
+    string = re.sub(r"/.*$", "", string)
+
     # Remove everything inside parentheses and after
     modified_str = re.sub(r"\(.*?\)", "", string)
 

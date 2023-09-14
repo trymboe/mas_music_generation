@@ -1,0 +1,10 @@
+SEQUENCE_LENGTH_CHORD = 8
+ROOT_VOAB_SIZE_CHORD = 12  # Number of root notes
+CHORD_VOCAB_SIZE_CHORD = 7  # Number of chords variations
+EMBED_SIZE_CHORD = 128  # Embedding size
+NHEAD_CHORD = 2  # Number of self-attention heads
+NUM_LAYERS_CHORD = 2  # Number of transformer layers
+NUM_EPOCHS_CHORD = 50  # Number of epochs
+BATCH_SIZE_CHORD = 64
+LEARNING_RATE_CHORD = 0.001
+HIDDEN_SIZE_CHORD = 128
