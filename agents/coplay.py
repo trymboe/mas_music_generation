@@ -10,7 +10,9 @@ from utils import get_full_bass_sequence
 from config import INT_TO_TRIAD, K
 
 
-def play_agents(notes_dataset, chords_dataset, bass_agent, chord_agent, filename):
+def play_agents(
+    notes_dataset, chords_dataset, bass_agent, chord_agent, arpeggiate, filename
+):
     part_of_dataset = random.randint(0, len(notes_dataset) - 1)
 
     bass_primer_sequence = get_primer_sequence(notes_dataset, part_of_dataset)
@@ -35,7 +37,7 @@ def play_agents(notes_dataset, chords_dataset, bass_agent, chord_agent, filename
 
     mid = play_bass(full_bass_sequence)
 
-    mid = play_chord(mid, timed_chord_sequence)
+    mid = play_chord(mid, timed_chord_sequence, arpeggiate)
 
     mid.save(filename)
 

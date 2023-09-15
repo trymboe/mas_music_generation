@@ -1,7 +1,5 @@
-import math
 import argparse
 import torch
-import random
 
 from agents import (
     create_agents,
@@ -9,13 +7,42 @@ from agents import (
     train_agents,
 )
 
-from utils import get_timed_notes, get_full_bass_sequence, get_datasets
+from utils import get_datasets
 
+parser = argparse.ArgumentParser(description="Choose how to run the program")
+
+parser.add_argument(
+    "-a",
+    "--arpeggiate",
+    action="store_true",
+    help="Arpeggiate the chords",
+    default=False,
+)
+parser.add_argument(
+    "-tb",
+    "--train_bass",
+    action="store_true",
+    help="Train the bass agent",
+    default=False,
+)
+parser.add_argument(
+    "-tc",
+    "--train_chord",
+    action="store_true",
+    help="Train the chord agent",
+    default=False,
+)
+parser.add_argument(
+    "--non_mac", action="store_true", help="Train on non-M1 mac", default=False
+)
+
+args = parser.parse_args()
 
 if __name__ == "__main__":
-    mac: bool = True
-    load_bass: bool = True
-    load_chord: bool = True
+    mac = not parser.parse_args().non_mac
+    train_bass = parser.parse_args().train_bass
+    train_chord = parser.parse_args().train_chord
+    arpeggiate = parser.parse_args().arpeggiate
 
     if mac:
         # for training on GPU for M1 mac
@@ -29,12 +56,7 @@ if __name__ == "__main__":
     bass_agent, chord_agent = create_agents()
 
     train_agents(
-        bass_agent, chord_agent, notes_dataset, chords_dataset, load_bass, load_chord
-    )
-    primer_part = random.randint(0, len(notes_dataset) - 1)
-    primer_sequence = (
-        notes_dataset[primer_part][0],
-        notes_dataset[primer_part][1],
+        bass_agent, chord_agent, notes_dataset, chords_dataset, train_bass, train_chord
     )
 
     play_agents(
@@ -42,5 +64,6 @@ if __name__ == "__main__":
         chords_dataset,
         bass_agent,
         chord_agent,
+        arpeggiate,
         "results/bass_and_chord2.mid",
     )
