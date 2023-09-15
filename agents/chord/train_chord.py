@@ -50,8 +50,9 @@ def train_chord(model: nn.Module, dataset: Dataset):
 
 
 def plot_loss(loss_values):
+    plt.figure()
     plt.plot(loss_values)
-    plt.title("Training Loss")
+    plt.title("Training Loss Chord")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
-    plt.show()
+    plt.savefig("figures/chord_training_loss.png")

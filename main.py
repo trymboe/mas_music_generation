@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import argparse
 import torch
 
@@ -67,3 +68,5 @@ if __name__ == "__main__":
         arpeggiate,
         "results/bass_and_chord2.mid",
     )
+
+    plt.show()

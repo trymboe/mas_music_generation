@@ -58,7 +58,7 @@ def train_bass(model: nn.Module, dataset: Dataset):
 
 def plot_loss(loss_values):
     plt.plot(loss_values)
-    plt.title("Training Loss")
+    plt.title("Training Loss Bass")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
-    plt.show()
+    plt.savefig("figures/bass_training_loss.png")
