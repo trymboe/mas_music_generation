@@ -5,9 +5,11 @@ def play_chord(
     mid: MidiFile, chord_sequence: list[tuple[list[int], int]], arpeggiate
 ) -> MidiFile:
     if arpeggiate:
-        play_chord_arpeggiate(mid, chord_sequence)
+        mid = play_chord_arpeggiate(mid, chord_sequence)
     else:
-        play_chord_hold(mid, chord_sequence)
+        mid = play_chord_hold(mid, chord_sequence)
+
+    return mid
 
 
 def play_chord_hold(
@@ -17,10 +19,9 @@ def play_chord_hold(
     note_mapping = {i: 60 + i for i in range(24)}
 
     track = MidiTrack()
-    mid.tracks.append(track)
 
-    # Set instrument to Acoustic Grand Chord
-    track.append(Message("program_change", program=0, time=0))
+    # Set instrument to Acoustic Grand Piano on channel 1
+    track.append(Message("program_change", program=0, channel=1, time=0))
 
     # Add chord chords to the track
     for chord, duration in chord_sequence:
@@ -45,6 +46,7 @@ def play_chord_hold(
             # Reset time offset for subsequent notes in the same chord
             time_offset = 0
 
+    mid.tracks.append(track)  # Append track to the MIDI file after populating it
     return mid
 
 
@@ -55,8 +57,8 @@ def play_chord_arpeggiate(mid, chord_sequence):
     track = MidiTrack()
     mid.tracks.append(track)
 
-    # Set instrument to Acoustic Grand Chord
-    track.append(Message("program_change", program=0, time=0))
+    # Set instrument to Acoustic Grand Piano on channel 1
+    track.append(Message("program_change", program=0, channel=1, time=0))
 
     # Define the melodic pattern
     melodic_pattern = [0, 0, 1, 2, 1, 0]
