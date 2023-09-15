@@ -32,5 +32,5 @@ INT_TO_TRIAD = {
     5: [0, 5, 7],
 }
 
-NUMBER_OF_NOTES_FOR_TRAINING = 1000  # 0 for all notes
+NUMBER_OF_NOTES_FOR_TRAINING = 500  # 0 for all notes
 K = 30  # Number of notes to predict
