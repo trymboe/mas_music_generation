@@ -2,11 +2,16 @@ from .bass import (
     Bass_Network,
     train_bass,
     predict_next_k_notes_bass,
-    predict_next_k_notes_chords,
     play_bass,
 )
 
-from .chord import train_chord, play_chord
+from .chord import (
+    Chord_Network,
+    Chord_LSTM_Network,
+    train_chord,
+    play_chord,
+    predict_next_k_notes_chords,
+)
 
 from .coplay import play_agents
 
