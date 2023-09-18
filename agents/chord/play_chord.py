@@ -68,7 +68,6 @@ def play_chord_arpeggiate(mid, chord_sequence):
     # Add chord chords to the track
     for chord, duration in chord_sequence:
         num_repeats, remander = divmod(duration, 4)
-        print(num_repeats, remander)
         for _ in range(num_repeats):
             for idx, pattern_note in enumerate(melodic_pattern):
                 midi_note = note_mapping[chord[pattern_note]]

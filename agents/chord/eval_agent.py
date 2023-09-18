@@ -24,7 +24,6 @@ def predict_next_k_notes_chords(model, input_sequence):
             chord_probabilities = F.softmax(
                 output[0, :], dim=-1
             )  # Only consider the last prediction
-            print(chord_probabilities[0], chord_probabilities[5])
 
             # Sample from the distribution
             next_chord_type = torch.multinomial(chord_probabilities, 1).item()
