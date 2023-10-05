@@ -52,7 +52,7 @@ if __name__ == "__main__":
         # Set device to use
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    notes_dataset, chords_dataset = get_datasets()
+    notes_dataset, chords_dataset, drum_dataset = get_datasets()
 
     bass_agent, chord_agent = create_agents()
 
