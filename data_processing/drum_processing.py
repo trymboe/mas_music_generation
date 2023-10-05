@@ -1,4 +1,4 @@
-from config import params_drum
+from config import params_drum, GENRE
 
 import os
 import glob
@@ -7,9 +7,8 @@ import glob
 def get_drum_dataset():
     pitch_classes = params_drum.DRUM_MAPPING["DEFAULT_DRUM_TYPE_PITCHES"]
     time_steps_vocab = params_drum.TIME_STEPS_VOCAB
-    genre = "rock"
 
-    midi_files = get_midi_files(genre=genre)
+    midi_files = get_midi_files(genre=GENRE)
 
 
 def get_midi_files(root_dir="data/groove", genre=None, signature="4-4"):

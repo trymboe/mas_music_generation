@@ -1,5 +1,6 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+import mido
+from torch.utils.data import Dataset
 
 from config import (
     SEQUENCE_LENGTH_BASS,
@@ -82,3 +83,59 @@ class Chords_Dataset(Dataset):
         except TypeError as e:
             print(f"Error for index {idx}: {self.data[idx]}, {self.labels[idx]}")
             raise e
+
+
+class Drum_Dataset(Dataset):
+    def __init__(self, midi_paths, pitch_classes, time_steps_vocab):
+        """
+        Args:
+            midi_paths (list): List of paths to MIDI files.
+            pitch_classes (object): Information about pitch classes.
+            time_steps_vocab (object): Vocabulary for time steps.
+            processing_conf (dict): Configuration for data processing.
+            *args, **kwargs: Additional arguments.
+        """
+        self.midi_paths = midi_paths
+        self.pitch_classes = pitch_classes
+        self.time_steps_vocab = time_steps_vocab
+        # Additional configurations
+
+        # Load and process MIDI data here or in a separate method
+        # self.data = self.load_and_process_data()
+
+    def __len__(self):
+        # Return the total number of data samples
+        return len(self.midi_paths)
+
+    def __getitem__(self, idx):
+        # Load and process a single MIDI file based on the index (idx)
+        # midi_path = self.midi_paths[idx]
+        # Load MIDI data
+        # Process MIDI data (consider creating a separate method for processing)
+        # Return processed data as a tensor
+
+        # Example (note: actual implementation will depend on the exact processing steps)
+        midi_path = self.midi_paths[idx]
+        raw_data = self.load_midi(midi_path)
+        processed_data = self.process_midi_data(raw_data)
+        return torch.tensor(processed_data)
+
+    def load_midi(self, midi_path):
+        # Load a MIDI file
+        # You might use a library like mido for this
+        # Example:
+        midi_file = mido.MidiFile(midi_path)
+        # Extract relevant information from the MIDI file
+        # Return as raw data
+        return midi_file
+
+    def process_midi_data(self, raw_data):
+        # Process raw MIDI data
+        # This could include quantization, tokenization, etc.
+        # Translate the relevant methods from your Corpus class
+        # e.g., _quantize, _tokenize, etc.
+        # Return processed data
+
+        # Placeholder example:
+        processed_data = raw_data  # Actual implementation will depend on your needs
+        return processed_data
