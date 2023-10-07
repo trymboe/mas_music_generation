@@ -1,14 +1,27 @@
-from config import params_drum, GENRE
+from config import params_drum, GENRE, TRAIN_BATCH_SIZE
+from .datasets import Drum_Dataset
 
 import os
 import glob
 
 
 def get_drum_dataset():
-    pitch_classes = params_drum.DRUM_MAPPING["DEFAULT_DRUM_TYPE_PITCHES"]
-    time_steps_vocab = params_drum.TIME_STEPS_VOCAB
+    pitch_classes: list[list[int]] = params_drum.DRUM_MAPPING[
+        "DEFAULT_DRUM_TYPE_PITCHES"
+    ]
+    time_steps_vocab: dict[int:int] = params_drum.TIME_STEPS_VOCAB
 
     midi_files = get_midi_files(genre=GENRE)
+
+    drum_dataset = Drum_Dataset(midi_files, pitch_classes, time_steps_vocab)
+
+    print("-" * 10)
+    print("Train iterator")
+    for batch in drum_dataset.get_iterator("train", bsz=TRAIN_BATCH_SIZE, bptt=100):
+        print(batch)
+        break
+
+    exit()
 
 
 def get_midi_files(root_dir="data/groove", genre=None, signature="4-4"):
