@@ -10,6 +10,8 @@ from agents import (
 
 from utils import get_datasets
 
+from config import SEED
+
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
 parser.add_argument(
@@ -52,14 +54,22 @@ if __name__ == "__main__":
         # Set device to use
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Set the random seed manually for reproducibility.
+    # np.random.seed(SEED)
+    # torch.manual_seed(SEED)
+
+    # Process the datasets
     notes_dataset, chords_dataset, drum_dataset = get_datasets()
 
-    bass_agent, chord_agent = create_agents()
+    # Create the agents
+    bass_agent, chord_agent, drum_agent = create_agents(drum_dataset, device)
 
+    # Train the agents
     train_agents(
         bass_agent, chord_agent, notes_dataset, chords_dataset, train_bass, train_chord
     )
 
+    # Play the agents
     play_agents(
         notes_dataset,
         chords_dataset,
