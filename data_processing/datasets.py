@@ -15,6 +15,9 @@ from config import (
     CHORD_TO_INT,
     QUANTIZE,
     STEPS_PER_QUARTER,
+    TRAIN_SPLIT_DRUM,
+    TEST_SPLIT_DRUM,
+    VAL_SPLIT_DRUM,
 )
 
 
@@ -124,9 +127,6 @@ class Drum_Dataset(Dataset):
         self.pitch_class_map = self._classes_to_map(self.pitch_classes)
         self.n_instruments = len(set(self.pitch_class_map.values()))
 
-        print(
-            f"Generating vocab of {self.n_instruments} instruments and {n_velocity_buckets} velocity buckets"
-        )
         self.vel_vocab = {
             i: i + len(time_steps_vocab) + 1 for i in range(n_velocity_buckets)
         }
@@ -139,9 +139,21 @@ class Drum_Dataset(Dataset):
             len(self.reverse_vocab) + len(time_steps_vocab) + len(self.vel_vocab) + 1
         )  # add 1 for <eos> token
 
-        self.dataset = self._get_midi_file(midi_paths=midi_paths)
+        train_split = math.floor(len(midi_paths * TRAIN_SPLIT_DRUM))
+        test_split = math.floor(len(midi_paths * TEST_SPLIT_DRUM))
+        val_split = math.floor(len(midi_paths * VAL_SPLIT_DRUM))
 
-        self.train = self.process_dataset(self.dataset)
+        self.train_dataset = self._get_midi_file(midi_paths=midi_paths[:train_split])
+        self.test_dataset = self._get_midi_file(
+            midi_paths=midi_paths[train_split:test_split]
+        )
+        self.val_dataset = self._get_midi_file(
+            midi_paths=midi_paths[test_split:val_split]
+        )
+
+        self.train = self.process_dataset(self.train_dataset)
+        self.test = self.process_dataset(self.test_dataset)
+        self.val = self.process_dataset(self.val_dataset)
 
     def process_dataset(self, dataset):
         """
