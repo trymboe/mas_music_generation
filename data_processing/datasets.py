@@ -139,9 +139,9 @@ class Drum_Dataset(Dataset):
             len(self.reverse_vocab) + len(time_steps_vocab) + len(self.vel_vocab) + 1
         )  # add 1 for <eos> token
 
-        train_split = math.floor(len(midi_paths * TRAIN_SPLIT_DRUM))
-        test_split = math.floor(len(midi_paths * TEST_SPLIT_DRUM))
-        val_split = math.floor(len(midi_paths * VAL_SPLIT_DRUM))
+        train_split = math.floor(len(midi_paths) * TRAIN_SPLIT_DRUM)
+        test_split = math.floor(len(midi_paths) * TEST_SPLIT_DRUM)
+        val_split = math.floor(len(midi_paths) * VAL_SPLIT_DRUM)
 
         self.train_dataset = self._get_midi_file(midi_paths=midi_paths[:train_split])
         self.test_dataset = self._get_midi_file(
@@ -153,7 +153,7 @@ class Drum_Dataset(Dataset):
 
         self.train = self.process_dataset(self.train_dataset)
         self.test = self.process_dataset(self.test_dataset)
-        self.val = self.process_dataset(self.val_dataset)
+        self.valid = self.process_dataset(self.val_dataset)
 
     def process_dataset(self, dataset):
         """
