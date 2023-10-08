@@ -141,14 +141,15 @@ class Drum_Dataset(Dataset):
 
         train_split = math.floor(len(midi_paths) * TRAIN_SPLIT_DRUM)
         test_split = math.floor(len(midi_paths) * TEST_SPLIT_DRUM)
-        val_split = math.floor(len(midi_paths) * VAL_SPLIT_DRUM)
+        # The rest of the data is used for validation
+        val_split = len(midi_paths) - train_split - test_split
 
         self.train_dataset = self._get_midi_file(midi_paths=midi_paths[:train_split])
         self.test_dataset = self._get_midi_file(
-            midi_paths=midi_paths[train_split:test_split]
+            midi_paths=midi_paths[train_split : train_split + test_split]
         )
         self.val_dataset = self._get_midi_file(
-            midi_paths=midi_paths[test_split:val_split]
+            midi_paths=midi_paths[train_split + test_split :]
         )
 
         self.train = self.process_dataset(self.train_dataset)

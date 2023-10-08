@@ -17,14 +17,6 @@ def get_drum_dataset():
 
     VOCAB_SIZE_DRUM = drum_dataset.vocab_size
 
-    print("-" * 10)
-    print("Train iterator")
-    for batch in drum_dataset.get_iterator(
-        "train", bsz=TRAIN_BATCH_SIZE_DRUM, bptt=100
-    ):
-        print(batch)
-        break
-
     return drum_dataset
 
 

@@ -1,6 +1,6 @@
 from .bass import Bass_Network
 from .chord import Chord_Network, Chord_LSTM_Network
-from .drum import create_exp_dir, Drum_Network, weights_init
+from .drum import Drum_Network, weights_init
 
 from config import (
     NOTE_VOCAB_SIZE_BASS,
@@ -14,11 +14,8 @@ from config import (
     NHEAD_CHORD,
     NUM_LAYERS_CHORD,
     HIDDEN_SIZE_CHORD,
-    WORK_DIR,
-    TRAIN_BATCH_SIZE_DRUM,
     NUM_TOKENS_PREDICT_DRUM,
     EXTENDED_CONTEXT_LENGTH_DRUM,
-    EVAL_BATCH_SIZE_DRUM,
     NUM_LAYERS_DRUM,
     NHEAD_DRUM,
     D_MODEL_DRUM,
@@ -39,42 +36,15 @@ from config import (
 )
 
 
-def create_agents(drum_dataset, device):
+def create_agents():
     bass_agent = create_bass_agent()
     chord_agent = create_chord_agent()
-    drum_agent = create_drum_agent(drum_dataset, device)
-
-    print(drum_agent)
-    exit()
+    drum_agent = create_drum_agent()
 
     return bass_agent, chord_agent, drum_agent
 
 
-def create_drum_agent(drum_dataset, device):
-    logging = create_exp_dir(WORK_DIR, scripts_to_save=None, debug=WORK_DIR)
-
-    train_iter = drum_dataset.get_iterator(
-        "train",
-        TRAIN_BATCH_SIZE_DRUM,
-        NUM_TOKENS_PREDICT_DRUM,
-        device=device,
-        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
-    )
-    val_iter = drum_dataset.get_iterator(
-        "valid",
-        EVAL_BATCH_SIZE_DRUM,
-        NUM_TOKENS_PREDICT_DRUM,
-        device=device,
-        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
-    )
-    test_iter = drum_dataset.get_iterator(
-        "test",
-        EVAL_BATCH_SIZE_DRUM,
-        NUM_TOKENS_PREDICT_DRUM,
-        device=device,
-        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
-    )
-
+def create_drum_agent():
     drum_agent = Drum_Network(
         NUM_TOKENS_PREDICT_DRUM,
         NUM_LAYERS_DRUM,
@@ -84,19 +54,19 @@ def create_drum_agent(drum_dataset, device):
         D_INNER_DRUM,
         DROPOUT_DRUM,
         DROPATT_DRUM,
-        NOT_TIED_DRUM,
-        D_MODEL_DRUM,
-        DIV_VAL_DRUM,
-        [False],
-        PRE_LNORM,
-        NUM_TOKENS_PREDICT_DRUM,
-        EXTENDED_CONTEXT_LENGTH_DRUM,
-        MEM_LEN,
-        [],
-        SAME_LENGTH,
-        ATTN_TYPE,
-        CLAMP_LEN,
-        SAMPLE_SOFTMAX,
+        tie_weight=NOT_TIED_DRUM,
+        d_embed=D_MODEL_DRUM,
+        div_val=DIV_VAL_DRUM,
+        tie_projs=[False],
+        pre_lnorm=PRE_LNORM,
+        tgt_len=NUM_TOKENS_PREDICT_DRUM,
+        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
+        mem_len=MEM_LEN,
+        cutoffs=[],
+        same_length=SAME_LENGTH,
+        attn_type=ATTN_TYPE,
+        clamp_len=CLAMP_LEN,
+        sample_softmax=SAMPLE_SOFTMAX,
     )
 
     drum_agent.apply(weights_init)
@@ -104,8 +74,11 @@ def create_drum_agent(drum_dataset, device):
         weights_init
     )  # ensure embedding init is not overridden by out_layer in case of weight sharing
 
+    print("Drum agent created with the following number of parameters:")
     N_ALL_PARAMS = sum([p.nelement() for p in drum_agent.parameters()])
+    print("Total number of parameters: ", N_ALL_PARAMS)
     N_NONEMB_PARAMS = sum([p.nelement() for p in drum_agent.layers.parameters()])
+    print("Number of non-embedding parameters: ", N_NONEMB_PARAMS, end="\n\n")
 
     return drum_agent
 

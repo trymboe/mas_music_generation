@@ -10,8 +10,6 @@ from config import (
     INIT_STD_DRUM,
     PROJ_INIT_STD_DRUM,
     INIT_RANGE_DRUM,
-    EMB_INIT_DRUM,
-    EMB_INIT_RANGE_DRUM,
 )
 
 
@@ -324,3 +322,10 @@ def init_weight(weight):
 
 def init_bias(bias):
     nn.init.constant_(bias, 0.0)
+
+
+def create_dir_if_not_exists(path):
+    directory = os.path.dirname(path)
+    # Do not try and create directory if path is just a filename
+    if (not os.path.exists(directory)) and (directory != ""):
+        os.makedirs(directory)
