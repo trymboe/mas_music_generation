@@ -1,6 +1,6 @@
 from .bass import Bass_Network
 from .chord import Chord_Network, Chord_LSTM_Network
-from .drum import create_exp_dir
+from .drum import create_exp_dir, Drum_Network, weights_init
 
 from config import (
     NOTE_VOCAB_SIZE_BASS,
@@ -19,6 +19,23 @@ from config import (
     NUM_TOKENS_PREDICT_DRUM,
     EXTENDED_CONTEXT_LENGTH_DRUM,
     EVAL_BATCH_SIZE_DRUM,
+    NUM_LAYERS_DRUM,
+    NHEAD_DRUM,
+    D_MODEL_DRUM,
+    D_HEAD_DRUM,
+    D_INNER_DRUM,
+    DROPOUT_DRUM,
+    DROPATT_DRUM,
+    SAME_LENGTH,
+    ATTN_TYPE,
+    CLAMP_LEN,
+    SAMPLE_SOFTMAX,
+    MEM_LEN,
+    PRE_LNORM,
+    NOT_TIED_DRUM,
+    DIV_VAL_DRUM,
+    N_ALL_PARAMS,
+    N_NONEMB_PARAMS,
 )
 
 
@@ -26,6 +43,9 @@ def create_agents(drum_dataset, device):
     bass_agent = create_bass_agent()
     chord_agent = create_chord_agent()
     drum_agent = create_drum_agent(drum_dataset, device)
+
+    print(drum_agent)
+    exit()
 
     return bass_agent, chord_agent, drum_agent
 
@@ -54,6 +74,40 @@ def create_drum_agent(drum_dataset, device):
         device=device,
         ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
     )
+
+    drum_agent = Drum_Network(
+        NUM_TOKENS_PREDICT_DRUM,
+        NUM_LAYERS_DRUM,
+        NHEAD_DRUM,
+        D_MODEL_DRUM,
+        D_HEAD_DRUM,
+        D_INNER_DRUM,
+        DROPOUT_DRUM,
+        DROPATT_DRUM,
+        NOT_TIED_DRUM,
+        D_MODEL_DRUM,
+        DIV_VAL_DRUM,
+        [False],
+        PRE_LNORM,
+        NUM_TOKENS_PREDICT_DRUM,
+        EXTENDED_CONTEXT_LENGTH_DRUM,
+        MEM_LEN,
+        [],
+        SAME_LENGTH,
+        ATTN_TYPE,
+        CLAMP_LEN,
+        SAMPLE_SOFTMAX,
+    )
+
+    drum_agent.apply(weights_init)
+    drum_agent.word_emb.apply(
+        weights_init
+    )  # ensure embedding init is not overridden by out_layer in case of weight sharing
+
+    N_ALL_PARAMS = sum([p.nelement() for p in drum_agent.parameters()])
+    N_NONEMB_PARAMS = sum([p.nelement() for p in drum_agent.layers.parameters()])
+
+    return drum_agent
 
 
 def create_bass_agent():

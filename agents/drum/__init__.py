@@ -3,4 +3,7 @@ from .utils import (
     ProjectedAdaptiveLogSoftmax,
     LogUniformSampler,
     sample_logits,
+    weights_init,
 )
+
+from .drum_network import Drum_Network

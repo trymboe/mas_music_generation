@@ -541,7 +541,7 @@ class AdaptiveEmbedding(nn.Module):
         return embed
 
 
-class Drum_network(nn.Module):
+class Drum_Network(nn.Module):
     def __init__(
         self,
         n_token,
@@ -567,7 +567,7 @@ class Drum_network(nn.Module):
         clamp_len=-1,
         sample_softmax=-1,
     ):
-        super(Drum_network, self).__init__()
+        super(Drum_Network, self).__init__()
         self.n_token = n_token
 
         d_embed = d_model if d_embed is None else d_embed
