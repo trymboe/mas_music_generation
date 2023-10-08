@@ -1,5 +1,6 @@
 from .bass import Bass_Network
 from .chord import Chord_Network, Chord_LSTM_Network
+from .drum import create_exp_dir
 
 from config import (
     NOTE_VOCAB_SIZE_BASS,
@@ -13,14 +14,46 @@ from config import (
     NHEAD_CHORD,
     NUM_LAYERS_CHORD,
     HIDDEN_SIZE_CHORD,
+    WORK_DIR,
+    TRAIN_BATCH_SIZE_DRUM,
+    NUM_TOKENS_PREDICT_DRUM,
+    EXTENDED_CONTEXT_LENGTH_DRUM,
+    EVAL_BATCH_SIZE_DRUM,
 )
 
 
-def create_agents():
+def create_agents(drum_dataset, device):
     bass_agent = create_bass_agent()
     chord_agent = create_chord_agent()
+    drum_agent = create_drum_agent(drum_dataset, device)
 
-    return bass_agent, chord_agent
+    return bass_agent, chord_agent, drum_agent
+
+
+def create_drum_agent(drum_dataset, device):
+    logging = create_exp_dir(WORK_DIR, scripts_to_save=None, debug=WORK_DIR)
+
+    train_iter = drum_dataset.get_iterator(
+        "train",
+        TRAIN_BATCH_SIZE_DRUM,
+        NUM_TOKENS_PREDICT_DRUM,
+        device=device,
+        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
+    )
+    val_iter = drum_dataset.get_iterator(
+        "valid",
+        EVAL_BATCH_SIZE_DRUM,
+        NUM_TOKENS_PREDICT_DRUM,
+        device=device,
+        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
+    )
+    test_iter = drum_dataset.get_iterator(
+        "test",
+        EVAL_BATCH_SIZE_DRUM,
+        NUM_TOKENS_PREDICT_DRUM,
+        device=device,
+        ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
+    )
 
 
 def create_bass_agent():

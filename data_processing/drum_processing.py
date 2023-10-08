@@ -1,4 +1,4 @@
-from config import params_drum, GENRE, TRAIN_BATCH_SIZE
+from config import params_drum, GENRE, TRAIN_BATCH_SIZE_DRUM, VOCAB_SIZE_DRUM
 from .datasets import Drum_Dataset
 
 import os
@@ -15,13 +15,17 @@ def get_drum_dataset():
 
     drum_dataset = Drum_Dataset(midi_files, pitch_classes, time_steps_vocab)
 
+    VOCAB_SIZE_DRUM = drum_dataset.vocab_size
+
     print("-" * 10)
     print("Train iterator")
-    for batch in drum_dataset.get_iterator("train", bsz=TRAIN_BATCH_SIZE, bptt=100):
+    for batch in drum_dataset.get_iterator(
+        "train", bsz=TRAIN_BATCH_SIZE_DRUM, bptt=100
+    ):
         print(batch)
         break
 
-    exit()
+    return drum_dataset
 
 
 def get_midi_files(root_dir="data/groove", genre=None, signature="4-4"):
