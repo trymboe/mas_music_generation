@@ -68,6 +68,7 @@ if __name__ == "__main__":
 
     # Process the datasets
     notes_dataset, chords_dataset, drum_dataset = get_datasets()
+    print(drum_dataset.vocab)
 
     # Create the agents
     bass_agent, chord_agent, drum_agent = create_agents()
@@ -81,12 +82,12 @@ if __name__ == "__main__":
 
     # Play the agents
     play_agents(
-        notes_dataset,
-        chords_dataset,
-        bass_agent,
-        chord_agent,
+        chord_agent_tripple,
+        bass_agent_tripple,
+        drum_agent_tripple,
         arpeggiate,
         "results/bass_and_chord2.mid",
+        device,
     )
 
     plt.show()

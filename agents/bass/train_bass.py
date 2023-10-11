@@ -53,7 +53,7 @@ def train_bass(model: nn.Module, dataset: Dataset):
                 )
 
     plot_loss(loss_list)
-    torch.save(model.state_dict(), "models/bass/bass_model.pth")
+    torch.save(model.state_dict(), "models/bass/bass_model.pt")
 
 
 def plot_loss(loss_values):

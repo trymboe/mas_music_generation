@@ -77,7 +77,7 @@ EMB_INIT_RANGE_DRUM = 0.01  # Initialization std when init is uniform.
 
 
 ## Training ##
-MAX_STEP_DRUM = 6000  # Upper epoch limit
+MAX_STEP_DRUM = 10000  # Upper epoch limit
 ITERATIONS_DRUM = 200  # Number of iterations per repeat loop
 SAVE_STEPS_DRUM = 4000  # Number of steps for model checkpointing
 

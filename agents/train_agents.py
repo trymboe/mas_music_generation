@@ -23,26 +23,27 @@ def train_agents(bass_agent_tripple, chord_agent_tripple, drum_agent_tripple, de
         drum_agent_tripple[1],
         drum_agent_tripple[2],
     )
+    bass_agent.to(device)
+    chord_agent.to(device)
+    drum_agent.to(device)
 
     if not train_bass_agent:
-        bass_agent.load_state_dict(torch.load("models/bass/bass_model.pth"))
+        bass_agent.load_state_dict(torch.load("models/bass/bass_model.pt"))
         bass_agent.eval()
         bass_agent.to(device)
     else:
         train_bass(bass_agent, notes_dataset)
 
     if not train_chord_agent:
-        chord_agent.load_state_dict(torch.load("models/chord/chord_model.pth"))
+        chord_agent.load_state_dict(torch.load("models/chord/chord_model.pt"))
         chord_agent.eval()
         bass_agent.to(device)
     else:
         train_chord(chord_agent, chords_dataset)
 
     if not train_drum_agent:
-        drum_agent.load_state_dict(torch.load("models/drum/drum_model.pth"))
+        drum_agent.load_state_dict(torch.load("models/drum/drum_model.pt"))
         drum_agent.eval()
-        bass_agent.to(device)
+        drum_agent.to(device)
     else:
         train_drum(drum_agent, drum_dataset, device)
-
-    exit()

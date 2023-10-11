@@ -159,22 +159,13 @@ def train_drum(model: nn.Module, dataset: Dataset, device: torch.device):
                 eval_start_time = time.time()
 
             if train_step == MAX_STEP_DRUM:
-                with open(
+                torch.save(
+                    model.state_dict(),
                     os.path.join(
                         WORK_DIR,
                         "drum_model.pt",
                     ),
-                    "wb",
-                ) as f:
-                    torch.save(model, f)
-                with open(
-                    os.path.join(
-                        WORK_DIR,
-                        "optimizer.pt",
-                    ),
-                    "wb",
-                ) as f:
-                    torch.save(optimizer.state_dict(), f)
+                )
                 break
 
     def evaluate(eval_iter):
