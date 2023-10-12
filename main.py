@@ -68,17 +68,16 @@ if __name__ == "__main__":
 
     # Process the datasets
     notes_dataset, chords_dataset, drum_dataset = get_datasets()
-    print(drum_dataset.vocab)
 
+    bass_agent, chord_agent, drum_agent = create_agents(drum_dataset, device)
     # Create the agents
-    bass_agent, chord_agent, drum_agent = create_agents()
 
     bass_agent_tripple = (bass_agent, notes_dataset, train_bass)
     chord_agent_tripple = (chord_agent, chords_dataset, train_chord)
     drum_agent_tripple = (drum_agent, drum_dataset, train_drum)
 
     # Train the agents
-    train_agents(bass_agent_tripple, chord_agent_tripple, drum_agent_tripple, device)
+    # train_agents(bass_agent_tripple, chord_agent_tripple, drum_agent_tripple, device)
 
     # Play the agents
     play_agents(

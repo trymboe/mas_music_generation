@@ -1,0 +1,1311 @@
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-124914
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.57s | valid loss  3.21 | valid ppl    24.854
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 28.74 | loss  3.21 | ppl    24.778
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 25.97 | loss  3.20 | ppl    24.429
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 26.04 | loss  3.18 | ppl    24.003
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 25.97 | loss  3.16 | ppl    23.681
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 25.97 | loss  3.16 | ppl    23.632
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-125025
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.62s | valid loss  3.21 | valid ppl    24.749
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 30.63 | loss  3.21 | ppl    24.686
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 27.62 | loss  3.19 | ppl    24.312
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 27.56 | loss  3.17 | ppl    23.872
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 27.80 | loss  3.16 | ppl    23.553
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 27.74 | loss  3.16 | ppl    23.544
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-125633
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.59s | valid loss  3.21 | valid ppl    24.772
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 29.20 | loss  3.21 | ppl    24.709
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 26.28 | loss  3.19 | ppl    24.351
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 26.39 | loss  3.18 | ppl    23.937
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 26.43 | loss  3.16 | ppl    23.652
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 26.41 | loss  3.16 | ppl    23.638
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-125936
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.54s | valid loss  3.21 | valid ppl    24.747
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 29.07 | loss  3.20 | ppl    24.644
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 26.79 | loss  3.19 | ppl    24.313
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 28.15 | loss  3.17 | ppl    23.887
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 26.67 | loss  3.16 | ppl    23.532
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 26.89 | loss  3.15 | ppl    23.443
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-130104
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.58s | valid loss  3.21 | valid ppl    24.744
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 30.30 | loss  3.20 | ppl    24.621
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 27.43 | loss  3.19 | ppl    24.219
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 27.32 | loss  3.17 | ppl    23.800
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 27.28 | loss  3.15 | ppl    23.341
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 27.43 | loss  3.14 | ppl    23.120
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-130251
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.56s | valid loss  3.21 | valid ppl    24.734
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 29.31 | loss  3.20 | ppl    24.605
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 26.70 | loss  3.19 | ppl    24.182
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 26.87 | loss  3.16 | ppl    23.662
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 26.71 | loss  3.15 | ppl    23.334
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 26.66 | loss  3.15 | ppl    23.336
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-131041
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.55s | valid loss  3.21 | valid ppl    24.796
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 29.44 | loss  3.21 | ppl    24.710
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 27.07 | loss  3.19 | ppl    24.354
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 26.95 | loss  3.18 | ppl    23.949
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 26.99 | loss  3.16 | ppl    23.686
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 27.23 | loss  3.16 | ppl    23.540
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-131345
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.58s | valid loss  3.21 | valid ppl    24.739
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 28.40 | loss  3.21 | ppl    24.662
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 25.61 | loss  3.19 | ppl    24.320
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 25.73 | loss  3.18 | ppl    23.937
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 25.58 | loss  3.16 | ppl    23.542
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 25.64 | loss  3.15 | ppl    23.393
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-131444
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.54s | valid loss  3.21 | valid ppl    24.794
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 28.24 | loss  3.21 | ppl    24.719
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 25.62 | loss  3.19 | ppl    24.328
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 25.80 | loss  3.17 | ppl    23.842
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 25.65 | loss  3.16 | ppl    23.602
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 26.06 | loss  3.16 | ppl    23.476
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-131542
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.53s | valid loss  3.21 | valid ppl    24.888
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 27.80 | loss  3.21 | ppl    24.806
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 25.35 | loss  3.20 | ppl    24.515
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 25.42 | loss  3.18 | ppl    24.167
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 25.49 | loss  3.17 | ppl    23.885
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 25.52 | loss  3.17 | ppl    23.778
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-131652
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.53s | valid loss  3.21 | valid ppl    24.833
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 28.38 | loss  3.21 | ppl    24.802
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 25.85 | loss  3.20 | ppl    24.497
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 25.75 | loss  3.18 | ppl    24.120
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 25.81 | loss  3.17 | ppl    23.842
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 26.34 | loss  3.17 | ppl    23.812
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-131912
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.56s | valid loss  3.21 | valid ppl    24.849
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 29.21 | loss  3.21 | ppl    24.792
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 26.05 | loss  3.20 | ppl    24.520
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 25.75 | loss  3.18 | ppl    24.006
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 25.80 | loss  3.17 | ppl    23.716
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 25.73 | loss  3.16 | ppl    23.587
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+| End of training | test loss  3.16 | test ppl    23.484
+====================================================================================================
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-141451
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.54s | valid loss  3.21 | valid ppl    24.792
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 27.63 | loss  3.21 | ppl    24.676
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 25.06 | loss  3.19 | ppl    24.302
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 25.00 | loss  3.17 | ppl    23.905
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 24.99 | loss  3.16 | ppl    23.528
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 25.07 | loss  3.15 | ppl    23.414
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+| End of training | test loss  3.15 | test ppl    23.260
+====================================================================================================
+====================================================================================================
+    - num_core_per_host : 3
+    - cuda : True
+    - multi_gpu : True
+    - gpu0_bsz : -1
+    - data_dir : data/separate_velocity/groove/full-midionly/tfrecords
+    - record_info_dir : data/separate_velocity/groove/full-midionly/tfrecords/
+    - corpus_info_path : data/separate_velocity/groove/full-midionly/corpus-info.json
+    - model_dir : EXP-groove/full-midionly
+    - do_train : True
+    - do_eval : False
+    - eval_ckpt_path : None
+    - warm_start_path : None
+    - optim : adam
+    - learning_rate : 1e-05
+    - warmup_steps : 0
+    - clip : 0.25
+    - clip_nonemb : True
+    - min_lr_ratio : 0.004
+    - mom : 0
+    - scheduler : cosine
+    - decay_rate : 0.5
+    - lr_min : 0.0
+    - eta_min : 0
+    - static-loss-scale : True
+    - dynamic-loss-scale : True
+    - max_step : 1000
+    - train_batch_size : 6
+    - eval_batch_size : 6
+    - iterations : 200
+    - save_steps : 4000
+    - do_test : False
+    - max_eval_steps : -1
+    - do_eval_only : False
+    - start_eval_steps : 10000
+    - eval_split : valid
+    - tgt_len : 128
+    - eval_tgt_len : 128
+    - mem_len : 16
+    - same_length : True
+    - clamp_len : -1
+    - n_layer : 4
+    - d_model : 16
+    - d_embed : 16
+    - n_head : 2
+    - d_head : 16
+    - d_inner : 64
+    - dropout : 0.2
+    - dropatt : 0.1
+    - not_tied : True
+    - pre_lnorm : True
+    - varlen : False
+    - attn_type : 0
+    - ext_len : 0
+    - batch_chunk : 1
+    - adaptive : True
+    - tie_weight : True
+    - div_val : 1
+    - proj_share_all_but_first : False
+    - proj_same_dim : True
+    - sample_softmax : -1
+    - patience : 0
+    - finetune_v2 : True
+    - finetune_v3 : True
+    - fp16 : False
+    - init : normal
+    - init_std : 0.02
+    - proj_init_std : 0.01
+    - init_range : 0.1
+    - emb_init : normal
+    - emb_init_range : 0.01
+    - log_interval : 200
+    - eval_interval : 4000
+    - work_dir : gpu_run-groove/full-midionly/20231012-141623
+    - restart : False
+    - restart_dir : 
+    - debug : False
+    - n_token : 25
+    - n_all_param : 19497
+    - n_nonemb_param : 19008
+====================================================================================================
+#params = 19497
+#non emb params = 19008
+----------------------------------------------------------------------------------------------------
+| Eval   0 at step        1 | time:  0.58s | valid loss  3.21 | valid ppl    24.891
+----------------------------------------------------------------------------------------------------
+| epoch   1 step      200 |    200 batches | lr 9.05e-06 | ms/batch 30.11 | loss  3.21 | ppl    24.813
+| epoch   1 step      400 |    400 batches | lr 6.55e-06 | ms/batch 27.46 | loss  3.20 | ppl    24.460
+| epoch   1 step      600 |    600 batches | lr 3.45e-06 | ms/batch 27.44 | loss  3.18 | ppl    24.046
+| epoch   1 step      800 |    800 batches | lr 9.55e-07 | ms/batch 27.68 | loss  3.17 | ppl    23.757
+| epoch   1 step     1000 |   1000 batches | lr 0 | ms/batch 27.52 | loss  3.17 | ppl    23.693
+----------------------------------------------------------------------------------------------------
+End of training
+====================================================================================================
+| End of training | test loss  3.16 | test ppl    23.595
+====================================================================================================

@@ -5,10 +5,19 @@ import torch
 import note_seq as ns
 
 from agents import predict_next_k_notes_bass, predict_next_k_notes_chords
-
 from utils import get_full_bass_sequence
 
 from .utils import TxlSimpleSampler, tokens_to_note_sequence
+
+from bumblebeat.bumblebeat.utils.data import load_yaml
+from bumblebeat.bumblebeat.output.generate import (
+    load_model,
+    generate_sequences,
+    note_sequence_to_midi_file,
+    continue_sequence,
+)
+from bumblebeat.bumblebeat.data import get_corpus
+
 
 from config import INT_TO_TRIAD, K, MEM_LEN, DRUM_MAPPING, TIME_STEPS_VOCAB
 
@@ -71,19 +80,33 @@ def play_agents(
     mid.save(filename)
 
 
-def generate_drum(drum_agent, drum_dataset, device):
-    import random
+def generate_drum(drum_agent, corpus, device):
+    conf = load_yaml("bumblebeat/conf/train_conf.yaml")
 
-    # Generate a list of 119 random numbers between 1 and 24
-    random_numbers = [random.randint(1, 24) for _ in range(119)]
+    pitch_classes = load_yaml("bumblebeat/conf/drum_pitches.yaml")
+    time_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
 
-    # Add 0 as the first number
-    random_numbers.insert(0, 0)
-    seqs = [random_numbers]
+    model_conf = conf["model"]
+    data_conf = conf["data"]
 
-    pitch_classes: list[list[int]] = DRUM_MAPPING["DEFAULT_DRUM_TYPE_PITCHES"]
-    time_vocab = TIME_STEPS_VOCAB
-    pitch_vocab = drum_dataset.reverse_vocab
+    pitch_vocab = corpus.reverse_vocab
+    velocity_vocab = {v: k for k, v in corpus.vel_vocab.items()}
+
+    path = "models/drum/drum_model.pt"
+    model = load_model(path, device)
+
+    corpus = get_corpus(
+        data_conf["dataset"],
+        data_conf["data_dir"],
+        pitch_classes["DEFAULT_DRUM_TYPE_PITCHES"],
+        time_vocab,
+        conf["processing"],
+    )
+
+    USE_CUDA = False
+    mem_len = MEM_LEN
+    gen_len = 120
+    same_len = True
 
     hat_prime = [
         95,
@@ -168,79 +191,60 @@ def generate_drum(drum_agent, drum_dataset, device):
     ]
     simplified_pitches = [[36], [38], [42], [46], [45], [48], [50], [49], [51]]
 
-    # seqs = generate_sequences_drum(
-    #     model=drum_agent,
-    #     num=1,
-    #     gen_len=120,
-    #     mem_len=MEM_LEN,
-    #     device=device,
-    #     temp=0.95,
-    #     topk=5,
-    # )
-    print(seqs)
+    print(corpus.train)
+    exit()
 
-    for i, s in enumerate(seqs):
+    random_sequence = random.choice(
+        [x for x in corpus.train if x["style"]["primary"] == 7]
+    )
+
+    for i in [4, 8, 16]:
+        if i:
+            # To midi note sequence using magent
+            dev_sequence = corpus._quantize(
+                ns.midi_to_note_sequence(random_sequence["midi"]), i
+            )
+            quantize = True
+        else:
+            dev_sequence = ns.midi_to_note_sequence(random_sequence["midi"])
+            quantize = False
+
+        # note sequence -> [(pitch, vel_bucket, start timestep)]
+        in_tokens = corpus._tokenize(dev_sequence, i, quantize)
         note_sequence = tokens_to_note_sequence(
-            s[1:],
+            in_tokens,
             pitch_vocab,
             simplified_pitches,
-            drum_dataset.vel_vocab,
+            velocity_vocab,
             time_vocab,
-            143.99988480009216,
+            random_sequence["bpm"],
         )
-
         note_sequence_to_midi_file(
-            note_sequence, f"sound_examples/experiments/seperate_velocities_l_{i}.midi"
+            note_sequence, f"sound_examples/experiments/original_quantize={i}.midi"
         )
 
+    out_tokens = continue_sequence(
+        model,
+        seq=in_tokens[-1000:],
+        prime_len=512,
+        gen_len=gen_len,
+        mem_len=mem_len,
+        device=device,
+        temp=0.95,
+        topk=32,
+    )
 
-def note_sequence_to_midi_file(note_sequence, path):
-    """
-    Save <note_sequence> to .midi file at <path>
-    """
-    ns.sequence_proto_to_midi_file(note_sequence, path)
-
-
-def generate_sequences_drum(model, num, gen_len, mem_len, device, temp, topk=None):
-    """
-    Generate samples of len <gen_len> using pretrained transformer <model>
-
-    Param
-    =====
-    model:
-        Trained transformer model
-    num: int
-        Number of sequences to generate
-    gen_len: int
-        How many tokens to generate
-    mem_len: int
-        memory length of model
-    device: torch device
-        cpu or gpu
-    temp: float
-        Between 0 and 1.
-        1 samples from model prob dist
-        0 always takes most likely
-    topk: n
-        k for topk sampling
-
-    Return
-    ======
-    Accompanying tokenised sequence (needs to be joined to original using join_sequences())
-    """
-    all_seqs = []
-    # Generate sequences of specified length and number
-    for i in range(num):
-        sampler = TxlSimpleSampler(model, device, mem_len=mem_len)
-        seq = [0]
-        for _ in range(gen_len):
-            token, _ = sampler.sample_next_token_updating_mem(
-                seq[-1], temp=temp, topk=topk
-            )
-            seq.append(token)
-        all_seqs.append(seq)
-
-    return all_seqs
+    note_sequence = tokens_to_note_sequence(
+        out_tokens,
+        pitch_vocab,
+        simplified_pitches,
+        4,
+        time_vocab,
+        random_sequence["bpm"],
+    )
+    note_sequence_to_midi_file(
+        note_sequence, f"sound_examples/experiments/continued.midi"
+    )
 
 
 def get_timed_chord_sequence(full_chord_sequence, full_bass_sequence):
