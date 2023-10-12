@@ -42,23 +42,24 @@ from config import (
 )
 
 
-def create_agents(drum_dataset, device):
+def create_agents(drum_dataset, device, train_drum):
     bass_agent = create_bass_agent()
     chord_agent = create_chord_agent()
-    drum_agent = create_drum_agent(drum_dataset, device)
+    drum_agent = create_drum_agent(drum_dataset, device, train_drum)
 
     return bass_agent, chord_agent, drum_agent
 
 
-def create_drum_agent(drum_dataset, device):
+def create_drum_agent(drum_dataset, device, train_drum):
     conf = load_yaml("bumblebeat/conf/train_conf.yaml")
 
     pitch_classes_yaml = load_yaml("bumblebeat/conf/drum_pitches.yaml")
     pitch_classes = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
     time_steps_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
-    model = torch.load(WORK_DIR + "/drum_model.pt")
-    return model
-    model = model_main(conf, pitch_classes, time_steps_vocab, device)
+    if train_drum:
+        model = model_main(conf, pitch_classes, time_steps_vocab, device)
+    else:
+        model = torch.load(WORK_DIR + "/drum_model.pt")
     return model
 
 

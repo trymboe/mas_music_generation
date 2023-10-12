@@ -69,7 +69,9 @@ if __name__ == "__main__":
     # Process the datasets
     notes_dataset, chords_dataset, drum_dataset = get_datasets()
 
-    bass_agent, chord_agent, drum_agent = create_agents(drum_dataset, device)
+    bass_agent, chord_agent, drum_agent = create_agents(
+        drum_dataset, device, train_drum
+    )
     # Create the agents
 
     bass_agent_tripple = (bass_agent, notes_dataset, train_bass)
