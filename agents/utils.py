@@ -129,6 +129,7 @@ def tokens_to_note_sequence(
     music_pb2.NoteSequence
     """
     # Token to mark separation between samples
+
     time_tokens = list(time_vocab.values())
     reverse_time_vocab = {v: k for k, v in time_vocab.items()}
 
@@ -154,7 +155,11 @@ def tokens_to_note_sequence(
             # velocity always follows pitch
             if i == len(tokens) - 1:
                 break
-            vel_bucket = velocity_vocab[tokens[i + 1]]
+
+            try:
+                vel_bucket = velocity_vocab[tokens[i + 1]]
+            except KeyError:
+                vel_bucket = velocity_vocab[11]
             vel = generate_velocity_in_bucket(vel_bucket, n_vel_buckets)
 
             start_time = silence_ticks / ticks_per_second

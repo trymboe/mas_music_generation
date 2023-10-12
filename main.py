@@ -77,7 +77,7 @@ if __name__ == "__main__":
     drum_agent_tripple = (drum_agent, drum_dataset, train_drum)
 
     # Train the agents
-    # train_agents(bass_agent_tripple, chord_agent_tripple, drum_agent_tripple, device)
+    train_agents(bass_agent_tripple, chord_agent_tripple, drum_agent_tripple, device)
 
     # Play the agents
     play_agents(

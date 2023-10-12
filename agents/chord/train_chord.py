@@ -46,7 +46,7 @@ def train_chord(model: nn.Module, dataset: Dataset):
                 )
 
     plot_loss(loss_list)
-    torch.save(model.state_dict(), "models/chords/chord_model.pt")
+    torch.save(model.state_dict(), "models/chord/chord_model.pt")
 
 
 def plot_loss(loss_values):

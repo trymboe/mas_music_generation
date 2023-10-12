@@ -54,12 +54,11 @@ def create_drum_agent(drum_dataset, device):
     conf = load_yaml("bumblebeat/conf/train_conf.yaml")
 
     pitch_classes_yaml = load_yaml("bumblebeat/conf/drum_pitches.yaml")
-    print(pitch_classes_yaml)
     pitch_classes = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
     time_steps_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
     model = torch.load(WORK_DIR + "/drum_model.pt")
     return model
-    model = model_main(conf, pitch_classes, time_steps_vocab, drum_dataset, device)
+    model = model_main(conf, pitch_classes, time_steps_vocab, device)
     return model
 
 

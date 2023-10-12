@@ -1,4 +1,5 @@
 from mido import MidiFile, MidiTrack, Message
+import pretty_midi
 
 
 def play_chord(
@@ -12,42 +13,88 @@ def play_chord(
     return mid
 
 
-def play_chord_hold(
-    mid: MidiFile, chord_sequence: list[tuple[list[int], int]]
-) -> MidiFile:
-    # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
+def play_chord_hold(pretty_midi_obj, chord_sequence):
+    # Assuming the mapping starts from C4 (MIDI note number 60) for the chord notes
     note_mapping = {i: 60 + i for i in range(24)}
 
-    track = MidiTrack()
+    # Create a new Instrument instance for an Acoustic Grand Piano
+    piano_instrument = pretty_midi.Instrument(program=0)  # 0: Acoustic Grand Piano
 
-    # Set instrument to Acoustic Grand Piano on channel 1
-    track.append(Message("program_change", program=0, channel=1, time=0))
+    current_time = 0.0  # Initialize a variable to keep track of time
 
-    # Add chord chords to the track
+    # Add chords to the piano_instrument
     for chord, duration in chord_sequence:
-        # Iterate through each note in the chord
+        # Create a Note instance for each note in the chord
         for note in chord:
             midi_note = note_mapping[note]
-            track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-
-        # Note off after the specified number of beats
-        ticks_per_beat = 480
-        time_offset = ticks_per_beat * duration
-        for note in chord:
-            midi_note = note_mapping[note]
-            track.append(
-                Message(
-                    "note_off",
-                    note=midi_note,
-                    velocity=64,
-                    time=time_offset,
-                )
+            piano_note = pretty_midi.Note(
+                velocity=64,  # volume
+                pitch=midi_note,  # MIDI note number
+                start=current_time,  # start time
+                end=current_time + duration,  # end time
             )
-            # Reset time offset for subsequent notes in the same chord
-            time_offset = 0
+            # Add note to the piano_instrument
+            piano_instrument.notes.append(piano_note)
 
-    mid.tracks.append(track)  # Append track to the MIDI file after populating it
-    return mid
+        # Move the current time cursor
+        current_time += duration
+
+    # Add the piano_instrument to the PrettyMIDI object
+    pretty_midi_obj.instruments.append(piano_instrument)
+
+    return pretty_midi_obj
+
+
+# Example usage
+# Create a PrettyMIDI object
+pm = pretty_midi.PrettyMIDI()
+
+# Example chord sequence: [([note_1, note_2, ...], duration), (...), ...]
+example_sequence = [([0, 4, 7], 1.5), ([2, 5, 9], 1.5), ([1, 4, 8], 1.5)]
+
+# Use the function
+pm = play_chord_hold(pm, example_sequence)
+
+# Save MIDI file
+pm.write("example_chords.mid")
+
+
+# def play_chord_hold(
+#     mid: MidiFile, chord_sequence: list[tuple[list[int], int]]
+# ) -> MidiFile:
+#     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
+#     note_mapping = {i: 60 + i for i in range(24)}
+
+#     track = MidiTrack()
+
+#     # Set instrument to Acoustic Grand Piano on channel 1
+#     track.append(Message("program_change", program=0, channel=1, time=0))
+
+#     # Add chord chords to the track
+#     for chord, duration in chord_sequence:
+#         # Iterate through each note in the chord
+#         for note in chord:
+#             midi_note = note_mapping[note]
+#             track.append(Message("note_on", note=midi_note, velocity=64, time=0))
+
+#         # Note off after the specified number of beats
+#         ticks_per_beat = 480
+#         time_offset = ticks_per_beat * duration
+#         for note in chord:
+#             midi_note = note_mapping[note]
+#             track.append(
+#                 Message(
+#                     "note_off",
+#                     note=midi_note,
+#                     velocity=64,
+#                     time=time_offset,
+#                 )
+#             )
+#             # Reset time offset for subsequent notes in the same chord
+#             time_offset = 0
+
+#     mid.tracks.append(track)  # Append track to the MIDI file after populating it
+#     return mid
 
 
 def play_chord_arpeggiate(mid, chord_sequence):

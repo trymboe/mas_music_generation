@@ -36,5 +36,4 @@ def predict_next_k_notes_chords(model, input_sequence):
         predicted_chord_types.append(
             (input_sequence[0, i, 0].item(), input_sequence[0, i, 1].item())
         )
-
     return predicted_chord_types
