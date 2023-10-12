@@ -9,6 +9,8 @@ from bumblebeat.bumblebeat.output.generate import (
 )
 from bumblebeat.bumblebeat.data import get_corpus
 
+import random
+
 import note_seq as ns
 
 from config import MEM_LEN
@@ -126,7 +128,7 @@ def play_drum(device):
     simplified_pitches = [[36], [38], [42], [46], [45], [48], [50], [49], [51]]
 
     random_sequence = random.choice(
-        [x for x in corpus.train_data if x["style"]["primary"] == 4]
+        [x for x in corpus.train_data if x["style"]["primary"] == 7]
     )
 
     for i in [4, 8, 16]:

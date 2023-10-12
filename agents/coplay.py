@@ -1,5 +1,6 @@
 from .bass import play_bass
 from .chord import play_chord
+from .drum import play_drum
 import random
 import torch
 
