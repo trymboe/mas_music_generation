@@ -41,7 +41,7 @@ def play_drum(device):
 
     USE_CUDA = False
     mem_len = MEM_LEN
-    gen_len = 120
+    gen_len = 2000
     same_len = True
 
     hat_prime = [
@@ -127,6 +127,31 @@ def play_drum(device):
     ]
     simplified_pitches = [[36], [38], [42], [46], [45], [48], [50], [49], [51]]
 
+    seqs = generate_sequences(
+        model,
+        num=1,
+        gen_len=gen_len,
+        mem_len=mem_len,
+        device=device,
+        temp=0.95,
+        topk=None,
+    )
+    for i, s in enumerate(seqs):
+        note_sequence = tokens_to_note_sequence(
+            s[1:],
+            pitch_vocab,
+            simplified_pitches,
+            velocity_vocab,
+            time_vocab,
+            120,
+        )
+
+    pm = ns.note_sequence_to_pretty_midi(note_sequence)
+    note_sequence_to_midi_file(note_sequence, f"results/drum/quantisize={i}.midi")
+    return pm
+
+    """
+
     random_sequence = random.choice(
         [x for x in corpus.train_data if x["style"]["primary"] == 7]
     )
@@ -153,27 +178,23 @@ def play_drum(device):
             120,
         )
 
-        out_tokens = continue_sequence(
-            model,
-            seq=in_tokens[-1000:],
-            prime_len=512,
-            gen_len=gen_len,
-            mem_len=mem_len,
-            device=device,
-            temp=0.95,
-            topk=None,
-        )
+    out_tokens = continue_sequence(
+        model,
+        seq=in_tokens[-1000:],
+        prime_len=512,
+        gen_len=gen_len,
+        mem_len=mem_len,
+        device=device,
+        temp=0.95,
+        topk=None,
+    )
 
-        note_sequence = tokens_to_note_sequence(
-            out_tokens,
-            pitch_vocab,
-            simplified_pitches,
-            velocity_vocab,
-            time_vocab,
-            120,
-        )
-
-        pm = ns.note_sequence_to_pretty_midi(note_sequence)
-        note_sequence_to_midi_file(note_sequence, f"results/drum/quantisize={i}.midi")
-
-        return pm
+    note_sequence = tokens_to_note_sequence(
+        out_tokens,
+        pitch_vocab,
+        simplified_pitches,
+        velocity_vocab,
+        time_vocab,
+        120,
+    )
+    """
