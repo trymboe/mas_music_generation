@@ -1,0 +1,39 @@
+# wrap up mmodel code
+
+# Experiment with quantization and velocity
+
+# join sequences from accompany
+
+# evaluation
+- log-> chart
+- perplexity
+
+# Generate examples
+
+# Similarity plots
+
+
+# Next steps Lakhnes
+# Next steps listener tests
+# Next steps velocity experimentation
+
+
+
+# boilerplate for generate (file->file)
+
+# Model CLI
+
+# Pre train on lakh
+
+# Listening test  
+
+# README
+
+
+
+
+
+# Ge rid of these errors
+/opt/conda/conda-bld/pytorch_1587428091666/work/aten/src/ATen/native/cuda/LegacyDefinitions.cpp:19: UserWarning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead.
+
+Warning: masked_fill_ received a mask with dtype torch.uint8, this behavior is now deprecated,please use a mask with dtype torch.bool instead. (masked_fill__cuda at /opt/conda/conda-bld/pytorch_1587428091666/work/aten/src/ATen/native/cuda/LegacyDefinitions.cpp:19)
