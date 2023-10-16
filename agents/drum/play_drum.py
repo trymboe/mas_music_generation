@@ -25,7 +25,9 @@ def play_drum(device):
     model_conf = conf["model"]
     data_conf = conf["data"]
 
-    path = "models/drum/drum_model.pt"
+    # path = "models/drum/drum_model.pt"
+    path = "models/drum/train_step_5000/model.pt"
+
     model = load_model(path, device)
 
     corpus = get_corpus(
@@ -40,7 +42,7 @@ def play_drum(device):
     velocity_vocab = {v: k for k, v in corpus.vel_vocab.items()}
 
     USE_CUDA = False
-    mem_len = MEM_LEN
+    mem_len = model_conf["mem_len"]
     gen_len = 2000
     same_len = True
 
@@ -133,8 +135,8 @@ def play_drum(device):
         gen_len=gen_len,
         mem_len=mem_len,
         device=device,
-        temp=0.95,
-        topk=None,
+        temp=1,
+        topk=5,
     )
     for i, s in enumerate(seqs):
         note_sequence = tokens_to_note_sequence(
