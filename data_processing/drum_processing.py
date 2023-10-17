@@ -16,7 +16,6 @@ def get_drum_dataset():
     pitch_classes = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
     time_steps_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
 
-    # ARGS in future
     dataset_name = data_conf["dataset"]
     data_dir = data_conf["data_dir"]
 
@@ -26,17 +25,6 @@ def get_drum_dataset():
         dataset_name, data_dir, pitch_classes, time_steps_vocab, conf["processing"]
     )
 
-    """pitch_classes: list[list[int]] = params_drum.DRUM_MAPPING[
-        "DEFAULT_DRUM_TYPE_PITCHES"
-    ]
-    time_steps_vocab: dict[int:int] = params_drum.TIME_STEPS_VOCAB
-
-    midi_files = get_midi_files(genre=GENRE)
-
-    drum_dataset = Drum_Dataset(midi_files, pitch_classes, time_steps_vocab)
-
-    VOCAB_SIZE_DRUM = drum_dataset.vocab_size
-    """
     return drum_dataset
 
 

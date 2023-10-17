@@ -20,7 +20,7 @@ from bumblebeat.bumblebeat.data import get_corpus
 from config import WORK_DIR
 
 
-def model_main(conf, pitch_classes, time_steps_vocab, device):
+def model_main(conf, device, corpus):
     """
     Run model pipeline from setup specified in <conf>
 
@@ -79,14 +79,6 @@ def model_main(conf, pitch_classes, time_steps_vocab, device):
     ###############################################################################
     # Load data
     ###############################################################################
-
-    corpus = get_corpus(
-        data_conf["dataset"],
-        data_conf["data_dir"],
-        pitch_classes,
-        time_steps_vocab,
-        conf["processing"],
-    )
 
     ntokens = corpus.vocab_size
     model_conf["n_token"] = ntokens
