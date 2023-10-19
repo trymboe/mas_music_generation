@@ -868,7 +868,7 @@ class MemTransformerLM(nn.Module):
             pred_hid.view(-1, pred_hid.size(-1)),
             self.crit.out_layers[0].weight,
             self.crit.out_layers[0].bias,
-            self.crit.out_projs[0],
+            None,
         )
         logits = logits.view(tgt_len, batch_size, -1)
 
