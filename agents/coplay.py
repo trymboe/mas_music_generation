@@ -9,7 +9,7 @@ from agents import predict_next_k_notes_bass, predict_next_k_notes_chords
 from utils import get_full_bass_sequence
 
 
-from config import INT_TO_TRIAD, K, MEM_LEN, DRUM_MAPPING, TIME_STEPS_VOCAB
+from config import INT_TO_TRIAD, LENGTH, LOOP_MEASURES
 
 
 def play_agents(
@@ -35,14 +35,13 @@ def play_agents(
         drum_agent_tripple[1],
         drum_agent_tripple[2],
     )
-    # Generate Drums
 
     part_of_dataset = random.randint(0, len(notes_dataset) - 1)
 
     bass_primer_sequence = get_primer_sequence(notes_dataset, part_of_dataset)
 
     predicted_bass_sequence = predict_next_k_notes_bass(
-        bass_agent, bass_primer_sequence, K
+        bass_agent, bass_primer_sequence, LENGTH
     )
 
     full_bass_sequence = get_full_bass_sequence(
@@ -50,7 +49,7 @@ def play_agents(
     )
 
     chord_input_sequence = get_input_sequence_chords(
-        full_bass_sequence, chords_dataset, part_of_dataset, K
+        full_bass_sequence, chords_dataset, part_of_dataset
     )
 
     full_chord_sequence = predict_next_k_notes_chords(chord_agent, chord_input_sequence)
@@ -59,7 +58,9 @@ def play_agents(
         full_chord_sequence, full_bass_sequence
     )
 
-    mid = play_drum(device)
+    mid = play_drum(
+        device, measures=LOOP_MEASURES, loops=int(LENGTH / LOOP_MEASURES), style=14
+    )
 
     mid = play_bass(mid, full_bass_sequence)
 
@@ -84,7 +85,7 @@ def get_timed_chord_sequence(full_chord_sequence, full_bass_sequence):
     return full_chord_timed
 
 
-def get_input_sequence_chords(full_bass_sequence, chords_dataset, part_of_dataset, k):
+def get_input_sequence_chords(full_bass_sequence, chords_dataset, part_of_dataset):
     # Extract the corresponding chord sequence from the dataset
     actual_chord_sequence = chords_dataset[part_of_dataset][0]
     # Extract only the root notes from the full_bass_sequence

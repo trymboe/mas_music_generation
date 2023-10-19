@@ -25,6 +25,8 @@ DRUM_MAPPING = {
 
 TIME_STEPS_VOCAB = {1: 1, 10: 2, 100: 3, 1000: 4, 10000: 5}
 
+LOOP_MEASURES = 2
+
 # Data processing
 GENRE = "rock"
 QUANTIZE = True

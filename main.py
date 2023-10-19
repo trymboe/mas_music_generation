@@ -87,7 +87,7 @@ if __name__ == "__main__":
         bass_agent_tripple,
         drum_agent_tripple,
         arpeggiate,
-        "results/bass_and_chord2.mid",
+        "results/drum_bass_chord.mid",
         device,
     )
 
