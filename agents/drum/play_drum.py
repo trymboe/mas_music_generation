@@ -185,22 +185,40 @@ def play_drum_from_style(device, measures, loops, style):
     velocity_vocab = {v: k for k, v in corpus.vel_vocab.items()}
 
     mem_len = model_conf["mem_len"]
+    primer_length = 256
     gen_len = 256
 
     simplified_pitches = [[36], [38], [42], [46], [45], [48], [50], [49], [51]]
 
-    random_sequence = random.choice(
-        [x for x in corpus.train_data if x["style"]["primary"] == style]
-    )
+    attempt = 0
+    while True:
+        attempt += 1
+        if attempt == 100:
+            print(f"Could not find a sequence long enough for {style}, default to {7}")
+            style = 7
+        random_sequence = random.choice(
+            [x for x in corpus.train_data if x["style"]["primary"] == style]
+        )
 
-    # To midi note sequence using magent
-    dev_sequence = corpus._quantize(
-        ns.midi_to_note_sequence(random_sequence["midi"]), 4
-    )
-    quantize = True
+        dev_sequence = corpus._quantize(
+            ns.midi_to_note_sequence(random_sequence["midi"]), 4
+        )
 
-    # note sequence -> [(pitch, vel_bucket, start timestep)]
-    in_tokens = corpus._tokenize(dev_sequence, 4, quantize)
+        quantize = True
+        in_tokens = corpus._tokenize(dev_sequence, 4, quantize)
+
+        if attempt == 100:
+            break
+
+    # # To midi note sequence using magent
+    # dev_sequence = corpus._quantize(
+    #     ns.midi_to_note_sequence(random_sequence["midi"]), 4
+    # )
+    # quantize = True
+
+    # # note sequence -> [(pitch, vel_bucket, start timestep)]
+    # in_tokens = corpus._tokenize(dev_sequence, 4, quantize)
+
     note_sequence = tokens_to_note_sequence(
         in_tokens,
         pitch_vocab,
@@ -212,8 +230,8 @@ def play_drum_from_style(device, measures, loops, style):
 
     out_tokens = continue_sequence(
         model,
-        seq=in_tokens[-256:],
-        prime_len=255,
+        seq=in_tokens[-primer_length:],
+        prime_len=primer_length - 1,
         gen_len=gen_len,
         mem_len=gen_len,
         device=device,
