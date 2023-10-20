@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def predict_next_k_notes_bass(model, initial_sequence, length):
+def predict_next_k_notes_bass(model, initial_sequence, length) -> list[int, int]:
     predicted_notes_durations = []
 
     note_sequence, duration_sequence = initial_sequence
@@ -29,19 +29,17 @@ def predict_next_k_notes_bass(model, initial_sequence, length):
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
 
-            predicted_notes_durations.append(
-                (next_note.item(), next_duration.item() / 2)
-            )
-            running_length += next_duration.item() / 2
+            # Stop if the sequence length exceeds the specified length
+            if running_length + next_duration > length * 2:
+                # Add the last note/duration
+                predicted_notes_durations.append((0, length * 2 - running_length))
+                return predicted_notes_durations
+
+            predicted_notes_durations.append((next_note.item(), next_duration.item()))
+            running_length += next_duration.item()
 
             # Use sliding window method: drop the first note/duration, append the predicted note/duration
             note_sequence = torch.cat([note_sequence[:, 1:], next_note], dim=1)
             duration_sequence = torch.cat(
                 [duration_sequence[:, 1:], next_duration], dim=1
             )
-
-            # Stop if the sequence length exceeds the specified length
-            if running_length >= length:
-                break
-
-    return predicted_notes_durations

@@ -44,25 +44,25 @@ def play_agents(
         bass_agent, bass_primer_sequence, LENGTH
     )
 
-    full_bass_sequence = get_full_bass_sequence(
-        bass_primer_sequence, predicted_bass_sequence
-    )
+    # full_bass_sequence = get_full_bass_sequence(
+    #     bass_primer_sequence, predicted_bass_sequence
+    # )
 
     chord_input_sequence = get_input_sequence_chords(
-        full_bass_sequence, chords_dataset, part_of_dataset
+        predicted_bass_sequence, chords_dataset, part_of_dataset
     )
 
     full_chord_sequence = predict_next_k_notes_chords(chord_agent, chord_input_sequence)
 
     timed_chord_sequence = get_timed_chord_sequence(
-        full_chord_sequence, full_bass_sequence
+        full_chord_sequence, predicted_bass_sequence
     )
 
     mid = play_drum(
-        device, measures=LOOP_MEASURES, loops=int(LENGTH / LOOP_MEASURES), style=14
+        device, measures=LOOP_MEASURES, loops=int(LENGTH / LOOP_MEASURES), style=3
     )
 
-    mid = play_bass(mid, full_bass_sequence)
+    mid = play_bass(mid, predicted_bass_sequence)
 
     mid = play_chord(mid, timed_chord_sequence, arpeggiate)
 
