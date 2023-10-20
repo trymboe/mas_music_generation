@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import argparse
 import torch
+import numpy as np
 
 from agents import (
     create_agents,

@@ -1,39 +1,9 @@
 import pretty_midi
 
-# def play_bass(mid, full_bass_sequence):
-#     # Mapping from sequence numbers to MIDI note numbers
-#     # Starting from C1 (MIDI note number 24)
-#     note_mapping = {i: 24 + i for i in range(12)}
-
-#     # Create a new MIDI file with a single track
-
-#     track = MidiTrack()
-#     mid.tracks.append(track)
-
-#     # Set instrument to Bass Guitar (Electric Bass)
-#     track.append(Message("program_change", program=33, time=0))
-
-#     # Add bass notes to the track
-#     for note, duration in full_bass_sequence:
-#         midi_note = note_mapping[note]
-#         # Note on
-#         track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-#         # Note off after the specified number of beats
-#         # Assuming 480 ticks per beat
-#         ticks_per_beat = 480
-#         track.append(
-#             Message(
-#                 "note_off", note=midi_note, velocity=64, time=ticks_per_beat * duration
-#             )
-#         )
-
-#     return mid
-
 
 def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
     if playstyle == "bass_drum":
         bass_drum_times = find_bass_drum(mid)
-        print(bass_drum_times)
 
     # Mapping from sequence numbers to MIDI note numbers
     # Starting from C1 (MIDI note number 24)
@@ -55,7 +25,7 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
                     chord_start_time += duration
                     break
                 # the beat is inside the current chord, play notes
-                if drum_beat > chord_start_time:
+                if drum_beat >= chord_start_time:
                     # If it is the first beat of the chord, and no note is planed, play a bass note
                     if (
                         running_time == chord_start_time
@@ -128,7 +98,7 @@ def play_note(
     bass_instrument.notes.append(bass_note)
 
 
-def find_bass_drum(pm: pretty_midi.PrettyMIDI):
+def find_bass_drum(pm: pretty_midi.PrettyMIDI) -> list[float]:
     """
     Find every time step where the bass drum is played in a given PrettyMIDI object.
 

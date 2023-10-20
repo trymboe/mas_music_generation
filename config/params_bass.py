@@ -2,12 +2,12 @@
 SEQUENCE_LENGTH_BASS = 8
 NOTE_VOCAB_SIZE_BASS = 12
 DURATION_VOCAB_SIZE_BASS = 9
-EMBED_SIZE_BASS = 64  # Embedding size
-NHEAD_BASS = 2  # Number of self-attention heads
-NUM_LAYERS_BASS = 2  # Number of transformer layers
-NUM_EPOCHS_BASS = 2  # Number of epochs
+EMBED_SIZE_BASS = 128  # Embedding size
+NHEAD_BASS = 4  # Number of self-attention heads
+NUM_LAYERS_BASS = 4  # Number of transformer layers
+NUM_EPOCHS_BASS = 8  # Number of epochs
 BATCH_SIZE_BASS = 8
-LEARNING_RATE_BASS = 0.001
+LEARNING_RATE_BASS = 0.00001
 
 
 # Mappings

@@ -47,8 +47,4 @@ def get_full_bass_sequence(primer_sequence, predicted_sequence):
     for i in range(len(note_sequence) - 1, -1, -1):
         full_sequence.insert(0, (note_sequence[i], duration_sequence[i]))
 
-    # Add C as the last note for a finished sequence
-    if full_sequence[-1][0] != 0:
-        full_sequence.append([0, 8])
-
     return full_sequence

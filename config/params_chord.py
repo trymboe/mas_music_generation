@@ -1,13 +1,13 @@
 # Hyperparameters
-SEQUENCE_LENGTH_CHORD = 4
+SEQUENCE_LENGTH_CHORD = 8
 ROOT_VOAB_SIZE_CHORD = 12  # Number of root notes
 CHORD_VOCAB_SIZE_CHORD = 7  # Number of chords variations
-EMBED_SIZE_CHORD = 64  # Embedding size
-NHEAD_CHORD = 2  # Number of self-attention heads
-NUM_LAYERS_CHORD = 3  # Number of transformer layers
-NUM_EPOCHS_CHORD = 5  # Number of epochs
+EMBED_SIZE_CHORD = 128  # Embedding size
+NHEAD_CHORD = 4  # Number of self-attention heads
+NUM_LAYERS_CHORD = 4  # Number of transformer layers
+NUM_EPOCHS_CHORD = 4  # Number of epochs
 BATCH_SIZE_CHORD = 8
-LEARNING_RATE_CHORD = 0.001
+LEARNING_RATE_CHORD = 0.00001
 HIDDEN_SIZE_CHORD = 64
 
 # Mappings
