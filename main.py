@@ -43,25 +43,18 @@ parser.add_argument(
     help="Train the drum agent",
     default=False,
 )
-parser.add_argument(
-    "--non_mac", action="store_true", help="Train on non-M1 mac", default=False
-)
+
 
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    mac = not parser.parse_args().non_mac
     train_bass = parser.parse_args().train_bass
     train_chord = parser.parse_args().train_chord
     train_drum = parser.parse_args().train_drum
     arpeggiate = parser.parse_args().arpeggiate
 
-    if mac:
-        # for training on GPU for M1 mac
-        device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-    else:
-        # Set device to use
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # Set device to use
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Set the random seed manually for reproducibility.
     # np.random.seed(SEED)
