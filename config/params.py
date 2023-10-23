@@ -1,6 +1,6 @@
 NUMBER_OF_NOTES_FOR_TRAINING = 500  # 0 for all notes
-LENGTH = 200  # Number of measures to be generated
-TEMPO = 24
+LENGTH = 24  # Number of measures to be generated
+TEMPO = 120
 
 SEED = 42  # Random seed
 
