@@ -78,7 +78,10 @@ def get_timed_chord_sequence(full_chord_sequence, full_bass_sequence):
             (full_chord_sequence[idx][0], full_chord_sequence[idx][1], note[1])
         )
     for root, chord, duration in timed_chord_sequence:
-        full_chord = INT_TO_TRIAD[chord]
+        try:
+            full_chord = INT_TO_TRIAD[chord]
+        except KeyError:
+            full_chord = INT_TO_TRIAD[0]
         full_chord = [x + root for x in full_chord]
         full_chord_timed.append((full_chord, duration))
 
