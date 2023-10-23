@@ -92,14 +92,8 @@ def play_chord_arpeggiate(pm, chord_sequence):
         if remander:
             for part_druation in [1, 2, 3, 4, 5, 6]:
                 if remander == part_druation:
-                    print(start_time)
-                    print("remander", remander)
-                    print("note_duration", note_duration)
-
-                    num_notes = int(remander * note_duration * len(melodic_pattern))
-                    print("num_notes", num_notes)
+                    num_notes = int(remander / note_duration)
                     pattern_slice = melodic_pattern[:num_notes]
-                    print("pattern slice", pattern_slice)
                     for idx, pattern_note in enumerate(pattern_slice):
                         midi_note = note_mapping[chord[pattern_note]]
                         if idx == 0 and ARP_STYLE == 0 or ARP_STYLE == 1:
