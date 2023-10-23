@@ -1,5 +1,8 @@
 from mido import MidiFile, MidiTrack, Message
 import pretty_midi
+import random
+
+from config import TEMPO, ARP_STYLE
 
 
 def play_chord(
@@ -45,128 +48,76 @@ def play_chord_hold(pretty_midi_obj, chord_sequence):
     return pretty_midi_obj
 
 
-# Example usage
-# Create a PrettyMIDI object
-pm = pretty_midi.PrettyMIDI()
-
-# Example chord sequence: [([note_1, note_2, ...], duration), (...), ...]
-example_sequence = [([0, 4, 7], 1.5), ([2, 5, 9], 1.5), ([1, 4, 8], 1.5)]
-
-# Use the function
-pm = play_chord_hold(pm, example_sequence)
-
-# Save MIDI file
-pm.write("example_chords.mid")
-
-
-# def play_chord_hold(
-#     mid: MidiFile, chord_sequence: list[tuple[list[int], int]]
-# ) -> MidiFile:
-#     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
-#     note_mapping = {i: 60 + i for i in range(24)}
-
-#     track = MidiTrack()
-
-#     # Set instrument to Acoustic Grand Piano on channel 1
-#     track.append(Message("program_change", program=0, channel=1, time=0))
-
-#     # Add chord chords to the track
-#     for chord, duration in chord_sequence:
-#         # Iterate through each note in the chord
-#         for note in chord:
-#             midi_note = note_mapping[note]
-#             track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-
-#         # Note off after the specified number of beats
-#         ticks_per_beat = 480
-#         time_offset = ticks_per_beat * duration
-#         for note in chord:
-#             midi_note = note_mapping[note]
-#             track.append(
-#                 Message(
-#                     "note_off",
-#                     note=midi_note,
-#                     velocity=64,
-#                     time=time_offset,
-#                 )
-#             )
-#             # Reset time offset for subsequent notes in the same chord
-#             time_offset = 0
-
-#     mid.tracks.append(track)  # Append track to the MIDI file after populating it
-#     return mid
-
-
-def play_chord_arpeggiate(mid, chord_sequence):
+def play_chord_arpeggiate(pm, chord_sequence):
     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
     note_mapping = {i: 60 + i for i in range(24)}
 
-    track = MidiTrack()
-    mid.tracks.append(track)
-
-    # Set instrument to Acoustic Grand Piano on channel 1
-    track.append(Message("program_change", program=0, channel=1, time=0))
+    # Create an instrument instance for Acoustic Grand Piano
+    piano_program = pretty_midi.instrument_name_to_program("Acoustic Grand Piano")
+    piano = pretty_midi.Instrument(program=piano_program, is_drum=False)
 
     # Define the melodic pattern
-    melodic_pattern = [0, 0, 1, 2, 1, 0]
-    ticks_per_beat = 480
-    tick_duration = 4 * ticks_per_beat // len(melodic_pattern)
+    if ARP_STYLE == 0:
+        melodic_pattern = [0, 0, 1, 2, 0, 2, 1, 0]
+    elif ARP_STYLE == 1:
+        melodic_pattern = [0, 0, 1, 2, 1, 0]
+    else:
+        melodic_pattern = [0, 1, 2, 1]
 
-    # Add chord chords to the track
+    seconds_per_beat = 60 / TEMPO
+    note_duration = 4 * seconds_per_beat / len(melodic_pattern)
+    start_time = 0.0
+    # Add chord chords to the instrument
     for chord, duration in chord_sequence:
-        num_repeats, remander = divmod(duration, 4)
-        for _ in range(num_repeats):
+        num_repeats, remander = divmod(duration, (note_duration * len(melodic_pattern)))
+
+        for _ in range(int(num_repeats)):
             for idx, pattern_note in enumerate(melodic_pattern):
                 midi_note = note_mapping[chord[pattern_note]]
-                if idx == 0:
+                if idx == 0 and ARP_STYLE == 0 or ARP_STYLE == 1:
                     midi_note -= 12  # Lower the root note by one octave
-                # Note on
-                track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-                # Note off
-                track.append(
-                    Message("note_off", note=midi_note, velocity=64, time=tick_duration)
-                )
-        if remander == 2:
-            for idx, pattern_note in enumerate(melodic_pattern[:3]):
-                midi_note = note_mapping[chord[pattern_note]]
-                if idx == 0:
-                    midi_note -= 12  # Lower the root note by one octave
-                # Note on
-                track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-                # Note off
-                track.append(
-                    Message("note_off", note=midi_note, velocity=64, time=tick_duration)
-                )
-        if remander == 1:
-            midi_note = note_mapping[chord[2]]
-            # Note on
-            track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-            # Note off
-            track.append(
-                Message(
-                    "note_off",
-                    note=midi_note,
-                    velocity=64,
-                    time=ticks_per_beat,
-                )
-            )
-        if remander == 3:
-            for idx, pattern_note in enumerate(melodic_pattern[:3]):
-                midi_note = note_mapping[chord[pattern_note]]
-                if idx == 0:
-                    midi_note -= 12  # Lower the root note by one octave
-                # Note on
-                track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-                # Note off
-                track.append(
-                    Message("note_off", note=midi_note, velocity=64, time=tick_duration)
-                )
-            midi_note = note_mapping[chord[2]]
-            # Note on
-            track.append(Message("note_on", note=midi_note, velocity=64, time=0))
-            # Note off
-            track.append(
-                Message("note_off", note=midi_note, velocity=64, time=ticks_per_beat)
-            )
+                if idx == 4 and ARP_STYLE == 0:
+                    midi_note += 12  # increase the root note by one octave
 
-    return mid
+                velocity = random.randint(40, 64)
+                # Add note
+                note = pretty_midi.Note(
+                    velocity=velocity,
+                    pitch=midi_note,
+                    start=start_time,
+                    end=start_time + note_duration,
+                )
+                piano.notes.append(note)
+                start_time += note_duration
+        if remander:
+            for part_druation in [1, 2, 3, 4, 5, 6]:
+                if remander == part_druation:
+                    print(start_time)
+                    print("remander", remander)
+                    print("note_duration", note_duration)
+
+                    num_notes = int(remander * note_duration * len(melodic_pattern))
+                    print("num_notes", num_notes)
+                    pattern_slice = melodic_pattern[:num_notes]
+                    print("pattern slice", pattern_slice)
+                    for idx, pattern_note in enumerate(pattern_slice):
+                        midi_note = note_mapping[chord[pattern_note]]
+                        if idx == 0 and ARP_STYLE == 0 or ARP_STYLE == 1:
+                            midi_note -= 12  # Lower the root note by one octave
+                        if idx == 4 and ARP_STYLE == 0:
+                            midi_note += 12  # increase the root note by one octave
+
+                        # Add note
+                        velocity = random.randint(40, 64)
+                        note = pretty_midi.Note(
+                            velocity=velocity,
+                            pitch=midi_note,
+                            start=start_time,
+                            end=start_time + note_duration,
+                        )
+                        piano.notes.append(note)
+                        start_time += note_duration
+
+    # Append instrument to PrettyMIDI object
+    pm.instruments.append(piano)
+    return pm

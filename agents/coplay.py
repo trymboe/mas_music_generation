@@ -7,6 +7,7 @@ import torch
 
 from agents import predict_next_k_notes_bass, predict_next_k_notes_chords
 
+import pretty_midi
 
 from config import (
     INT_TO_TRIAD,
@@ -61,7 +62,7 @@ def play_agents(
         style=STYLE,
     )
 
-    mid = play_bass(mid, predicted_bass_sequence)
+    mid = play_bass(mid, predicted_bass_sequence, playstyle="bass_drum")
 
     mid = play_chord(mid, timed_chord_sequence, arpeggiate)
 

@@ -11,7 +11,7 @@ from agents import (
 
 from utils import get_datasets
 
-from config import SEED
+from config import SEED, SAVE_RESULT_PATH
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         chord_dataset,
         drum_dataset,
         arpeggiate,
-        "results/drum_bass_chord.mid",
+        SAVE_RESULT_PATH,
         device,
     )
 
