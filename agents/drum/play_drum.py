@@ -9,13 +9,15 @@ from bumblebeat.bumblebeat.output.generate import (
 )
 from bumblebeat.bumblebeat.data import get_corpus
 
+from config import DRUM_STYLES
+
 import random
 import pretty_midi
 
 import note_seq as ns
 
 
-def play_drum(device, measures, loops, style=7):
+def play_drum(device, measures, loops, style="highlife"):
     if style:
         return play_drum_from_style(device, measures, loops, style)
 
@@ -194,10 +196,16 @@ def play_drum_from_style(device, measures, loops, style):
     while True:
         attempt += 1
         if attempt == 100:
-            print(f"Could not find a sequence long enough for {style}, default to {7}")
-            style = 7
+            print(
+                f"Could not find a sequence long enough for {style}, default to {get_key(DRUM_STYLES, 7)}"
+            )
+            style = get_key(DRUM_STYLES, 7)
         random_sequence = random.choice(
-            [x for x in corpus.train_data if x["style"]["primary"] == style]
+            [
+                x
+                for x in corpus.train_data
+                if x["style"]["primary"] == DRUM_STYLES[style]
+            ]
         )
 
         dev_sequence = corpus._quantize(
@@ -206,6 +214,9 @@ def play_drum_from_style(device, measures, loops, style):
 
         quantize = True
         in_tokens = corpus._tokenize(dev_sequence, 4, quantize)
+
+        if len(in_tokens) >= primer_length:
+            break
 
         if attempt == 100:
             break
@@ -320,3 +331,10 @@ def loop_drum(
         looped_pm.instruments.append(new_instrument)
 
     return looped_pm
+
+
+def get_key(my_dict, value):
+    for key, val in my_dict.items():
+        if val == value:
+            return key
+    return "Key not found"

@@ -9,7 +9,7 @@ from agents import predict_next_k_notes_bass, predict_next_k_notes_chords
 from utils import get_full_bass_sequence
 
 
-from config import INT_TO_TRIAD, LENGTH, LOOP_MEASURES
+from config import INT_TO_TRIAD, LENGTH, LOOP_MEASURES, STYLE
 
 
 def play_agents(
@@ -59,7 +59,7 @@ def play_agents(
     )
 
     mid = play_drum(
-        device, measures=LOOP_MEASURES, loops=int(LENGTH / LOOP_MEASURES), style=3
+        device, measures=LOOP_MEASURES, loops=int(LENGTH / LOOP_MEASURES), style=STYLE
     )
 
     mid = play_bass(mid, predicted_bass_sequence)

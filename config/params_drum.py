@@ -27,6 +27,28 @@ TIME_STEPS_VOCAB = {1: 1, 10: 2, 100: 3, 1000: 4, 10000: 5}
 
 LOOP_MEASURES = 2
 
+DRUM_STYLES = {
+    "afrobeat": 0,
+    "afrocuban": 1,
+    "blues": 2,
+    "country": 3,
+    "dance": 4,
+    "funk": 5,
+    "gospel": 6,
+    "highlife": 7,
+    "hiphop": 8,
+    "jazz": 9,
+    "latin": 10,
+    "middleeastern": 11,
+    "neworleans": 12,
+    "pop": 13,
+    "punk": 14,
+    "reggae": 15,
+    "rock": 16,
+    "soul": 17,
+}
+STYLE = "rock"
+
 # Data processing
 GENRE = "rock"
 QUANTIZE = True
