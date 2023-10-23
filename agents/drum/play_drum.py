@@ -17,9 +17,9 @@ import pretty_midi
 import note_seq as ns
 
 
-def play_drum(device, measures, loops, style="highlife"):
+def play_drum(device, measures, loops, drum_dataset, style="highlife"):
     if style:
-        return play_drum_from_style(device, measures, loops, style)
+        return play_drum_from_style(device, measures, loops, drum_dataset, style)
 
     conf = load_yaml("bumblebeat/conf/train_conf.yaml")
 
@@ -34,16 +34,8 @@ def play_drum(device, measures, loops, style="highlife"):
 
     model = load_model(path, device)
 
-    corpus = get_corpus(
-        data_conf["dataset"],
-        data_conf["data_dir"],
-        pitch_classes["DEFAULT_DRUM_TYPE_PITCHES"],
-        time_vocab,
-        conf["processing"],
-    )
-
-    pitch_vocab = corpus.reverse_vocab
-    velocity_vocab = {v: k for k, v in corpus.vel_vocab.items()}
+    pitch_vocab = drum_dataset.reverse_vocab
+    velocity_vocab = {v: k for k, v in drum_dataset.vel_vocab.items()}
 
     mem_len = model_conf["mem_len"]
     gen_len = 220
@@ -161,7 +153,7 @@ def play_drum(device, measures, loops, style="highlife"):
     return pm
 
 
-def play_drum_from_style(device, measures, loops, style):
+def play_drum_from_style(device, measures, loops, drum_dataset, style):
     conf = load_yaml("bumblebeat/conf/train_conf.yaml")
 
     pitch_classes = load_yaml("bumblebeat/conf/drum_pitches.yaml")
@@ -175,16 +167,8 @@ def play_drum_from_style(device, measures, loops, style):
 
     model = load_model(path, device)
 
-    corpus = get_corpus(
-        data_conf["dataset"],
-        data_conf["data_dir"],
-        pitch_classes["DEFAULT_DRUM_TYPE_PITCHES"],
-        time_vocab,
-        conf["processing"],
-    )
-
-    pitch_vocab = corpus.reverse_vocab
-    velocity_vocab = {v: k for k, v in corpus.vel_vocab.items()}
+    pitch_vocab = drum_dataset.reverse_vocab
+    velocity_vocab = {v: k for k, v in drum_dataset.vel_vocab.items()}
 
     mem_len = model_conf["mem_len"]
     primer_length = 256
@@ -203,17 +187,17 @@ def play_drum_from_style(device, measures, loops, style):
         random_sequence = random.choice(
             [
                 x
-                for x in corpus.train_data
+                for x in drum_dataset.train_data
                 if x["style"]["primary"] == DRUM_STYLES[style]
             ]
         )
 
-        dev_sequence = corpus._quantize(
+        dev_sequence = drum_dataset._quantize(
             ns.midi_to_note_sequence(random_sequence["midi"]), 4
         )
 
         quantize = True
-        in_tokens = corpus._tokenize(dev_sequence, 4, quantize)
+        in_tokens = drum_dataset._tokenize(dev_sequence, 4, quantize)
 
         if len(in_tokens) >= primer_length:
             break

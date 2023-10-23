@@ -6,39 +6,34 @@ import torch
 
 
 from agents import predict_next_k_notes_bass, predict_next_k_notes_chords
-from utils import get_full_bass_sequence
 
 
-from config import INT_TO_TRIAD, LENGTH, LOOP_MEASURES, STYLE
+from config import (
+    INT_TO_TRIAD,
+    LENGTH,
+    LOOP_MEASURES,
+    STYLE,
+    MODEL_PATH_BASS,
+    MODEL_PATH_CHORD,
+)
 
 
 def play_agents(
-    chord_agent_tripple,
-    bass_agent_tripple,
-    drum_agent_tripple,
+    bass_dataset,
+    chord_dataset,
+    drum_dataset,
     arpeggiate,
     filename,
     device,
 ):
-    bass_agent, notes_dataset, train_bass_agent = (
-        bass_agent_tripple[0],
-        bass_agent_tripple[1],
-        bass_agent_tripple[2],
-    )
-    chord_agent, chords_dataset, train_chord_agent = (
-        chord_agent_tripple[0],
-        chord_agent_tripple[1],
-        chord_agent_tripple[2],
-    )
-    drum_agent, drum_dataset, train_drum_agent = (
-        drum_agent_tripple[0],
-        drum_agent_tripple[1],
-        drum_agent_tripple[2],
-    )
+    bass_agent = torch.load(MODEL_PATH_BASS, device)
+    bass_agent.eval()
+    chord_agent = torch.load(MODEL_PATH_CHORD, device)
+    bass_agent.eval()
 
-    part_of_dataset = random.randint(0, len(notes_dataset) - 1)
+    part_of_dataset = random.randint(0, len(bass_dataset) - 1)
 
-    bass_primer_sequence = get_primer_sequence(notes_dataset, part_of_dataset)
+    bass_primer_sequence = get_primer_sequence(bass_dataset, part_of_dataset)
 
     predicted_bass_sequence = predict_next_k_notes_bass(
         bass_agent, bass_primer_sequence, LENGTH
@@ -49,7 +44,7 @@ def play_agents(
     # )
 
     chord_input_sequence = get_input_sequence_chords(
-        predicted_bass_sequence, chords_dataset, part_of_dataset
+        predicted_bass_sequence, chord_dataset, part_of_dataset
     )
 
     full_chord_sequence = predict_next_k_notes_chords(chord_agent, chord_input_sequence)
@@ -59,7 +54,11 @@ def play_agents(
     )
 
     mid = play_drum(
-        device, measures=LOOP_MEASURES, loops=int(LENGTH / LOOP_MEASURES), style=STYLE
+        device,
+        measures=LOOP_MEASURES,
+        loops=int(LENGTH / LOOP_MEASURES),
+        drum_dataset=drum_dataset,
+        style=STYLE,
     )
 
     mid = play_bass(mid, predicted_bass_sequence)

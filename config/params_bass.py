@@ -9,6 +9,7 @@ NUM_EPOCHS_BASS = 8  # Number of epochs
 BATCH_SIZE_BASS = 8
 LEARNING_RATE_BASS = 0.00001
 
+MODEL_PATH_BASS = "models/bass/bass_model.pt"
 
 # Mappings
 NOTE_TO_INT = {

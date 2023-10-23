@@ -68,25 +68,24 @@ if __name__ == "__main__":
     # torch.manual_seed(SEED)
 
     # Process the datasets
-    notes_dataset, chords_dataset, drum_dataset = get_datasets()
+    bass_dataset, chord_dataset, drum_dataset = get_datasets()
 
+    # Create and train the agents
     bass_agent, chord_agent, drum_agent = create_agents(
-        drum_dataset, device, train_drum
+        bass_dataset,
+        chord_dataset,
+        drum_dataset,
+        train_bass,
+        train_chord,
+        train_drum,
+        device,
     )
-    # Create the agents
-
-    bass_agent_tripple = (bass_agent, notes_dataset, train_bass)
-    chord_agent_tripple = (chord_agent, chords_dataset, train_chord)
-    drum_agent_tripple = (drum_agent, drum_dataset, train_drum)
-
-    # Train the agents
-    train_agents(bass_agent_tripple, chord_agent_tripple, drum_agent_tripple, device)
 
     # Play the agents
     play_agents(
-        chord_agent_tripple,
-        bass_agent_tripple,
-        drum_agent_tripple,
+        bass_dataset,
+        chord_dataset,
+        drum_dataset,
         arpeggiate,
         "results/drum_bass_chord.mid",
         device,

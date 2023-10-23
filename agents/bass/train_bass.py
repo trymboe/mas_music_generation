@@ -4,11 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
-from config import (
-    BATCH_SIZE_BASS,
-    LEARNING_RATE_BASS,
-    NUM_EPOCHS_BASS,
-)
+from config import BATCH_SIZE_BASS, LEARNING_RATE_BASS, NUM_EPOCHS_BASS, MODEL_PATH_BASS
 
 
 def train_bass(model: nn.Module, dataset: Dataset):
@@ -53,7 +49,7 @@ def train_bass(model: nn.Module, dataset: Dataset):
                 )
 
     plot_loss(loss_list)
-    torch.save(model.state_dict(), "models/bass/bass_model.pt")
+    torch.save(model, MODEL_PATH_BASS)
 
 
 def plot_loss(loss_values):

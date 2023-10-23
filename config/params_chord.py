@@ -10,6 +10,8 @@ BATCH_SIZE_CHORD = 8
 LEARNING_RATE_CHORD = 0.00001
 HIDDEN_SIZE_CHORD = 64
 
+MODEL_PATH_CHORD = "models/chord/chord_model.pt"
+
 # Mappings
 CHORD_TO_INT = {
     "maj": 0,

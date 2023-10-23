@@ -8,6 +8,7 @@ from config import (
     BATCH_SIZE_CHORD,
     LEARNING_RATE_CHORD,
     NUM_EPOCHS_CHORD,
+    MODEL_PATH_CHORD,
 )
 
 
@@ -46,7 +47,7 @@ def train_chord(model: nn.Module, dataset: Dataset):
                 )
 
     plot_loss(loss_list)
-    torch.save(model.state_dict(), "models/chord/chord_model.pt")
+    torch.save(model, MODEL_PATH_CHORD)
 
 
 def plot_loss(loss_values):
