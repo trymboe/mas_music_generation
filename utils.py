@@ -8,6 +8,8 @@ from data_processing import (
 
 
 def get_datasets() -> (Notes_Dataset, Chords_Dataset):
+    print("----Creating datasets----")
+
     root_directory: str = "data/POP909"
     chords, notes, beats = extract_chords_from_files(
         root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True

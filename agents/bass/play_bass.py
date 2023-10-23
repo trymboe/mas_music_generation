@@ -26,7 +26,7 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
                     break
                 # the beat is inside the current chord, play notes
                 if drum_beat >= chord_start_time:
-                    # If it is the first beat of the chord, and no note is planed, play a bass note
+                    # If it is the first beat of the chord, and no note is played, play a bass note
                     if (
                         running_time == chord_start_time
                         and drum_beat != chord_start_time

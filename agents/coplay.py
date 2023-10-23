@@ -27,11 +27,21 @@ def play_agents(
     filename,
     device,
 ):
+    print("----playing agents----")
     bass_agent = torch.load(MODEL_PATH_BASS, device)
     bass_agent.eval()
     chord_agent = torch.load(MODEL_PATH_CHORD, device)
     bass_agent.eval()
 
+    mid = play_drum(
+        device,
+        measures=LOOP_MEASURES,
+        loops=int(LENGTH / LOOP_MEASURES),
+        drum_dataset=drum_dataset,
+        style=STYLE,
+    )
+
+    print(" ----playing bass----")
     part_of_dataset = random.randint(0, len(bass_dataset) - 1)
 
     bass_primer_sequence = get_primer_sequence(bass_dataset, part_of_dataset)
@@ -43,6 +53,9 @@ def play_agents(
     # full_bass_sequence = get_full_bass_sequence(
     #     bass_primer_sequence, predicted_bass_sequence
     # )
+    mid = play_bass(mid, predicted_bass_sequence, playstyle="bass_drum")
+
+    print(" ----playing chord----")
 
     chord_input_sequence = get_input_sequence_chords(
         predicted_bass_sequence, chord_dataset, part_of_dataset
@@ -53,16 +66,6 @@ def play_agents(
     timed_chord_sequence = get_timed_chord_sequence(
         full_chord_sequence, predicted_bass_sequence
     )
-
-    mid = play_drum(
-        device,
-        measures=LOOP_MEASURES,
-        loops=int(LENGTH / LOOP_MEASURES),
-        drum_dataset=drum_dataset,
-        style=STYLE,
-    )
-
-    mid = play_bass(mid, predicted_bass_sequence, playstyle="bass_drum")
 
     mid = play_chord(mid, timed_chord_sequence, arpeggiate)
 

@@ -89,7 +89,6 @@ def get_corpus(
     fn = os.path.join(data_dir, dataset_name, "cache.pkl")
 
     if tf.io.gfile.exists(fn):
-        print("Loading cached dataset...")
         with open(fn, "rb") as fp:
             corpus = pickle.load(fp)
     else:

@@ -37,6 +37,7 @@ def create_agents(
     train_drum_agent,
     device,
 ):
+    print("----Creating agents----")
     if not train_bass_agent:
         bass_agent = torch.load(MODEL_PATH_BASS)
         bass_agent.eval()

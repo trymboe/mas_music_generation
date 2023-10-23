@@ -9,7 +9,7 @@ from bumblebeat.bumblebeat.output.generate import (
 )
 from bumblebeat.bumblebeat.data import get_corpus
 
-from config import DRUM_STYLES
+from config import DRUM_STYLES, TEMPO
 
 import random
 import pretty_midi
@@ -18,6 +18,7 @@ import note_seq as ns
 
 
 def play_drum(device, measures, loops, drum_dataset, style="highlife"):
+    print(" ----playing drum----")
     if style:
         return play_drum_from_style(device, measures, loops, drum_dataset, style)
 
@@ -220,7 +221,7 @@ def play_drum_from_style(device, measures, loops, drum_dataset, style):
         simplified_pitches,
         velocity_vocab,
         time_vocab,
-        60,
+        TEMPO,
     )
 
     out_tokens = continue_sequence(
