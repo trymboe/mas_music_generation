@@ -53,7 +53,7 @@ model:
     dynamic-loss-scale: True # supersedes static-loss-scale
 
     ## Training ##
-    max_step: 10000 # Upper epoch limit
+    max_step: 2000 #10000 # Upper epoch limit
     train_batch_size: *batch_size # Size of train batch
     eval_batch_size: *batch_size # Size of valid batch
     iterations: 200 # Number of iterations per repeat loop
@@ -69,15 +69,15 @@ model:
     ## Model ##
     tgt_len: *tgt_len
     eval_tgt_len: *eval_tgt_len
-    mem_len: 512 # Number of steps to cache
+    mem_len: 32 #512 # Number of steps to cache
     same_length: True # Same length attention
     clamp_len: -1 # Clamp length
-    n_layer: 12 # Number of layers
-    d_model: 512 # Dimension of model
-    d_embed: 512 # Dimension of embeddings
-    n_head: 8 # Number of attention heads
-    d_head: 64 # Dimension of each attention head
-    d_inner: 2048 # Dimension of inner hidden size in positionwise feed-forward
+    n_layer: 2 #12 # Number of layers
+    d_model: 32 #512 # Dimension of model
+    d_embed: 32 #512 # Dimension of embeddings
+    n_head: 2 #8 # Number of attention heads
+    d_head: 4 #64 # Dimension of each attention head
+    d_inner: 126 #2048 # Dimension of inner hidden size in positionwise feed-forward
     dropout: 0.2 # Dropout rate
     dropatt: 0.1 # Attention dropout rate
     not_tied: True # untie r_w_bias and r_r_bias?

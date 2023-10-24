@@ -24,7 +24,7 @@ def get_drum_dataset() -> Drum_Dataset:
     data_conf: dict = conf["data"]
 
     pitch_classes_yaml: dict[str, list[list[int]]] = load_yaml(
-        "bumblebeat/conf/drum_pitches.yaml"
+        "config/bumblebeat/drum_pitches.yaml"
     )
     pitch_classes: list[list[int]] = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
 
@@ -74,12 +74,12 @@ def get_dataset(
 
     if tf.io.gfile.exists(fn):
         with open(fn, "rb") as fp:
-            corpus = pickle.load(fp)
+            drum_dataset = pickle.load(fp)
     else:
         create_dir_if_not_exists(fn)
 
         print("Producing dataset...")
-        corpus = Drum_Dataset(
+        drum_dataset = Drum_Dataset(
             data_dir=data_dir,
             dataset_name=dataset_name,
             pitch_classes=pitch_classes,
@@ -89,9 +89,9 @@ def get_dataset(
 
         print("Saving dataset...")
         with open(fn, "wb") as fp:
-            pickle.dump(corpus, fp, protocol=2)
+            pickle.dump(drum_dataset, fp, protocol=2)
 
-    return corpus
+    return drum_dataset
 
 
 def create_dir_if_not_exists(path: str):

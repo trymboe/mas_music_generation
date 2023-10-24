@@ -1,15 +1,14 @@
-from bumblebeat.bumblebeat.output.generate import tokens_to_note_sequence
-
-from bumblebeat.bumblebeat.utils.data import load_yaml
-from bumblebeat.bumblebeat.output.generate import (
+from .utils import (
+    tokens_to_note_sequence,
     load_model,
     generate_sequences,
     note_sequence_to_midi_file,
     continue_sequence,
 )
-from bumblebeat.bumblebeat.data import get_corpus
 
-from config import DRUM_STYLES, TEMPO
+from data_processing.utils import load_yaml
+
+from config import DRUM_STYLES, TEMPO, MODEL_PATH_DRUM
 
 import random
 import pretty_midi
@@ -155,23 +154,17 @@ def play_drum(device, measures, loops, drum_dataset, style="highlife"):
 
 
 def play_drum_from_style(device, measures, loops, drum_dataset, style):
-    conf = load_yaml("bumblebeat/conf/train_conf.yaml")
+    conf = load_yaml("config/bumblebeat/params.yaml")
 
-    pitch_classes = load_yaml("bumblebeat/conf/drum_pitches.yaml")
-    time_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
+    time_vocab = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
 
-    model_conf = conf["model"]
-    data_conf = conf["data"]
-
-    # path = "models/drum/drum_model.pt"
-    path = "models/drum/train_step_5000/model.pt"
+    path = MODEL_PATH_DRUM
 
     model = load_model(path, device)
 
     pitch_vocab = drum_dataset.reverse_vocab
     velocity_vocab = {v: k for k, v in drum_dataset.vel_vocab.items()}
 
-    mem_len = model_conf["mem_len"]
     primer_length = 256
     gen_len = 256
 
@@ -258,9 +251,6 @@ def play_drum_from_style(device, measures, loops, drum_dataset, style):
     note_sequence_to_midi_file(note_sequence, f"results/drum/full_continue.midi")
 
     return pm
-
-
-import pretty_midi
 
 
 def loop_drum(

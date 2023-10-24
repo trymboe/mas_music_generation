@@ -6,8 +6,9 @@ from data_processing import Bass_Dataset, Chord_Dataset, Drum_Dataset
 
 import torch
 
-from bumblebeat.bumblebeat.model import model_main
-from bumblebeat.bumblebeat.utils.data import load_yaml
+from data_processing.utils import load_yaml
+
+from .drum import drum_network_pipeline
 
 from agents import train_bass, train_chord
 
@@ -92,6 +93,7 @@ def create_agents(
         chord_agent.eval()
         chord_agent.to(device)
 
+    print(train_drum_agent)
     # Creating drum agent
     if not train_drum_agent:
         drum_agent: Drum_Network = torch.load(MODEL_PATH_DRUM)
@@ -110,12 +112,7 @@ def create_agents(
 
 def create_drum_agent(drum_dataset, device):
     conf = load_yaml("config/bumblebeat/params.yaml")
-
-    pitch_classes_yaml = load_yaml("config/bumblebeat/drum_pitches.yaml")
-    pitch_classes = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
-    time_steps_vocab = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
-
-    model = model_main(conf, pitch_classes, time_steps_vocab, device, drum_dataset)
+    model = drum_network_pipeline(conf, drum_dataset, device)
 
     return model
 

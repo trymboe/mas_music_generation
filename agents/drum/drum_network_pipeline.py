@@ -1,26 +1,24 @@
-# coding: utf-8
-import argparse
-import time
+import sys
 import math
-import os, sys
+import os
+import time
 import itertools
 
-import numpy as np
-
 import torch
-import torch.nn as nn
 import torch.optim as optim
+import torch.nn as nn
 
-from bumblebeat.bumblebeat.transformer import MemTransformerLM
-from bumblebeat.bumblebeat.utils.exp_utils import create_exp_dir
-from bumblebeat.bumblebeat.utils.data_parallel import BalancedDataParallel
-from bumblebeat.bumblebeat.utils.data import create_dir_if_not_exists
-from bumblebeat.bumblebeat.data import get_corpus
+from .drum_network import Drum_Network
 
-from config import WORK_DIR
+from data_processing import Drum_Dataset
+
+from config import WORK_DIR, MODEL_PATH_DRUM
+from .utils import create_exp_dir, create_dir_if_not_exists
+
+sys.path.append("utils")
 
 
-def model_main(conf, device, corpus):
+def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset, device: torch.device):
     """
     Run model pipeline from setup specified in <conf>
 
@@ -28,10 +26,10 @@ def model_main(conf, device, corpus):
     ======
     conf: dict
         config from conf/train_conf.yaml
-    pitch_classes: dict
+    drum_dataset: Drum_Dataset
+        Drum_Dataset object
+    device: torch.device
         Dict of drum pitch mappings (from conf/drum_pitches.yaml)
-    time_steps_vocab: dict
-        Dict of tick:token mappings (from conf/time_steps_vocab.yaml)
     """
     model_conf = conf["model"]
     data_conf = conf["data"]
@@ -80,27 +78,27 @@ def model_main(conf, device, corpus):
     # Load data
     ###############################################################################
 
-    ntokens = corpus.vocab_size
+    ntokens = drum_dataset.vocab_size
     model_conf["n_token"] = ntokens
 
     cutoffs, tie_projs = [], [False]
 
     eval_batch_size = 10
-    tr_iter = corpus.get_iterator(
+    tr_iter = drum_dataset.get_iterator(
         "train",
         model_conf["train_batch_size"],
         model_conf["tgt_len"],
         device=device,
         ext_len=model_conf["ext_len"],
     )
-    va_iter = corpus.get_iterator(
+    va_iter = drum_dataset.get_iterator(
         "valid",
         eval_batch_size,
         model_conf["tgt_len"],
         device=device,
         ext_len=model_conf["ext_len"],
     )
-    te_iter = corpus.get_iterator(
+    te_iter = drum_dataset.get_iterator(
         "test",
         eval_batch_size,
         model_conf["tgt_len"],
@@ -183,7 +181,7 @@ def model_main(conf, device, corpus):
         model.apply(update_dropout)
         model.apply(update_dropatt)
     else:
-        model = MemTransformerLM(
+        model = Drum_Network(
             ntokens,
             model_conf["n_layer"],
             model_conf["n_head"],
@@ -220,12 +218,7 @@ def model_main(conf, device, corpus):
 
     if model_conf["multi_gpu"]:
         model = model.to(device)
-        if model_conf["gpu0_bsz"] >= 0:
-            para_model = BalancedDataParallel(
-                model_conf["gpu0_bsz"] // model_conf["batch_chunk"], model, dim=1
-            ).to(device)
-        else:
-            para_model = nn.DataParallel(model, dim=1).to(device)
+        para_model = nn.DataParallel(model, dim=1).to(device)
     else:
         para_model = model.to(device)
 
@@ -522,7 +515,7 @@ def model_main(conf, device, corpus):
                 eval_start_time = time.time()
 
             if train_step == model_conf["max_step"]:
-                torch.save(model, WORK_DIR + "/drum_model.pt")
+                torch.save(model, MODEL_PATH_DRUM)
                 break
 
     # Loop over epochs.
@@ -547,7 +540,7 @@ def model_main(conf, device, corpus):
 
     create_dir_if_not_exists(WORK_DIR)
     # Load the newest model.
-    model = torch.load(WORK_DIR + "/drum_model.pt")
+    model = torch.load(WORK_DIR + "/drum_model_small.pt")
     # para_model = model.to(device)
 
     # Run on test data.

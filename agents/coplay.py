@@ -7,8 +7,6 @@ import torch
 
 from agents import predict_next_k_notes_bass, predict_next_k_notes_chords
 
-import pretty_midi
-
 from config import (
     INT_TO_TRIAD,
     LENGTH,
