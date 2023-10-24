@@ -1,27 +1,23 @@
-from note_seq.sequences_lib import augment_note_sequence
 import note_seq as ns
 import numpy as np
 import torch
 import math
-import pretty_midi as pm
 from torch.utils.data import Dataset
+import tensorflow_datasets as tfds
 
-from .utils import split_range, create_vocab, get_bucket_number
+from .utils import split_range, create_vocab, get_bucket_number, LMOrderedIterator
+
+from note_seq.sequences_lib import augment_note_sequence, quantize_note_sequence
 
 from config import (
     SEQUENCE_LENGTH_BASS,
     NOTE_TO_INT,
     SEQUENCE_LENGTH_CHORD,
     CHORD_TO_INT,
-    QUANTIZE,
-    STEPS_PER_QUARTER,
-    TRAIN_SPLIT_DRUM,
-    TEST_SPLIT_DRUM,
-    VAL_SPLIT_DRUM,
 )
 
 
-class Notes_Dataset(Dataset):
+class Bass_Dataset(Dataset):
     def __init__(self, songs):
         self.sequence_length = SEQUENCE_LENGTH_BASS
         self.notes_data, self.durations_data, self.labels = self._process_songs(songs)
@@ -56,7 +52,7 @@ class Notes_Dataset(Dataset):
         return self.notes_data[idx], self.durations_data[idx], self.labels[idx]
 
 
-class Chords_Dataset(Dataset):
+class Chord_Dataset(Dataset):
     def __init__(self, songs):
         self.sequence_length = SEQUENCE_LENGTH_CHORD
         self.data, self.labels = self._process_songs(songs)
@@ -96,30 +92,38 @@ class Chords_Dataset(Dataset):
             raise e
 
 
-class Drum_Dataset(Dataset):
+class Drum_Dataset:
+    """
+    Dataset to handle data in pipeline
+
+    This class together with related functions and classes are a part of the bumblebeat project
+    bumblebeat https://github.com/thomasgnuttall/bumblebeat/tree/master
+    """
+
     def __init__(
         self,
-        midi_paths: list[str],
-        pitch_classes: list[list[int]],
-        time_steps_vocab: dict[int:int],
+        data_dir,
+        dataset_name,
+        pitch_classes,
+        time_steps_vocab,
+        processing_conf,
         n_velocity_buckets=10,
         min_velocity=0,
         max_velocity=127,
+        augment_stretch=True,
+        shuffle=True,
     ):
         """
-        Args:
-            midi_paths (list): List of paths to MIDI files.
-            pitch_classes (object): Information about pitch classes.
-            time_steps_vocab (object): Vocabulary for time steps.
-            processing_conf (dict): Configuration for data processing.
-            *args, **kwargs: Additional arguments.
+        Documentation here baby
         """
-        self.midi_paths: list[str] = midi_paths
-        self.pitch_classes: list[list[int]] = pitch_classes
-        self.time_steps_vocab: dict[int:int] = time_steps_vocab
-        self.n_velocity_buckets: int = n_velocity_buckets
-        self.augment_stretch: bool = True
-        self.shuffle: bool = True
+        self.data_dir = data_dir
+        self.dataset_name = dataset_name
+        self.pitch_classes = pitch_classes
+        self.time_steps_vocab = time_steps_vocab
+        self.n_velocity_buckets = n_velocity_buckets
+        self.processing_conf = processing_conf
+        self.augment_stretch = True
+        self.shuffle = True
 
         self.velocity_buckets = split_range(
             min_velocity, max_velocity, n_velocity_buckets
@@ -127,6 +131,9 @@ class Drum_Dataset(Dataset):
         self.pitch_class_map = self._classes_to_map(self.pitch_classes)
         self.n_instruments = len(set(self.pitch_class_map.values()))
 
+        print(
+            f"Generating vocab of {self.n_instruments} instruments and {n_velocity_buckets} velocity buckets"
+        )
         self.vel_vocab = {
             i: i + len(time_steps_vocab) + 1 for i in range(n_velocity_buckets)
         }
@@ -139,33 +146,42 @@ class Drum_Dataset(Dataset):
             len(self.reverse_vocab) + len(time_steps_vocab) + len(self.vel_vocab) + 1
         )  # add 1 for <eos> token
 
-        train_split = math.floor(len(midi_paths) * TRAIN_SPLIT_DRUM)
-        test_split = math.floor(len(midi_paths) * TEST_SPLIT_DRUM)
-        # The rest of the data is used for validation
+        train_dataset = self.download_midi(dataset_name, tfds.Split.TRAIN)
+        test_dataset = self.download_midi(dataset_name, tfds.Split.TEST)
+        valid_dataset = self.download_midi(dataset_name, tfds.Split.VALIDATION)
 
-        self.train_dataset = self._get_midi_file(midi_paths=midi_paths[:train_split])
-        self.test_dataset = self._get_midi_file(
-            midi_paths=midi_paths[train_split : train_split + test_split]
+        self.train_data = [x for x in train_dataset]
+        self.test_data = [x for x in test_dataset]
+        self.valid_data = [x for x in valid_dataset]
+
+        print("Processing dataset TRAIN...")
+        self.train = self.process_dataset(self.train_data, conf=processing_conf)
+        print("Processing dataset TEST...")
+        self.test = self.process_dataset(self.test_data, conf=processing_conf)
+        print("Processing dataset VALID...")
+        self.valid = self.process_dataset(self.valid_data, conf=processing_conf)
+
+    def download_midi(self, dataset_name, dataset_split):
+        print(f"Downloading midi data: {dataset_name}, split: {dataset_split}")
+        dataset = tfds.as_numpy(
+            tfds.load(name=dataset_name, split=dataset_split, try_gcs=True)
         )
-        self.val_dataset = self._get_midi_file(
-            midi_paths=midi_paths[train_split + test_split :]
-        )
+        return dataset
 
-        self.train = self.process_dataset(self.train_dataset)
-        self.test = self.process_dataset(self.test_dataset)
-        self.valid = self.process_dataset(self.val_dataset)
-
-    def process_dataset(self, dataset):
+    def process_dataset(self, dataset, conf):
         """
         Augment, transform and tokenize each sample in <dataset>
         Return: list of tokenised sequences
         """
         # Abstract to ARGS at some point
-        quantize = QUANTIZE
-        steps_per_quarter = STEPS_PER_QUARTER
+        quantize = conf["quantize"]
+        steps_per_quarter = conf["steps_per_quarter"]
+        filter_4_4 = conf["filter_4_4"]  # maybe we dont want this?
 
-        # To midi note sequence using magenta
-        dev_sequences = [ns.midi_to_note_sequence(track) for track in dataset]
+        # To midi note sequence using magent
+        dev_sequences = [
+            ns.midi_to_note_sequence(features["midi"]) for features in dataset
+        ]
 
         if self.augment_stretch:
             augmented = self._augment_stretch(dev_sequences)
@@ -181,7 +197,8 @@ class Drum_Dataset(Dataset):
         dev_sequences = [
             s
             for s in dev_sequences
-            if len(s.notes) > 0
+            if self._is_4_4(s)
+            and len(s.notes) > 0
             and s.notes[-1].quantized_end_step
             > ns.steps_per_bar_in_quantized_sequence(s)
         ]
@@ -195,6 +212,53 @@ class Drum_Dataset(Dataset):
         stream = self._join_token_list(tokens, n=1)
 
         return torch.tensor(stream)
+
+    def _join_token_list(self, tokens, n=5):
+        """
+        Join list of lists, <tokens>
+        In new list each previous list is separated by <n> instances
+        of the highest token value (token assigned for placeholding)
+        """
+        pad = 0
+        to_join = [t + n * [pad] for t in tokens]
+        return [pad] + [y for x in to_join for y in x]
+
+    def get_iterator(self, split, *args, **kwargs):
+        if split == "train":
+            data_iter = LMOrderedIterator(self.train, *args, **kwargs)
+        elif split in ["valid", "test"]:
+            data = self.valid if split == "valid" else self.test
+            data_iter = LMOrderedIterator(data, *args, **kwargs)
+
+        return data_iter
+
+    def _augment_stretch(self, note_sequences):
+        """
+        Two stretchings for each sequence in <note_sequence>:
+          - faster by 1%-10%
+          - slower by 1%-10%
+        These are returned as new sequences
+        """
+        augmented_slow = [
+            augment_note_sequence(x, 1.01, 1.1, 0, 0) for x in note_sequences
+        ]
+        augmented_fast = [
+            augment_note_sequence(x, 0.9, 0.99, 0, 0) for x in note_sequences
+        ]
+        return augmented_fast + augmented_slow
+
+    def _quantize(self, s, steps_per_quarter=4):
+        """
+        Quantize a magenta Note Sequence object
+        """
+        return quantize_note_sequence(s, steps_per_quarter)
+
+    def _is_4_4(self, s):
+        """
+        Return True if sample, <s> is in 4/4 timing, False otherwise
+        """
+        ts = s.time_signatures[0]
+        return ts.numerator == 4 and ts.denominator == 4
 
     def _tokenize(self, note_sequence, steps_per_quarter, quantize):
         """
@@ -342,144 +406,15 @@ class Drum_Dataset(Dataset):
                 num -= floor * d
         return seq
 
-    def __len__(self):
-        """Return the total number of data samples"""
-        return len(self.midi_paths)
-
-    def __getitem__(self, idx):
-        # Load and process a single MIDI file based on the index (idx)
-        # midi_path = self.midi_paths[idx]
-        # Load MIDI data
-        # Process MIDI data (consider creating a separate method for processing)
-        # Return processed data as a tensor
-
-        # Example (note: actual implementation will depend on the exact processing steps)
-        midi_path = self.midi_paths[idx]
-        raw_data = self.load_midi(midi_path)
-        processed_data = self.process_midi_data(raw_data)
-        return torch.tensor(processed_data)
-
-    def _join_token_list(self, tokens, n=5):
+    def _roundup(self, x, n):
         """
-        Join list of lists, <tokens>
-        In new list each previous list is separated by <n> instances
-        of the highest token value (token assigned for placeholding)
+        Roundup <x> to nearest multiple of <n>
         """
-        pad = 0
-        to_join = [t + n * [pad] for t in tokens]
-        return [pad] + [y for x in to_join for y in x]
-
-    def _augment_stretch(self, note_sequences):
-        """
-        Two stretchings for each sequence in <note_sequence>:
-          - faster by 1%-10%
-          - slower by 1%-10%
-        These are returned as new sequences
-        """
-        augmented_slow = [
-            augment_note_sequence(x, 1.01, 1.1, 0, 0) for x in note_sequences
-        ]
-        augmented_fast = [
-            augment_note_sequence(x, 0.9, 0.99, 0, 0) for x in note_sequences
-        ]
-        return augmented_fast + augmented_slow
+        return int(math.ceil(x / n)) * n
 
     def _classes_to_map(self, classes):
-        """Creates a map from all pitches to the class of the pitch.
-
-        Args:
-            classes (list): All pitches
-
-        Returns:
-            dict: Mapping from all pitch to class of pitch
-        """
         class_map = {}
         for cls, pitches in enumerate(classes):
             for pitch in pitches:
                 class_map[pitch] = cls
         return class_map
-
-    def get_iterator(self, split, *args, **kwargs):
-        if split == "train":
-            data_iter = LMOrderedIterator(self.train, *args, **kwargs)
-        elif split in ["valid", "test"]:
-            data = self.valid if split == "valid" else self.test
-            data_iter = LMOrderedIterator(data, *args, **kwargs)
-
-        return data_iter
-
-    def _get_midi_file(self, midi_paths):
-        """Take a list of midi file paths and return a list of PrettyMIDI objects.
-
-        Args:
-            midi_paths (list[str]): list of midi file paths
-
-        Returns:
-            list[PrettyMidi]: list of PrettyMIDI objects
-        """
-        midi_files = []
-        for path in midi_paths:
-            midi_files.append(pm.PrettyMIDI(path))
-        return midi_files
-
-    def _quantize(self, s, steps_per_quarter=4):
-        """
-        Quantize a magenta Note Sequence object
-        """
-        return ns.quantize_note_sequence(s, steps_per_quarter)
-
-
-class LMOrderedIterator(object):
-    def __init__(self, data, bsz, bptt, device="cpu", ext_len=None):
-        """
-        data -- LongTensor -- the LongTensor is strictly ordered
-        """
-        self.bsz = bsz
-        self.bptt = bptt
-        self.ext_len = ext_len if ext_len is not None else 0
-
-        self.device = device
-
-        # Work out how cleanly we can divide the dataset into bsz parts.
-        self.n_step = data.size(0) // bsz
-
-        # Trim off any extra elements that wouldn't cleanly fit (remainders).
-        data = data.narrow(0, 0, self.n_step * bsz)
-
-        # Evenly divide the data across the bsz batches.
-        self.data = data.view(bsz, -1).t().contiguous().to(device)
-
-        # Number of mini-batches
-        self.n_batch = (self.n_step + self.bptt - 1) // self.bptt
-
-    def get_batch(self, i, bptt=None):
-        if bptt is None:
-            bptt = self.bptt
-        seq_len = min(bptt, self.data.size(0) - 1 - i)
-
-        end_idx = i + seq_len
-        beg_idx = max(0, i - self.ext_len)
-
-        data = self.data[beg_idx:end_idx]
-        target = self.data[i + 1 : i + 1 + seq_len]
-
-        return data, target, seq_len
-
-    def get_fixlen_iter(self, start=0):
-        for i in range(start, self.data.size(0) - 1, self.bptt):
-            yield self.get_batch(i)
-
-    def get_varlen_iter(self, start=0, std=5, min_len=5, max_deviation=3):
-        max_len = self.bptt + max_deviation * std
-        i = start
-        while True:
-            bptt = self.bptt if np.random.random() < 0.95 else self.bptt / 2.0
-            bptt = min(max_len, max(min_len, int(np.random.normal(bptt, std))))
-            data, target, seq_len = self.get_batch(i, bptt)
-            i += seq_len
-            yield data, target, seq_len
-            if i >= self.data.size(0) - 2:
-                break
-
-    def __iter__(self):
-        return self.get_fixlen_iter()

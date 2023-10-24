@@ -2,17 +2,16 @@ print("----loading imports----")
 import matplotlib.pyplot as plt
 import argparse
 import torch
-import numpy as np
 
 from agents import (
     create_agents,
     play_agents,
-    train_agents,
 )
+
 
 from utils import get_datasets
 
-from config import SEED, SAVE_RESULT_PATH
+from config import SAVE_RESULT_PATH
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
@@ -49,17 +48,41 @@ parser.add_argument(
 args = parser.parse_args()
 
 if __name__ == "__main__":
-    train_bass = parser.parse_args().train_bass
-    train_chord = parser.parse_args().train_chord
-    train_drum = parser.parse_args().train_drum
-    arpeggiate = parser.parse_args().arpeggiate
+    """
+    Executes the main training and playing routine for music agents.
+
+    This script is designed to be run from the command line, taking in arguments to specify
+    whether training should be performed for the bass, chord, and drum agents, and whether
+    arpeggiation should be applied during the playing phase.
+
+    Parameters
+    ----------
+    train_bass : bool, optional
+        Indicates whether the bass agent should be trained. (default is False)
+    train_chord : bool, optional
+        Indicates whether the chord agent should be trained. (default is False)
+    train_drum : bool, optional
+        Indicates whether the drum agent should be trained. (default is False)
+    arpeggiate : bool, optional
+        Indicates whether arpeggiation should be applied during the playing phase. (default is False)
+
+    Returns
+    -------
+    None
+
+    Raises
+    ------
+    ValueError
+        If invalid command line arguments are provided.
+    """
+
+    train_bass: bool = parser.parse_args().train_bass
+    train_chord: bool = parser.parse_args().train_chord
+    train_drum: bool = parser.parse_args().train_drum
+    arpeggiate: bool = parser.parse_args().arpeggiate
 
     # Set device to use
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Set the random seed manually for reproducibility.
-    # np.random.seed(SEED)
-    # torch.manual_seed(SEED)
+    device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Process the datasets
     bass_dataset, chord_dataset, drum_dataset = get_datasets()

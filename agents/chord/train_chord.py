@@ -12,8 +12,21 @@ from config import (
 )
 
 
-def train_chord(model: nn.Module, dataset: Dataset):
-    # Hyperparameters
+def train_chord(model: nn.Module, dataset: Dataset) -> None:
+    """
+    Trains the chord agent using the provided dataset.
+
+    Parameters
+    ----------
+    model : nn.Module
+        The chord network model to be trained.
+    dataset : Dataset
+        The dataset to be used for training the model.
+
+    Returns
+    -------
+    None
+    """
 
     # Create DataLoader
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE_CHORD, shuffle=True)
@@ -50,7 +63,20 @@ def train_chord(model: nn.Module, dataset: Dataset):
     torch.save(model, MODEL_PATH_CHORD)
 
 
-def plot_loss(loss_values):
+def plot_loss(loss_values: list[float]) -> None:
+    """
+    Plots the training loss over batches.
+
+    Parameters
+    ----------
+    loss_values : List[float]
+        A list of loss values to be plotted.
+
+    Returns
+    -------
+    None
+    """
+
     plt.figure()
     plt.plot(loss_values)
     plt.title("Training Loss Chord")

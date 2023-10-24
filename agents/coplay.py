@@ -91,9 +91,9 @@ def get_timed_chord_sequence(full_chord_sequence, full_bass_sequence):
     return full_chord_timed
 
 
-def get_input_sequence_chords(full_bass_sequence, chords_dataset, part_of_dataset):
+def get_input_sequence_chords(full_bass_sequence, Chord_Dataset, part_of_dataset):
     # Extract the corresponding chord sequence from the dataset
-    actual_chord_sequence = chords_dataset[part_of_dataset][0]
+    actual_chord_sequence = Chord_Dataset[part_of_dataset][0]
     # Extract only the root notes from the full_bass_sequence
     bass_notes = [pair[0] for pair in full_bass_sequence]
 
@@ -115,11 +115,11 @@ def get_input_sequence_chords(full_bass_sequence, chords_dataset, part_of_datase
     return input_tensor
 
 
-def get_primer_sequence(notes_dataset, part_of_dataset):
+def get_primer_sequence(Bass_Dataset, part_of_dataset):
     primer_part = part_of_dataset
     primer_sequence = (
-        notes_dataset[primer_part][0],
-        notes_dataset[primer_part][1],
+        Bass_Dataset[primer_part][0],
+        Bass_Dataset[primer_part][1],
     )
 
     return primer_sequence

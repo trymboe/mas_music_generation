@@ -25,7 +25,7 @@ DRUM_MAPPING = {
 
 TIME_STEPS_VOCAB = {1: 1, 10: 2, 100: 3, 1000: 4, 10000: 5}
 
-LOOP_MEASURES = 2
+LOOP_MEASURES = 4
 
 DRUM_STYLES = {
     "afrobeat": 0,
@@ -47,13 +47,16 @@ DRUM_STYLES = {
     "rock": 16,
     "soul": 17,
 }
-STYLE = "rock"
+STYLE = "country"
 
 # Data processing
 GENRE = "rock"
 QUANTIZE = True
 STEPS_PER_QUARTER = 4
 WORK_DIR = "models/drum"
+
+MODEL_PATH_DRUM = "models/drum/drum_model.pt"
+
 
 # Hyperparameters
 D_EMBED_DRUM = 16  # 512   # Dimention of embeded layer

@@ -6,8 +6,8 @@ import itertools
 
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-import matplotlib.pyplot as plt
+from torch.utils.data import Dataset
+
 from .utils import create_exp_dir, create_dir_if_not_exists
 
 from config import (

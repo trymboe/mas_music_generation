@@ -1,59 +1,110 @@
 import os
-import glob
+import pickle
 
-from config import params_drum, GENRE, TRAIN_BATCH_SIZE_DRUM, VOCAB_SIZE_DRUM
+
+import tensorflow as tf
+
+
 from .datasets import Drum_Dataset
 
-from bumblebeat.bumblebeat.utils.data import load_yaml
-from bumblebeat.bumblebeat.data import get_corpus
+from .utils import load_yaml
 
 
-def get_drum_dataset():
-    conf = load_yaml("bumblebeat/conf/train_conf.yaml")
-    data_conf = conf["data"]
+def get_drum_dataset() -> Drum_Dataset:
+    """
+    Loads the drum dataset configuration, creates, and returns the drum dataset.
 
-    pitch_classes_yaml = load_yaml("bumblebeat/conf/drum_pitches.yaml")
-    pitch_classes = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
-    time_steps_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
+    Returns
+    -------
+    Drum_Dataset
+        The loaded drum dataset based on the specified configuration.
+    """
 
-    dataset_name = data_conf["dataset"]
-    data_dir = data_conf["data_dir"]
+    conf: dict = load_yaml("config/bumblebeat/params.yaml")
+    data_conf: dict = conf["data"]
 
-    train_batch_size = data_conf["per_host_train_bsz"]
+    pitch_classes_yaml: dict[str, list[list[int]]] = load_yaml(
+        "bumblebeat/conf/drum_pitches.yaml"
+    )
+    pitch_classes: list[list[int]] = pitch_classes_yaml["DEFAULT_DRUM_TYPE_PITCHES"]
 
-    drum_dataset = get_corpus(
+    time_steps_vocab: dict[int, int] = load_yaml(
+        "config/bumblebeat/time_steps_vocab.yaml"
+    )
+
+    dataset_name: str = data_conf["dataset"]
+    data_dir: str = data_conf["data_dir"]
+
+    drum_dataset: Drum_Dataset = get_dataset(
         dataset_name, data_dir, pitch_classes, time_steps_vocab, conf["processing"]
     )
 
     return drum_dataset
 
 
-def get_midi_files(root_dir="data/groove", genre=None, signature="4-4"):
+def get_dataset(
+    dataset_name: str,
+    data_dir: str,
+    pitch_classes: list[list[int]],
+    time_steps_vocab: dict[int, int],
+    processing_conf: dict,
+) -> Drum_Dataset:
     """
-    Get a list of paths to MIDI files with a specific time signature and optional genre.
+    Load groove data into custom dataset class
 
-    :param root_dir: str, base directory where the files are stored.
-    :param genre: str, specific genre to filter by (e.g., 'rock', 'folk'). If None, no genre filtering is applied.
-    :param signature: str, time signature to filter by (default is '4-4').
-    :return: list of str, paths to the MIDI files.
+    Parameters
+    -------
+    dataset_name: str
+        Name of groove dataset to download from tensorflow datasets
+    data_dir: str
+        Path to store data in (dataset, tf records)
+    pitch_classes: list
+        list of lists indicating pitch class groupings
+    time_steps_vocab: dict
+        Dict of {number of ticks: token} for converting silence to tokens
+    processing_conf: dict
+        Dict of processing options
+
+    Returns
+    -------
+    drum_dataset: Drum_Dataset
+
     """
-    # Navigate through each drummer's folder
-    midi_files = []
-    for drummer_folder in glob.glob(os.path.join(root_dir, "drummer*")):
-        # Look for MIDI files in all subfolders of the current drummer's folder
-        for midi_file in glob.glob(
-            os.path.join(drummer_folder, "**/*.mid"), recursive=True
-        ):
-            # Extract the file name without the extension
-            file_name = os.path.splitext(os.path.basename(midi_file))[0]
+    fn = os.path.join(data_dir, dataset_name, "cache.pkl")
 
-            # Check for the genre if specified
-            if genre and genre not in file_name:
-                continue
+    if tf.io.gfile.exists(fn):
+        with open(fn, "rb") as fp:
+            corpus = pickle.load(fp)
+    else:
+        create_dir_if_not_exists(fn)
 
-            # Check for the time signature
-            if signature and file_name[-3:] != signature:
-                continue
+        print("Producing dataset...")
+        corpus = Drum_Dataset(
+            data_dir=data_dir,
+            dataset_name=dataset_name,
+            pitch_classes=pitch_classes,
+            time_steps_vocab=time_steps_vocab,
+            processing_conf=processing_conf,
+        )
 
-            midi_files.append(midi_file)
-    return midi_files
+        print("Saving dataset...")
+        with open(fn, "wb") as fp:
+            pickle.dump(corpus, fp, protocol=2)
+
+    return corpus
+
+
+def create_dir_if_not_exists(path: str):
+    """
+    If the directory at <path> does not exist, create it empty
+
+    Parameters
+    ----
+    path: str
+        Path of where to create directory
+
+    """
+    directory = os.path.dirname(path)
+    # Do not try and create directory if path is just a filename
+    if (not os.path.exists(directory)) and (directory != ""):
+        os.makedirs(directory)

@@ -1,14 +1,22 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 
 from config import BATCH_SIZE_BASS, LEARNING_RATE_BASS, NUM_EPOCHS_BASS, MODEL_PATH_BASS
 
 
-def train_bass(model: nn.Module, dataset: Dataset):
-    # Hyperparameters
+def train_bass(model: nn.Module, dataset: Dataset) -> None:
+    """
+    Trains the bass model using the provided dataset.
+
+    Parameters
+    ----------
+    model : nn.Module
+        The bass model to be trained.
+    dataset : Dataset
+        The dataset to train the model on.
+    """
 
     # Create DataLoader
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE_BASS, shuffle=True)
@@ -52,7 +60,20 @@ def train_bass(model: nn.Module, dataset: Dataset):
     torch.save(model, MODEL_PATH_BASS)
 
 
-def plot_loss(loss_values):
+def plot_loss(loss_values: list[float]) -> None:
+    """
+    Plots the training loss over batches.
+
+    Parameters
+    ----------
+    loss_values : List[float]
+        A list of loss values to be plotted.
+
+    Returns
+    ---------
+    None
+    """
+
     plt.plot(loss_values)
     plt.title("Training Loss Bass")
     plt.xlabel("Batch")
