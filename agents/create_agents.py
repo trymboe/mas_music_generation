@@ -73,10 +73,12 @@ def create_agents(
     print("----Creating agents----")
     # Creating bass agent
     if not train_bass_agent:
-        bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS)
+        print("  ----Loading bass agent----")
+        bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, device)
         bass_agent.eval()
         bass_agent.to(device)
     else:
+        print("  ----Training bass agent----")
         bass_agent: Bass_Network = create_bass_agent()
         train_bass(bass_agent, bass_dataset)
         bass_agent.eval()
@@ -84,22 +86,25 @@ def create_agents(
 
     # Creating chord agent
     if not train_chord_agent:
-        chord_agent: Chord_Network = torch.load(MODEL_PATH_CHORD)
+        print("  ----Loading chord agent----")
+        chord_agent: Chord_Network = torch.load(MODEL_PATH_CHORD, device)
         chord_agent.eval()
         chord_agent.to(device)
     else:
+        print("  ----Loading chord agent----")
         chord_agent: Chord_Network = create_chord_agent()
         train_chord(chord_agent, chord_dataset)
         chord_agent.eval()
         chord_agent.to(device)
 
-    print(train_drum_agent)
     # Creating drum agent
     if not train_drum_agent:
-        drum_agent: Drum_Network = torch.load(MODEL_PATH_DRUM)
+        print("  ----Loading drum agent----")
+        drum_agent: Drum_Network = torch.load(MODEL_PATH_DRUM, device)
         drum_agent.eval()
         drum_agent.to(device)
     else:
+        print("  ----Loading drum agent----")
         drum_agent: Drum_Network = create_drum_agent(
             drum_dataset,
             device,

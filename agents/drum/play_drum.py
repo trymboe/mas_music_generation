@@ -17,7 +17,7 @@ import note_seq as ns
 
 
 def play_drum(device, measures, loops, drum_dataset, style="highlife"):
-    print(" ----playing drum----")
+    print("  ----playing drum----")
     if style:
         return play_drum_from_style(device, measures, loops, drum_dataset, style)
 

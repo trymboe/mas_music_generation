@@ -39,7 +39,7 @@ def play_agents(
         style=STYLE,
     )
 
-    print(" ----playing bass----")
+    print("  ----playing bass----")
     part_of_dataset = random.randint(0, len(bass_dataset) - 1)
 
     bass_primer_sequence = get_primer_sequence(bass_dataset, part_of_dataset)
@@ -53,7 +53,7 @@ def play_agents(
     # )
     mid = play_bass(mid, predicted_bass_sequence, playstyle="bass_drum")
 
-    print(" ----playing chord----")
+    print("  ----playing chord----")
 
     chord_input_sequence = get_input_sequence_chords(
         predicted_bass_sequence, chord_dataset, part_of_dataset
