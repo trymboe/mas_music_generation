@@ -1,7 +1,26 @@
 import pretty_midi
+import torch
+
+from .eval_agent import predict_next_k_notes_bass
+from config import MODEL_PATH_BASS, LENGTH
+from data_processing import Bass_Dataset
+from .bass_network import Bass_Network
 
 
-def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
+def play_bass(
+    mid: pretty_midi.PrettyMIDI,
+    bass_dataset: Bass_Dataset,
+    dataset_primer_start: int,
+    device: torch.device,
+    playstyle: str = "bass_drum",
+) -> tuple[pretty_midi.PrettyMIDI, list[int, int]]:
+    bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, device)
+    bass_agent.eval()
+
+    predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(
+        bass_agent, bass_dataset, dataset_primer_start, LENGTH
+    )
+
     if playstyle == "bass_drum":
         bass_drum_times = find_bass_drum(mid)
 
@@ -15,7 +34,7 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
     running_time = start_time = end_time = chord_start_time = 0.0
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if playstyle == "bass_drum":
-        for note, duration in full_bass_sequence:
+        for note, duration in predicted_bass_sequence:
             midi_note = note_mapping[note]
             # Get the start time of the bass note (aligned with the bass drum hit)
             running_time = chord_start_time
@@ -75,7 +94,7 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
                     running_time = end_time
 
     else:  # Original behavior if playstyle isn't "bass_drum"
-        for note, duration in full_bass_sequence:
+        for note, duration in predicted_bass_sequence:
             midi_note = note_mapping[note]
             bass_note = pretty_midi.Note(
                 velocity=64,
@@ -89,7 +108,7 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
     # Add the bass_instrument to the PrettyMIDI object
     mid.instruments.append(bass_instrument)
 
-    return mid
+    return mid, predicted_bass_sequence
 
 
 def play_note(

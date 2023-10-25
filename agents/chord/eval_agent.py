@@ -4,11 +4,18 @@ import torch.nn.functional as F
 from config import SEQUENCE_LENGTH_CHORD
 
 
-def predict_next_k_notes_chords(model, input_sequence):
+def predict_next_k_notes_chords(
+    model, predicted_bass_sequence, chord_dataset, dataset_primer
+):
+    #
+    chord_primer = get_input_sequence_chords(
+        predicted_bass_sequence, chord_dataset, dataset_primer
+    )
+
     predicted_chord_types = []
 
     # Add a batch dimension
-    input_sequence = input_sequence.unsqueeze(0)
+    input_sequence = chord_primer.unsqueeze(0)
 
     model.eval()  # Set the model to evaluation mode
 
@@ -37,3 +44,27 @@ def predict_next_k_notes_chords(model, input_sequence):
             (input_sequence[0, i, 0].item(), input_sequence[0, i, 1].item())
         )
     return predicted_chord_types
+
+
+def get_input_sequence_chords(full_bass_sequence, Chord_Dataset, dataset_primer):
+    # Extract the corresponding chord sequence from the dataset
+    actual_chord_sequence = Chord_Dataset[dataset_primer][0]
+    # Extract only the root notes from the full_bass_sequence
+    bass_notes = [pair[0] for pair in full_bass_sequence]
+
+    # Create the input sequence
+    input_sequence = []
+
+    # Iterate over the bass_notes and actual_chord_sequence to create the pairs
+    for i, bass_note in enumerate(bass_notes):
+        if i < len(actual_chord_sequence):  # If we have actual chords, use them
+            input_sequence.append(
+                [bass_note, actual_chord_sequence[i][1].item()]
+            )  # Use .item() to extract scalar from tensor
+        else:  # Otherwise, use the placeholder
+            input_sequence.append([bass_note, 6])
+
+    # Convert the list of lists to a tensor
+    input_tensor = torch.tensor(input_sequence, dtype=torch.int64)
+
+    return input_tensor

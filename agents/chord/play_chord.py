@@ -2,16 +2,32 @@ from mido import MidiFile, MidiTrack, Message
 import pretty_midi
 import random
 
-from config import TEMPO, ARP_STYLE
+import torch
+
+from .eval_agent import predict_next_k_notes_chords
+from config import TEMPO, ARP_STYLE, MODEL_PATH_CHORD, INT_TO_TRIAD
 
 
 def play_chord(
-    mid: MidiFile, chord_sequence: list[tuple[list[int], int]], arpeggiate
+    mid: MidiFile,
+    arpeggiate,
+    predicted_bass_sequence,
+    chord_dataset,
+    dataset_primer,
+    device,
 ) -> MidiFile:
+    timed_chord_sequence: list[tuple[list[int], int]] = get_timed_chord_sequence(
+        predicted_bass_sequence,
+        predicted_bass_sequence,
+        chord_dataset,
+        dataset_primer,
+        device,
+    )
+
     if arpeggiate:
-        mid = play_chord_arpeggiate(mid, chord_sequence)
+        mid = play_chord_arpeggiate(mid, timed_chord_sequence)
     else:
-        mid = play_chord_hold(mid, chord_sequence)
+        mid = play_chord_hold(mid, timed_chord_sequence)
 
     return mid
 
@@ -115,3 +131,31 @@ def play_chord_arpeggiate(pm, chord_sequence):
     # Append instrument to PrettyMIDI object
     pm.instruments.append(piano)
     return pm
+
+
+def get_timed_chord_sequence(
+    full_bass_sequence, predicted_bass_sequence, chord_dataset, dataset_primer, device
+):
+    chord_agent = torch.load(MODEL_PATH_CHORD, device)
+    chord_agent.eval()
+
+    full_chord_sequence = predict_next_k_notes_chords(
+        chord_agent, predicted_bass_sequence, chord_dataset, dataset_primer
+    )
+
+    timed_chord_sequence = []
+    full_chord_timed = []
+
+    for idx, note in enumerate(full_bass_sequence):
+        timed_chord_sequence.append(
+            (full_chord_sequence[idx][0], full_chord_sequence[idx][1], note[1])
+        )
+    for root, chord, duration in timed_chord_sequence:
+        try:
+            full_chord = INT_TO_TRIAD[chord]
+        except KeyError:
+            full_chord = INT_TO_TRIAD[0]
+        full_chord = [x + root for x in full_chord]
+        full_chord_timed.append((full_chord, duration))
+
+    return full_chord_timed

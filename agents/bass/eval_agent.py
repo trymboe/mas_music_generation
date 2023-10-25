@@ -1,11 +1,17 @@
 import torch
 import torch.nn.functional as F
 
+from data_processing import Bass_Dataset
 
-def predict_next_k_notes_bass(model, initial_sequence, length) -> list[int, int]:
-    predicted_notes_durations = []
 
-    note_sequence, duration_sequence = initial_sequence
+def predict_next_k_notes_bass(
+    model, bass_dataset_start, dataset_primer, length
+) -> list[int, int]:
+    predicted_notes_durations: list[tuple[int, int]] = []
+
+    note_sequence, duration_sequence = get_primer_sequence(
+        bass_dataset_start, dataset_primer
+    )
     note_sequence = note_sequence.unsqueeze(0)  # Add a batch dimension
     duration_sequence = duration_sequence.unsqueeze(0)  # Add a batch dimension
 
@@ -43,3 +49,15 @@ def predict_next_k_notes_bass(model, initial_sequence, length) -> list[int, int]
             duration_sequence = torch.cat(
                 [duration_sequence[:, 1:], next_duration], dim=1
             )
+
+
+def get_primer_sequence(
+    bass_dataset: Bass_Dataset, dataset_primer_start: int
+) -> tuple[int, int]:
+    primer_part: int = dataset_primer_start
+    primer_sequence: tuple[int, int] = (
+        bass_dataset[primer_part][0],
+        bass_dataset[primer_part][1],
+    )
+
+    return primer_sequence

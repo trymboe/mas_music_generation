@@ -45,8 +45,6 @@ parser.add_argument(
 )
 
 
-args = parser.parse_args()
-
 if __name__ == "__main__":
     """
     Executes the main training and playing routine for music agents.
@@ -75,7 +73,7 @@ if __name__ == "__main__":
     ValueError
         If invalid command line arguments are provided.
     """
-
+    args = parser.parse_args()
     train_bass: bool = parser.parse_args().train_bass
     train_chord: bool = parser.parse_args().train_chord
     train_drum: bool = parser.parse_args().train_drum
