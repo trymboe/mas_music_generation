@@ -16,22 +16,29 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if playstyle == "bass_drum":
         for note, duration in full_bass_sequence:
+            midi_note = note_mapping[note]
             # Get the start time of the bass note (aligned with the bass drum hit)
             running_time = chord_start_time
 
             for idx, drum_beat in enumerate(bass_drum_times):
                 # the chord is finished
                 if bass_drum_times[idx] >= chord_start_time + duration:
+                    # If no note has been played yet, play a note for the entire duration
+                    if running_time == chord_start_time:
+                        end_time == chord_start_time + duration
+                        play_note(
+                            bass_instrument,
+                            pitch=midi_note,
+                            start_time=running_time,
+                            end_time=bass_drum_times[idx],
+                        )
+
                     chord_start_time += duration
                     break
                 # the beat is inside the current chord, play notes
                 if drum_beat >= chord_start_time:
                     # If it is the first beat of the chord, and no note is played, play a bass note
-                    if (
-                        running_time == chord_start_time
-                        and drum_beat != chord_start_time
-                    ):
-                        midi_note = note_mapping[note]
+                    if running_time == chord_start_time:
                         play_note(
                             bass_instrument,
                             pitch=midi_note,
@@ -57,7 +64,6 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
                         if end_time > chord_start_time + duration:
                             end_time = chord_start_time + duration
 
-                    midi_note = note_mapping[note]
                     play_note(
                         bass_instrument,
                         pitch=midi_note,
