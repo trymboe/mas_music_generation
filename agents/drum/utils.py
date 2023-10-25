@@ -413,7 +413,7 @@ def tokens_to_note_sequence(
             end_time = start_time + 0.1  # TODO make this relative to qpm
             seq.notes.add(
                 pitch=pitch,
-                velocity=vel,
+                velocity=int(vel * 0.8),
                 start_time=start_time,
                 end_time=end_time,
                 is_drum=True,
