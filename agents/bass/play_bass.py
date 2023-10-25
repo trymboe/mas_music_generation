@@ -39,11 +39,12 @@ def play_bass(mid, full_bass_sequence, playstyle="bass_drum"):
                 if drum_beat >= chord_start_time:
                     # If it is the first beat of the chord, and no note is played, play a bass note
                     if running_time == chord_start_time:
+                        end_time = chord_start_time + duration
                         play_note(
                             bass_instrument,
                             pitch=midi_note,
                             start_time=running_time,
-                            end_time=bass_drum_times[idx],
+                            end_time=end_time,
                         )
 
                     start_time = bass_drum_times[idx]
