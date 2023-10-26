@@ -2,7 +2,7 @@ from .bass import play_bass
 from .chord import play_chord
 from .drum import play_drum
 import random
-import torch
+import time
 
 import pretty_midi
 
@@ -58,19 +58,26 @@ def play_agents(
     dataset_primer_start: int = random.randint(0, len(bass_dataset) - 1)
 
     print("  ----playing drum----")
+    start = time.time()
     mid: pretty_midi.PrettyMIDI = play_drum(
         measures=LOOP_MEASURES,
         loops=int(LENGTH / LOOP_MEASURES),
         drum_dataset=drum_dataset,
         style=STYLE,
     )
+    end = time.time()
+    print("  ----drum playing time: ", end - start)
 
     print("  ----playing bass----")
+    start = time.time()
     mid, predicted_bass_sequence = play_bass(
         mid, bass_dataset, dataset_primer_start, playstyle="bass_drum"
     )
+    end = time.time()
+    print("  ----bass playing time: ", end - start)
 
     print("  ----playing chord----")
+    start = time.time()
     mid = play_chord(
         mid,
         arpeggiate,
@@ -78,5 +85,7 @@ def play_agents(
         chord_dataset,
         dataset_primer_start,
     )
+    end = time.time()
+    print("  ----chord playing time: ", end - start)
 
     mid.write(filename)
