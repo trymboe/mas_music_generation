@@ -5,7 +5,7 @@ import random
 import torch
 
 from .eval_agent import predict_next_k_notes_chords
-from config import TEMPO, ARP_STYLE, MODEL_PATH_CHORD, INT_TO_TRIAD
+from config import TEMPO, ARP_STYLE, MODEL_PATH_CHORD, INT_TO_TRIAD, DEVICE
 
 
 def play_chord(
@@ -14,14 +14,12 @@ def play_chord(
     predicted_bass_sequence,
     chord_dataset,
     dataset_primer,
-    device,
 ) -> MidiFile:
     timed_chord_sequence: list[tuple[list[int], int]] = get_timed_chord_sequence(
         predicted_bass_sequence,
         predicted_bass_sequence,
         chord_dataset,
         dataset_primer,
-        device,
     )
 
     if arpeggiate:
@@ -134,9 +132,9 @@ def play_chord_arpeggiate(pm, chord_sequence):
 
 
 def get_timed_chord_sequence(
-    full_bass_sequence, predicted_bass_sequence, chord_dataset, dataset_primer, device
+    full_bass_sequence, predicted_bass_sequence, chord_dataset, dataset_primer
 ):
-    chord_agent = torch.load(MODEL_PATH_CHORD, device)
+    chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(

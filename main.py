@@ -79,9 +79,6 @@ if __name__ == "__main__":
     train_drum: bool = parser.parse_args().train_drum
     arpeggiate: bool = parser.parse_args().arpeggiate
 
-    # Set device to use
-    device: torch.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     # Process the datasets
     bass_dataset, chord_dataset, drum_dataset = get_datasets()
 
@@ -93,7 +90,6 @@ if __name__ == "__main__":
         train_bass,
         train_chord,
         train_drum,
-        device,
     )
 
     # Play the agents
@@ -103,7 +99,6 @@ if __name__ == "__main__":
         drum_dataset,
         arpeggiate,
         SAVE_RESULT_PATH,
-        device,
     )
 
     plt.show()

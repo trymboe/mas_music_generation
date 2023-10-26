@@ -8,7 +8,7 @@ from .utils import (
 
 from data_processing.utils import load_yaml
 
-from config import DRUM_STYLES, TEMPO, MODEL_PATH_DRUM
+from config import DRUM_STYLES, TEMPO, MODEL_PATH_DRUM, DEVICE
 
 import random
 import pretty_midi
@@ -16,9 +16,9 @@ import pretty_midi
 import note_seq as ns
 
 
-def play_drum(device, measures, loops, drum_dataset, style="highlife"):
+def play_drum(measures, loops, drum_dataset, style="highlife"):
     if style:
-        return play_drum_from_style(device, measures, loops, drum_dataset, style)
+        return play_drum_from_style(measures, loops, drum_dataset, style)
 
     conf = load_yaml("bumblebeat/conf/train_conf.yaml")
 
@@ -31,7 +31,7 @@ def play_drum(device, measures, loops, drum_dataset, style="highlife"):
     # path = "models/drum/drum_model.pt"
     path = "models/drum/train_step_5000/model.pt"
 
-    model = load_model(path, device)
+    model = load_model(path, DEVICE)
 
     pitch_vocab = drum_dataset.reverse_vocab
     velocity_vocab = {v: k for k, v in drum_dataset.vel_vocab.items()}
@@ -127,7 +127,7 @@ def play_drum(device, measures, loops, drum_dataset, style="highlife"):
         num=1,
         gen_len=gen_len,
         mem_len=mem_len,
-        device=device,
+        device=DEVICE,
         temp=1,
         topk=5,
     )
@@ -152,14 +152,14 @@ def play_drum(device, measures, loops, drum_dataset, style="highlife"):
     return pm
 
 
-def play_drum_from_style(device, measures, loops, drum_dataset, style):
+def play_drum_from_style(measures, loops, drum_dataset, style):
     conf = load_yaml("config/bumblebeat/params.yaml")
 
     time_vocab = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
 
     path = MODEL_PATH_DRUM
 
-    model = load_model(path, device)
+    model = load_model(path, DEVICE)
 
     pitch_vocab = drum_dataset.reverse_vocab
     velocity_vocab = {v: k for k, v in drum_dataset.vel_vocab.items()}
@@ -222,7 +222,7 @@ def play_drum_from_style(device, measures, loops, drum_dataset, style):
         prime_len=primer_length - 1,
         gen_len=gen_len,
         mem_len=gen_len,
-        device=device,
+        device=DEVICE,
         temp=0.95,
         topk=None,
     )

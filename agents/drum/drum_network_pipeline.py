@@ -12,13 +12,13 @@ from .drum_network import Drum_Network
 
 from data_processing import Drum_Dataset
 
-from config import WORK_DIR, MODEL_PATH_DRUM
+from config import WORK_DIR, MODEL_PATH_DRUM, DEVICE
 from .utils import create_exp_dir, create_dir_if_not_exists
 
 sys.path.append("utils")
 
 
-def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset, device: torch.device):
+def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
     """
     Run model pipeline from setup specified in <conf>
 
@@ -28,8 +28,6 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset, device: torch.
         config from conf/train_conf.yaml
     drum_dataset: Drum_Dataset
         Drum_Dataset object
-    device: torch.device
-        Dict of drum pitch mappings (from conf/drum_pitches.yaml)
     """
     model_conf = conf["model"]
     data_conf = conf["data"]
@@ -88,21 +86,21 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset, device: torch.
         "train",
         model_conf["train_batch_size"],
         model_conf["tgt_len"],
-        device=device,
+        device=DEVICE,
         ext_len=model_conf["ext_len"],
     )
     va_iter = drum_dataset.get_iterator(
         "valid",
         eval_batch_size,
         model_conf["tgt_len"],
-        device=device,
+        device=DEVICE,
         ext_len=model_conf["ext_len"],
     )
     te_iter = drum_dataset.get_iterator(
         "test",
         eval_batch_size,
         model_conf["tgt_len"],
-        device=device,
+        device=DEVICE,
         ext_len=model_conf["ext_len"],
     )
 
@@ -217,10 +215,10 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset, device: torch.
         model = model.half()
 
     if model_conf["multi_gpu"]:
-        model = model.to(device)
-        para_model = nn.DataParallel(model, dim=1).to(device)
+        model = model.to(DEVICE)
+        para_model = nn.DataParallel(model, dim=1).to(DEVICE)
     else:
-        para_model = model.to(device)
+        para_model = model.to(DEVICE)
 
     #### optimizer
     if model_conf["optim"].lower() == "sgd":

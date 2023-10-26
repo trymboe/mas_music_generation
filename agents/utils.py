@@ -4,9 +4,11 @@ import torch.nn.functional as F
 
 from note_seq.protobuf import music_pb2
 
+from config import DEVICE
+
 
 class TxlSimpleSampler:
-    def __init__(self, model, device, tgt_len=1, mem_len=896, ext_len=0):
+    def __init__(self, model, tgt_len=1, mem_len=896, ext_len=0):
         if tgt_len != 1:
             raise ValueError()
         if ext_len != 0:
@@ -14,7 +16,7 @@ class TxlSimpleSampler:
         self.model = model
         self.model.eval()
         self.model.reset_length(1, ext_len, mem_len)
-        self.device = device
+        self.device = DEVICE
         self.reset()
 
     def reset(self):

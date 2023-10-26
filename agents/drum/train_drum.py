@@ -29,31 +29,32 @@ from config import (
     LOG_INTERVAL_DRUM,
     EVAL_INTERVAL_DRUM,
     DEBUG,
+    DEVICE,
 )
 
 
-def train_drum(model: nn.Module, dataset: Dataset, device: torch.device):
+def train_drum(model: nn.Module, dataset: Dataset):
     logging = create_exp_dir(WORK_DIR, scripts_to_save=None, debug=WORK_DIR)
 
     tr_iter = dataset.get_iterator(
         "train",
         TRAIN_BATCH_SIZE_DRUM,
         NUM_TOKENS_PREDICT_DRUM,
-        device=device,
+        device=DEVICE,
         ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
     )
     va_iter = dataset.get_iterator(
         "valid",
         EVAL_BATCH_SIZE_DRUM,
         NUM_TOKENS_PREDICT_DRUM,
-        device=device,
+        device=DEVICE,
         ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
     )
     te_iter = dataset.get_iterator(
         "test",
         EVAL_BATCH_SIZE_DRUM,
         NUM_TOKENS_PREDICT_DRUM,
-        device=device,
+        device=DEVICE,
         ext_len=EXTENDED_CONTEXT_LENGTH_DRUM,
     )
 
@@ -62,7 +63,7 @@ def train_drum(model: nn.Module, dataset: Dataset, device: torch.device):
     scheduler = optim.lr_scheduler.CosineAnnealingLR(
         optimizer, MAX_STEP_DRUM, eta_min=ETA_MIN_DRUM
     )
-    para_model = model.to(device)
+    para_model = model.to(DEVICE)
 
     def train():
         nonlocal train_step, train_loss, best_val_loss, eval_start_time, log_start_time
@@ -236,7 +237,7 @@ def train_drum(model: nn.Module, dataset: Dataset, device: torch.device):
     # Load the best saved model.
     with open(os.path.join(WORK_DIR, "drum_model.pt"), "rb") as f:
         model = torch.load(f)
-    para_model = model.to(device)
+    para_model = model.to(DEVICE)
 
     # Run on test data.
     test_loss = evaluate(te_iter)

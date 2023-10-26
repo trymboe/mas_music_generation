@@ -2,7 +2,7 @@ import pretty_midi
 import torch
 
 from .eval_agent import predict_next_k_notes_bass
-from config import MODEL_PATH_BASS, LENGTH
+from config import MODEL_PATH_BASS, LENGTH, DEVICE
 from data_processing import Bass_Dataset
 from .bass_network import Bass_Network
 
@@ -11,10 +11,9 @@ def play_bass(
     mid: pretty_midi.PrettyMIDI,
     bass_dataset: Bass_Dataset,
     dataset_primer_start: int,
-    device: torch.device,
     playstyle: str = "bass_drum",
 ) -> tuple[pretty_midi.PrettyMIDI, list[int, int]]:
-    bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, device)
+    bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
     bass_agent.eval()
 
     predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(
