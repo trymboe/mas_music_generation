@@ -337,15 +337,15 @@ def create_dir_if_not_exists(path):
 
 
 def tokens_to_note_sequence(
-    tokens,
-    pitch_vocab,
-    pitch_classes,
-    velocity_vocab,
-    time_vocab,
-    qpm,
-    time_sig=(4, 4),
-    ticks_per_quarter=480,
-):
+    tokens: list[int],
+    pitch_vocab: dict[int, int],
+    pitch_classes: list[list[int]],
+    velocity_vocab: dict[int, int],
+    time_vocab: dict[int, int],
+    qpm: int,
+    time_sig: tuple[int, int] = (4, 4),
+    ticks_per_quarter: int = 480,
+) -> music_pb2.NoteSequence:
     """
     Convert sequence of tokens to note_sequence
 

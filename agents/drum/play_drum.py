@@ -6,30 +6,31 @@ from .utils import (
     continue_sequence,
 )
 
-from data_processing.utils import load_yaml
+from data_processing import Drum_Dataset, load_yaml
 
 from config import DRUM_STYLES, TEMPO, MODEL_PATH_DRUM, DEVICE
 
 import random
 import pretty_midi
 
+from .drum_network import Drum_Network
+
 import note_seq as ns
 
 
-def play_drum(measures, loops, drum_dataset, style="highlife"):
+def play_drum(
+    measures: int, loops: int, drum_dataset: Drum_Dataset, style: str = "highlife"
+) -> pretty_midi.PrettyMIDI:
     if style:
         return play_drum_from_style(measures, loops, drum_dataset, style)
 
-    conf = load_yaml("bumblebeat/conf/train_conf.yaml")
+    conf = load_yaml("config/bumblebeat/params.yaml")
 
-    pitch_classes = load_yaml("bumblebeat/conf/drum_pitches.yaml")
-    time_vocab = load_yaml("bumblebeat/conf/time_steps_vocab.yaml")
+    time_vocab = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
 
     model_conf = conf["model"]
-    data_conf = conf["data"]
 
-    # path = "models/drum/drum_model.pt"
-    path = "models/drum/train_step_5000/model.pt"
+    path = MODEL_PATH_DRUM
 
     model = load_model(path, DEVICE)
 
@@ -39,87 +40,6 @@ def play_drum(measures, loops, drum_dataset, style="highlife"):
     mem_len = model_conf["mem_len"]
     gen_len = 220
 
-    hat_prime = [
-        95,
-        2,
-        2,
-        2,
-        2,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        42,
-        2,
-        2,
-        2,
-        2,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        42,
-        2,
-        2,
-        2,
-        2,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        42,
-        2,
-        2,
-        2,
-        2,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        42,
-        2,
-        2,
-        2,
-        2,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        42,
-        2,
-        2,
-        2,
-        2,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        42,
-    ]
     simplified_pitches = [[36], [38], [42], [46], [45], [48], [50], [49], [51]]
 
     seqs = generate_sequences(
@@ -153,31 +73,39 @@ def play_drum(measures, loops, drum_dataset, style="highlife"):
 
 
 def play_drum_from_style(measures, loops, drum_dataset, style):
-    conf = load_yaml("config/bumblebeat/params.yaml")
+    conf: dict = load_yaml("config/bumblebeat/params.yaml")
 
-    time_vocab = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
+    time_vocab: dict[int, int] = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
 
-    path = MODEL_PATH_DRUM
+    model: Drum_Network = load_model(MODEL_PATH_DRUM, DEVICE)
 
-    model = load_model(path, DEVICE)
+    pitch_vocab: dict[int, int] = drum_dataset.reverse_vocab
+    velocity_vocab: dict[int, int] = {v: k for k, v in drum_dataset.vel_vocab.items()}
 
-    pitch_vocab = drum_dataset.reverse_vocab
-    velocity_vocab = {v: k for k, v in drum_dataset.vel_vocab.items()}
+    primer_length: int = 256
+    gen_len: int = 256
 
-    primer_length = 256
-    gen_len = 256
+    simplified_pitches: list[list[int]] = [
+        [36],
+        [38],
+        [42],
+        [46],
+        [45],
+        [48],
+        [50],
+        [49],
+        [51],
+    ]
 
-    simplified_pitches = [[36], [38], [42], [46], [45], [48], [50], [49], [51]]
-
-    attempt = 0
+    attempt: int = 0
     while True:
         attempt += 1
         if attempt == 100:
             print(
                 f"Could not find a sequence long enough for {style}, default to {get_key(DRUM_STYLES, 7)}"
             )
-            style = get_key(DRUM_STYLES, 7)
-        random_sequence = random.choice(
+            style: str = get_key(DRUM_STYLES, 7)
+        random_sequence: dict = random.choice(
             [
                 x
                 for x in drum_dataset.train_data
@@ -185,27 +113,18 @@ def play_drum_from_style(measures, loops, drum_dataset, style):
             ]
         )
 
-        dev_sequence = drum_dataset._quantize(
+        dev_sequence: ns.NoteSequence = drum_dataset._quantize(
             ns.midi_to_note_sequence(random_sequence["midi"]), 4
         )
 
-        quantize = True
-        in_tokens = drum_dataset._tokenize(dev_sequence, 4, quantize)
+        quantize: bool = True
+        in_tokens: list[int] = drum_dataset._tokenize(dev_sequence, 4, quantize)
 
         if len(in_tokens) >= primer_length:
             break
 
         if attempt == 100:
             break
-
-    # # To midi note sequence using magent
-    # dev_sequence = corpus._quantize(
-    #     ns.midi_to_note_sequence(random_sequence["midi"]), 4
-    # )
-    # quantize = True
-
-    # # note sequence -> [(pitch, vel_bucket, start timestep)]
-    # in_tokens = corpus._tokenize(dev_sequence, 4, quantize)
 
     note_sequence = tokens_to_note_sequence(
         in_tokens,
@@ -307,7 +226,7 @@ def loop_drum(
     return looped_pm
 
 
-def get_key(my_dict, value):
+def get_key(my_dict: dict[str, int], value: int) -> str:
     for key, val in my_dict.items():
         if val == value:
             return key
