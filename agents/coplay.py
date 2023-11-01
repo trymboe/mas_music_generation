@@ -66,7 +66,7 @@ def play_agents(
         style=STYLE,
     )
     end = time.time()
-    print("  ----drum playing time: ", end - start)
+    print("    ----drum playing time: ", end - start)
 
     print("  ----playing bass----")
     start = time.time()
@@ -74,7 +74,7 @@ def play_agents(
         mid, bass_dataset, dataset_primer_start, playstyle="bass_drum"
     )
     end = time.time()
-    print("  ----bass playing time: ", end - start)
+    print("    ----bass playing time: ", end - start)
 
     print("  ----playing chord----")
     start = time.time()
@@ -86,6 +86,6 @@ def play_agents(
         dataset_primer_start,
     )
     end = time.time()
-    print("  ----chord playing time: ", end - start)
+    print("    ----chord playing time: ", end - start)
 
     mid.write(filename)

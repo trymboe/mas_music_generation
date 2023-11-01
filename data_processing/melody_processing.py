@@ -1,27 +1,43 @@
 import os
 import pretty_midi
 from .datasets import Melody_Dataset
+import torch
 
 from config import PITCH_VECTOR_SIZE
 
 
-def extract_melody_and_chord(root_dir: str):
+def get_melody_dataset(root_dir: str) -> Melody_Dataset:
     num_files = 0
-
-    for directory in os.listdir(root_dir):
-        if ".DS_Store" in directory:
-            continue
-        for file in os.listdir(os.path.join(root_dir, directory)):
-            if ".mid" in file:
-                midi_file: str = os.path.join(root_dir, directory, file)
-            if "chord_midi" in file:
-                chord_file: str = os.path.join(root_dir, directory, file)
-            else:
+    all_events: list[
+        list[list[list[int]], list[list[int]], list[list[int]], list[list[int]]]
+    ] = []
+    if not os.path.exists("data/dataset/melody_dataset.pt"):
+        for directory in os.listdir(root_dir):
+            if ".DS_Store" in directory:
                 continue
+            for file in os.listdir(os.path.join(root_dir, directory)):
+                if ".mid" in file:
+                    midi_file: str = os.path.join(root_dir, directory, file)
+                if "chord_midi" in file:
+                    chord_file: str = os.path.join(root_dir, directory, file)
+                else:
+                    continue
 
-        list_of_events: list[
-            list[list[int]], list[list[int]], list[list[int]], list[list[int]]
-        ] = process_melody_and_chord(midi_file, chord_file)
+            list_of_events: list[
+                list[list[int]], list[list[int]], list[list[int]], list[list[int]]
+            ] = process_melody_and_chord(midi_file, chord_file)
+
+            if list_of_events is not None:
+                all_events.append(list_of_events)
+                num_files += 1
+            if num_files == 3:
+                break
+        melody_dataset: Melody_Dataset = Melody_Dataset(all_events)
+        torch.save(melody_dataset, "data/dataset/melody_dataset.pt")
+    else:
+        melody_dataset = torch.load("data/dataset/melody_dataset.pt")
+
+    return melody_dataset
 
 
 def process_melody_and_chord(

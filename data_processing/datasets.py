@@ -418,3 +418,26 @@ class Drum_Dataset:
             for pitch in pitches:
                 class_map[pitch] = cls
         return class_map
+
+
+class Melody_Dataset(Dataset):
+    def __init__(self, data):
+        self.serialized_data = self._process_data(data)
+
+    def _process_data(self, data):
+        return [
+            element
+            for sublist in data
+            for element in (sublist if isinstance(sublist, list) else [sublist])
+        ]
+
+    def __len__(self):
+        return len(self.serialized_data)
+
+    def __getitem__(self, idx):
+        return (
+            self.serialized_data[idx][0],
+            self.serialized_data[idx][1],
+            self.serialized_data[idx][2],
+            self.serialized_data[idx][3],
+        )

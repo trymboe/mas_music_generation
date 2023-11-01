@@ -5,10 +5,12 @@ from data_processing import (
     Bass_Dataset,
     Chord_Dataset,
     Drum_Dataset,
+    Melody_Dataset,
+    get_melody_dataset,
 )
 
 
-def get_datasets() -> tuple[Bass_Dataset, Chord_Dataset, Drum_Dataset]:
+def get_datasets() -> tuple[Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset]:
     """
     Processes music data to create datasets for notes, chords, and drums.
 
@@ -24,22 +26,25 @@ def get_datasets() -> tuple[Bass_Dataset, Chord_Dataset, Drum_Dataset]:
         A dataset object containing chord progressions.
     Drum_Dataset
         A dataset object containing drum patterns.
+    Melody_Dataset
+        A dataset object containing melody related to chords.
     """
 
     print("----Creating datasets----")
-
     root_directory: str = "data/POP909"
+
     chords, notes, beats = extract_chords_from_files(
         root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
     )
 
     timed_notes: list[list[tuple[str, int]]] = get_timed_notes(notes, beats)
 
+    melody_dataset: Melody_Dataset = get_melody_dataset(root_directory)
     drum_dataset: Drum_Dataset = get_drum_dataset()
     bass_dataset: Bass_Dataset = Bass_Dataset(timed_notes)
     chord_dataset: Chord_Dataset = Chord_Dataset(chords)
 
-    return bass_dataset, chord_dataset, drum_dataset
+    return bass_dataset, chord_dataset, drum_dataset, melody_dataset
 
 
 def get_timed_notes(

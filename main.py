@@ -80,7 +80,7 @@ if __name__ == "__main__":
     arpeggiate: bool = parser.parse_args().arpeggiate
 
     # Process the datasets
-    bass_dataset, chord_dataset, drum_dataset = get_datasets()
+    bass_dataset, chord_dataset, drum_dataset, melody_dataset = get_datasets()
 
     # Create and train the agents
     bass_agent, chord_agent, drum_agent = create_agents(
