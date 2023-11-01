@@ -1,12 +1,13 @@
 import os
 import pretty_midi
-import numpy as np
+from .datasets import Melody_Dataset
 
 from config import PITCH_VECTOR_SIZE
 
 
 def extract_melody_and_chord(root_dir: str):
     num_files = 0
+
     for directory in os.listdir(root_dir):
         if ".DS_Store" in directory:
             continue
@@ -18,17 +19,14 @@ def extract_melody_and_chord(root_dir: str):
             else:
                 continue
 
-        list_of_events = process_melody_and_chord(midi_file, chord_file)
-        if list_of_events:
-            num_files += 1
-            print("working on number", num_files)
-    print(num_files)
-    exit()
+        list_of_events: list[
+            list[list[int]], list[list[int]], list[list[int]], list[list[int]]
+        ] = process_melody_and_chord(midi_file, chord_file)
 
 
 def process_melody_and_chord(
     midi_file: str, chord_file: str
-) -> list[list[list[int]], list[list[int]], list[list[int]]]:
+) -> list[list[list[int]], list[list[int]], list[list[int]], list[list[int]]]:
     pm = pretty_midi.PrettyMIDI(midi_file)
 
     # Only work for time signature 4/4
@@ -47,56 +45,147 @@ def process_melody_and_chord(
     if melody_track is None:
         raise Exception("No melody track found")
 
-    beats_per_bar = 4  # Since it's 4/4 time signature
-    ticks_per_beat = pm.resolution
-    ticks_per_bar = beats_per_bar * ticks_per_beat
-    # Tolerance for the duration of an eighth note
-    eighth_note_tolerance = ticks_per_beat / 2
+    print(midi_file)
+    chord_list: list[list[list[int], int]] = process_chord(chord_file)
 
-    current_tick = 0
-    list_of_events = []
+    ticks_per_beat: int = pm.resolution
+    ticks_per_bar: int = ticks_per_beat * 4  # Since it's 4/4 time signature
+    # Tolerance for the duration of an eighth note
+    sixteenth_note_tolerance: float = ticks_per_beat / 4
+    tempo: int = int(pm.get_tempo_changes()[1][0])
+
+    current_tick: int = 0
+    list_of_events: list[
+        list[list[int]], list[list[int]], list[list[int]], list[list[int]]
+    ] = []
+    chords: list[list[int]] = []
+
+    current_chord: int = None
+    next_chord: int = None
+    no_chord: bool = False
 
     # Iterate over the notes in the melody track
     for idx, note in enumerate(melody_track.notes):
-        start_tick = pm.time_to_tick(note.start)
-        end_tick = pm.time_to_tick(note.end)
-        duration_ticks = end_tick - start_tick
+        start_tick: float = pm.time_to_tick(note.start)
+        end_tick: float = pm.time_to_tick(note.end)
+        duration_ticks: float = end_tick - start_tick
 
-        duration_vector = get_duration_list(duration_ticks, ticks_per_bar)
+        duration_vector: list[int] = get_duration_list(duration_ticks, ticks_per_bar)
+
+        for j, (timing, chord) in enumerate(chord_list):
+            chord_start_time = seconds_to_ticks(timing[0], tempo, ticks_per_beat)
+            chord_end_time = seconds_to_ticks(timing[1], tempo, ticks_per_beat)
+
+            if chord_start_time <= start_tick and chord_end_time >= end_tick:
+                # Only save chord if there is a chord, and not the last chord
+                if "N" not in chord:
+                    current_chord: str = chord
+                    try:
+                        next_chord: str = chord_list[j + 1][1]
+                    except:
+                        no_chord = True
+                        break
+                    chords = [current_chord, next_chord]
+                # If there is no chord played, or last chord
+                else:
+                    no_chord = True
+                    break
+
+        # Break if there is no corresponding chord
+        if no_chord:
+            no_chord = False
+            continue
 
         # Check if the note is the start of a bar
-        is_start_of_bar = abs(start_tick % ticks_per_bar) <= eighth_note_tolerance
-        is_end_of_bar = (
-            abs(end_tick % ticks_per_bar) <= eighth_note_tolerance
-            or abs((end_tick % ticks_per_bar) - ticks_per_bar) <= eighth_note_tolerance
+        is_start_of_bar: bool = (
+            abs(start_tick % ticks_per_bar) <= sixteenth_note_tolerance
+        )
+        is_end_of_bar: bool = (
+            abs(end_tick % ticks_per_bar) <= sixteenth_note_tolerance
+            or abs((end_tick % ticks_per_bar) - ticks_per_bar)
+            <= sixteenth_note_tolerance
         )
 
-        pitch_vector = [0] * (PITCH_VECTOR_SIZE + 1)
+        pitch_vector: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
         if note.start > current_tick:
             # Add a rest if there is a gap between notes
-            rest_duration = note.start - current_tick
+            rest_duration: float = note.start - current_tick
             pitch_vector[-1] = 1
+            duration_vector: list[int] = get_duration_list(rest_duration, ticks_per_bar)
         else:
             pitch_vector[note.pitch - 1] = 1
 
         current_tick = end_tick
 
         list_of_events.append(
-            [pitch_vector, duration_vector, [is_start_of_bar, is_end_of_bar]]
+            [pitch_vector, duration_vector, chords, [is_start_of_bar, is_end_of_bar]]
         )
     return list_of_events
 
 
+def process_chord(chord_file: str) -> list[list[list[int], int]]:
+    """
+    Creates a list of chords with timing information.
+
+    Args
+    ----------
+        chord_file (str): path to chord file
+
+    Returns
+    ----------
+        list[list[list[int], int]]: list of chords with timing information
+    """
+    chord_timing: list[list[int]] = []
+    with open(chord_file, "r") as file:
+        for line in file:
+            words: list[str] = line.split()
+
+            timing: float = [float(words[0]), float(words[1])]
+            chord: str = words[2]
+            chord_timing.append([timing, chord])
+    return chord_timing
+
+
 def get_duration_list(note_duration_ticks: int, ticks_per_bar: int) -> list[int]:
+    """
+    Converts a note duration in ticks to a list of 16 values representing the duration of the note.
+
+    Args:
+        note_duration_ticks (int): Note duration in ticks
+        ticks_per_bar (int): Ticks per bar
+
+    Returns:
+        list[int]: List of 16 values representing the duration of the note
+    """
+
     # Calculate the duration of the note in whole notes
-    duration_in_whole_notes = (note_duration_ticks / ticks_per_bar) * 4
+    duration_in_whole_notes: float = (note_duration_ticks / ticks_per_bar) * 4
 
     # Calculate the note type
-    note_type = round(4 / duration_in_whole_notes)
+    note_type: int = round(4 / duration_in_whole_notes)
     # Make sure the note type is within the range 1 to 16
     note_type = max(1, min(16, note_type))
 
-    duration_vector = [0] * 16
+    duration_vector: list[int] = [0] * 16
     duration_vector[note_type - 1] = 1
 
     return duration_vector
+
+
+def seconds_to_ticks(seconds: float, tempo: int, resolution: int) -> int:
+    """
+    Calculates the number of ticks in a given number of seconds.
+
+    Args
+    ----------
+        seconds (float): Number of seconds
+        tempo (int): Tempo in beats per minute
+        resolution (int): Resolution of the MIDI file
+
+    Returns
+    ----------
+        int: Number of ticks
+    """
+    beats = (seconds * tempo) / 60
+    ticks = beats * resolution
+    return int(ticks)
