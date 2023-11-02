@@ -3,6 +3,35 @@ import os
 import yaml
 
 
+def get_timed_notes(
+    notes: list[list[str]], beats: list[list[int]]
+) -> list[list[tuple[str, int]]]:
+    """
+    Converts lists of notes and beats into a structured format of timed notes.
+
+    Parameters
+    ----------
+    notes : list[list[str]]
+        A list of lists where each inner list contains note representations as strings.
+    beats : list[list[int]]
+        A list of lists where each inner list contains beat information corresponding to the notes.
+
+    Returns
+    -------
+    list[list[tuple[str, int]]]
+        A list of lists where each inner list contains tuples of notes and their corresponding beats.
+    """
+
+    timed_notes: list[tuple[str, int]] = []
+
+    for i in range(len(notes)):
+        timed_notes.append([])
+        for j in range(len(notes[i])):
+            timed_notes[i].append((notes[i][j], beats[i][j]))
+
+    return timed_notes
+
+
 def split_range(r1, r2, n):
     """
     Split range <r1> - <r2> into <n> equal size buckets

@@ -1,7 +1,64 @@
 import os
 import re
-import math
-from torch.utils.data import Dataset, DataLoader
+import torch
+
+from .datasets import Bass_Dataset, Chord_Dataset
+from .utils import get_timed_notes
+
+from config import NUMBER_OF_NOTES_FOR_TRAINING
+
+
+def get_bass_dataset(root_directory: str) -> Bass_Dataset:
+    """
+    Creates a dataset object containing timed note sequences for the training
+    and evaluation of the bass agent.
+
+    Args
+    ----------
+        root_directory (str): The root directory of the dataset.
+
+    Returns
+    ----------
+        Bass_Dataset: A dataset object containing timed note sequences.
+    """
+    if not os.path.exists("data/dataset/bass_dataset.pt"):
+        _, notes, beats = extract_chords_from_files(
+            root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
+        )
+
+        timed_notes: list[list[tuple[str, int]]] = get_timed_notes(notes, beats)
+        bass_dataset: Bass_Dataset = Bass_Dataset(timed_notes)
+        torch.save(bass_dataset, "data/dataset/bass_dataset.pt")
+    else:
+        bass_dataset: Bass_Dataset = torch.load("data/dataset/bass_dataset.pt")
+
+    return bass_dataset
+
+
+def get_chord_dataset(root_directory: str) -> Chord_Dataset:
+    """
+    Creates a dataset object containing chord progressions for the training
+    and evaluation of the chord agent.
+
+    Args
+    ----------
+        root_directory (str): The root directory of the dataset.
+
+    Returns
+    ----------
+        Chord_Dataset: A dataset object containing chord progressions.
+    """
+    if not os.path.exists("data/dataset/chord_dataset.pt"):
+        chords, _, _ = extract_chords_from_files(
+            root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
+        )
+
+        chord_dataset: Chord_Dataset = Chord_Dataset(chords)
+        torch.save(chord_dataset, "data/dataset/chord_dataset.pt")
+    else:
+        chord_dataset: Chord_Dataset = torch.load("data/dataset/chord_dataset.pt")
+
+    return chord_dataset
 
 
 def extract_chords_from_files(root_dir, limit, only_triads):
