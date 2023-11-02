@@ -4,7 +4,7 @@ from .datasets import Melody_Dataset
 import torch
 import re
 
-from config import PITCH_VECTOR_SIZE, CHORD_TO_INT
+from config import PITCH_VECTOR_SIZE, FULL_CHORD_TO_INT
 
 
 def get_melody_dataset(root_dir: str) -> Melody_Dataset:
@@ -219,5 +219,5 @@ def get_chord_list(input_string: str) -> list[int]:
     pattern: str = r"([A-Ga-g]#?b?:)(maj|min|dim|aug|sus2|sus4).*"
     match: re.Match = re.match(pattern, input_string)
     chord: str = match.group(1) + match.group(2)
-    chord_list[CHORD_TO_INT[chord]] = 1
+    chord_list[FULL_CHORD_TO_INT[chord]] = 1
     return chord_list

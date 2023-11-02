@@ -1,6 +1,6 @@
 PITCH_VECTOR_SIZE = 128  # Number of pitches that can be repre
 
-CHORD_TO_INT = {
+FULL_CHORD_TO_INT = {
     "C:maj": 0,
     "C:min": 1,
     "C:dim": 2,
