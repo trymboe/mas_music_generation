@@ -2,15 +2,14 @@ import os
 import pretty_midi
 from .datasets import Melody_Dataset
 import torch
+import re
 
-from config import PITCH_VECTOR_SIZE
+from config import PITCH_VECTOR_SIZE, CHORD_TO_INT
 
 
 def get_melody_dataset(root_dir: str) -> Melody_Dataset:
     num_files = 0
-    all_events: list[
-        list[list[list[int]], list[list[int]], list[list[int]], list[list[int]]]
-    ] = []
+    all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
     if not os.path.exists("data/dataset/melody_dataset.pt"):
         for directory in os.listdir(root_dir):
             if ".DS_Store" in directory:
@@ -24,14 +23,14 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
                     continue
 
             list_of_events: list[
-                list[list[int]], list[list[int]], list[list[int]], list[list[int]]
+                list[list[int], list[int], list[list[int]], list[bool]]
             ] = process_melody_and_chord(midi_file, chord_file)
 
             if list_of_events is not None:
                 all_events.append(list_of_events)
                 num_files += 1
-            if num_files == 3:
-                break
+                print(num_files)
+
         melody_dataset: Melody_Dataset = Melody_Dataset(all_events)
         torch.save(melody_dataset, "data/dataset/melody_dataset.pt")
     else:
@@ -42,7 +41,7 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
 
 def process_melody_and_chord(
     midi_file: str, chord_file: str
-) -> list[list[list[int]], list[list[int]], list[list[int]], list[list[int]]]:
+) -> list[list[int], list[int], list[list[int]], list[bool]]:
     pm = pretty_midi.PrettyMIDI(midi_file)
 
     # Only work for time signature 4/4
@@ -71,13 +70,9 @@ def process_melody_and_chord(
     tempo: int = int(pm.get_tempo_changes()[1][0])
 
     current_tick: int = 0
-    list_of_events: list[
-        list[list[int]], list[list[int]], list[list[int]], list[list[int]]
-    ] = []
+    list_of_events: list[list[int], list[int], list[list[int]], list[bool]] = []
     chords: list[list[int]] = []
 
-    current_chord: int = None
-    next_chord: int = None
     no_chord: bool = False
 
     # Iterate over the notes in the melody track
@@ -97,7 +92,8 @@ def process_melody_and_chord(
                 if "N" not in chord:
                     current_chord: str = chord
                     try:
-                        next_chord: str = chord_list[j + 1][1]
+                        current_chord: list[int] = get_chord_list(chord_list[j][1])
+                        next_chord: list[int] = get_chord_list(chord_list[j + 1][1])
                     except:
                         no_chord = True
                         break
@@ -205,3 +201,23 @@ def seconds_to_ticks(seconds: float, tempo: int, resolution: int) -> int:
     beats = (seconds * tempo) / 60
     ticks = beats * resolution
     return int(ticks)
+
+
+def get_chord_list(input_string: str) -> list[int]:
+    """
+    Converts a chord string to a list of 72 values, one hot encoded to represent the chord.
+
+    Args
+    ----------
+        input_string (str): Chord string
+
+    Returns
+    ----------
+        list[int]: List length 72. One hot encoded to represent the correct chord
+    """
+    chord_list: list[int] = [0] * 72
+    pattern: str = r"([A-Ga-g]#?b?:)(maj|min|dim|aug|sus2|sus4).*"
+    match: re.Match = re.match(pattern, input_string)
+    chord: str = match.group(1) + match.group(2)
+    chord_list[CHORD_TO_INT[chord]] = 1
+    return chord_list
