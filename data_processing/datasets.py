@@ -2,6 +2,7 @@ import note_seq as ns
 import numpy as np
 import torch
 import math
+import random
 from torch.utils.data import Dataset
 import tensorflow_datasets as tfds
 
@@ -425,19 +426,36 @@ class Melody_Dataset(Dataset):
         self.serialized_data = self._process_data(data)
 
     def _process_data(self, data):
-        return [
+        return data
+        """[
             element
             for sublist in data
             for element in (sublist if isinstance(sublist, list) else [sublist])
-        ]
+        ]"""
 
     def __len__(self):
         return len(self.serialized_data)
 
     def __getitem__(self, idx):
-        return (
-            self.serialized_data[idx][0],
-            self.serialized_data[idx][1],
-            self.serialized_data[idx][2],
-            self.serialized_data[idx][3],
+        pitch = torch.tensor(self.serialized_data[idx][0])
+        duration = torch.tensor(self.serialized_data[idx][1])
+        try:
+            current_chord = torch.tensor(self.serialized_data[idx][2][0])
+            next_chord = torch.tensor(self.serialized_data[idx][2][1])
+        except:
+            current_chord = torch.tensor(
+                [int(i == random.randrange(72)) for i in range(72)]
+            )
+            next_chord = torch.tensor(
+                [int(i == random.randrange(72)) for i in range(72)]
+            )
+        is_start_end_of_bar = torch.tensor(self.serialized_data[idx][3])
+
+        # Extracting ground truth (targets)
+        next_pitch = torch.tensor(self.serialized_data[idx + 1][0])
+        next_duration = torch.tensor(self.serialized_data[idx + 1][1])
+
+        return (pitch, duration, current_chord, next_chord, is_start_end_of_bar), (
+            next_pitch,
+            next_duration,
         )

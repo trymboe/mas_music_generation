@@ -13,6 +13,8 @@ from .chord import (
     predict_next_k_notes_chords,
 )
 
+from .melody import train_melody, Melody_Network
+
 from .drum import train_drum
 
 from .coplay import play_agents

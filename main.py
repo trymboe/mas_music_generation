@@ -43,6 +43,13 @@ parser.add_argument(
     help="Train the drum agent",
     default=False,
 )
+parser.add_argument(
+    "-tm",
+    "--train_melody",
+    action="store_true",
+    help="Train the melody agent",
+    default=False,
+)
 
 
 if __name__ == "__main__":
@@ -61,6 +68,8 @@ if __name__ == "__main__":
         Indicates whether the chord agent should be trained. (default is False)
     train_drum : bool, optional
         Indicates whether the drum agent should be trained. (default is False)
+    train_melody : bool, optional
+        Indicates whether the melody agent should be trained. (default is False)
     arpeggiate : bool, optional
         Indicates whether arpeggiation should be applied during the playing phase. (default is False)
 
@@ -77,19 +86,22 @@ if __name__ == "__main__":
     train_bass: bool = parser.parse_args().train_bass
     train_chord: bool = parser.parse_args().train_chord
     train_drum: bool = parser.parse_args().train_drum
+    train_melody: bool = parser.parse_args().train_melody
     arpeggiate: bool = parser.parse_args().arpeggiate
 
     # Process the datasets
     bass_dataset, chord_dataset, drum_dataset, melody_dataset = get_datasets()
 
     # Create and train the agents
-    bass_agent, chord_agent, drum_agent = create_agents(
+    bass_agent, chord_agent, drum_agent, melody = create_agents(
         bass_dataset,
         chord_dataset,
         drum_dataset,
+        melody_dataset,
         train_bass,
         train_chord,
         train_drum,
+        train_melody,
     )
 
     # Play the agents
