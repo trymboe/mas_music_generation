@@ -1,6 +1,7 @@
 from .bass import play_bass
 from .chord import play_chord
 from .drum import play_drum
+from .melody import play_melody
 import random
 import time
 
@@ -78,7 +79,7 @@ def play_agents(
 
     print("  ----playing chord----")
     start = time.time()
-    mid = play_chord(
+    mid, chord_sequence = play_chord(
         mid,
         arpeggiate,
         predicted_bass_sequence,
@@ -87,5 +88,11 @@ def play_agents(
     )
     end = time.time()
     print("    ----chord playing time: ", end - start)
+
+    print("  ----playing melody----")
+    start = time.time()
+    mid = play_melody(mid, chord_sequence, dataset_primer_start)
+    end = time.time()
+    print("    ----melody playing time: ", end - start)
 
     mid.write(filename)

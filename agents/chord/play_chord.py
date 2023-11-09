@@ -15,7 +15,7 @@ def play_chord(
     chord_dataset,
     dataset_primer,
 ) -> MidiFile:
-    timed_chord_sequence: list[tuple[list[int], int]] = get_timed_chord_sequence(
+    timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence,
         predicted_bass_sequence,
         chord_dataset,
@@ -27,7 +27,7 @@ def play_chord(
     else:
         mid = play_chord_hold(mid, timed_chord_sequence)
 
-    return mid
+    return mid, timed_chord_sequence
 
 
 def play_chord_hold(pretty_midi_obj, chord_sequence):
