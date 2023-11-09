@@ -4,13 +4,15 @@ from .datasets import Melody_Dataset
 import torch
 import re
 
-from config import PITCH_VECTOR_SIZE, FULL_CHORD_TO_INT
+from config import PITCH_VECTOR_SIZE, FULL_CHORD_TO_INT, DATASET_SIZE_MELODY
 
 
 def get_melody_dataset(root_dir: str) -> Melody_Dataset:
     num_files = 0
     all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
-    if not os.path.exists("data/dataset/melody_dataset.pt"):
+    if not os.path.exists(
+        ("data/dataset/melody_dataset_" + DATASET_SIZE_MELODY + ".pt")
+    ):
         for directory in os.listdir(root_dir):
             if ".DS_Store" in directory:
                 continue
@@ -31,10 +33,19 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
                 num_files += 1
                 print(num_files)
 
+            if num_files == 10 and DATASET_SIZE_MELODY == "small":
+                break
+            if num_files == 100 and DATASET_SIZE_MELODY == "medium":
+                break
         melody_dataset: Melody_Dataset = Melody_Dataset(all_events)
-        torch.save(melody_dataset, "data/dataset/melody_dataset.pt")
+        torch.save(
+            melody_dataset,
+            ("data/dataset/melody_dataset_" + DATASET_SIZE_MELODY + ".pt"),
+        )
     else:
-        melody_dataset = torch.load("data/dataset/melody_dataset.pt")
+        melody_dataset = torch.load(
+            ("data/dataset/melody_dataset_" + DATASET_SIZE_MELODY + ".pt")
+        )
 
     return melody_dataset
 
@@ -94,10 +105,10 @@ def process_melody_and_chord(
                     try:
                         current_chord: list[int] = get_chord_list(chord_list[j][1])
                         next_chord: list[int] = get_chord_list(chord_list[j + 1][1])
+                        chords = [current_chord, next_chord]
                     except:
                         no_chord = True
                         break
-                    chords = [current_chord, next_chord]
                 # If there is no chord played, or last chord
                 else:
                     no_chord = True
@@ -128,7 +139,8 @@ def process_melody_and_chord(
             pitch_vector[note.pitch - 1] = 1
 
         current_tick = end_tick
-
+        if not chords:
+            continue
         list_of_events.append(
             [pitch_vector, duration_vector, chords, [is_start_of_bar, is_end_of_bar]]
         )

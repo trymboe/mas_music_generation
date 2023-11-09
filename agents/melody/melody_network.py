@@ -56,8 +56,6 @@ class Melody_Network(nn.Module):
         self.conv1d = nn.Conv1d(in_channels=1, out_channels=256, kernel_size=4)
         self.relu = nn.ReLU()
 
-        # In PyTorch, the bidirectional LSTM has the bidirectional argument
-        # directly in the LSTM constructor
         self.lstm = nn.LSTM(
             input_size=256,
             hidden_size=256,
@@ -168,7 +166,6 @@ class Melody_Network(nn.Module):
         duration_out = self.duration_out(lstm_out)
 
         return pitch_out, duration_out"""
-
 
 '''class Melody_Network(object):
     def __init__(self):

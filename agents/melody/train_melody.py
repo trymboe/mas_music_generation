@@ -108,10 +108,10 @@ def plot_loss(loss_values: list[float]) -> None:
 
     plt.figure()
     plt.plot(loss_values)
-    plt.title("Training Loss Chord")
+    plt.title("Training Loss melody")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
-    plt.savefig("figures/chord_training_loss.png")
+    plt.savefig("figures/melody_training_loss.png")
 
 
 def process_data(batch):
