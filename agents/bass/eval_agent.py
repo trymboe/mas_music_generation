@@ -35,6 +35,8 @@ def predict_next_k_notes_bass(
             # Sample from the distributions
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
+            if next_duration.item() == 0:
+                next_duration = torch.tensor([[4]])
 
             # Stop if the sequence length exceeds the specified length
             if (running_length + next_duration).item() > LENGTH_BARS:

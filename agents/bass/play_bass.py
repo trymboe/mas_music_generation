@@ -43,14 +43,18 @@ def play_bass(
                 if bass_drum_times[idx] >= chord_start_time + duration:
                     # If no note has been played yet, play a note for the entire duration
                     if running_time == chord_start_time:
-                        end_time == chord_start_time + (
-                            bass_drum_times[idx + 1] - running_time
-                        )
+                        try:
+                            end_time = chord_start_time + duration
+
+                        # If there are no more bass drum hits, play the note for the entire duration
+                        except:
+                            end_time = chord_start_time + duration
+
                         play_note(
                             bass_instrument,
                             pitch=midi_note,
                             start_time=running_time,
-                            end_time=bass_drum_times[idx],
+                            end_time=end_time,
                         )
 
                     chord_start_time += duration
@@ -59,7 +63,13 @@ def play_bass(
                 if drum_beat >= chord_start_time:
                     # If it is the first beat of the chord, and no note is played, play a bass note
                     if running_time == chord_start_time:
-                        end_time = chord_start_time + duration
+                        try:
+                            end_time = min(
+                                (chord_start_time + duration), bass_drum_times[idx + 1]
+                            )
+                        # If there are no more bass drum hits, play the note for the entire duration
+                        except:
+                            end_time = chord_start_time + duration
                         play_note(
                             bass_instrument,
                             pitch=midi_note,
@@ -81,6 +91,8 @@ def play_bass(
 
                     else:
                         end_time = bass_drum_times[idx + 1]
+                        if end_time <= start_time:
+                            end_time = running_time + duration
                         # End note if it goes past the chord
                         if end_time > chord_start_time + duration:
                             end_time = chord_start_time + duration

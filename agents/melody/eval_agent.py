@@ -80,7 +80,7 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             # We are done
             if (
                 running_time_on_chord_beats > current_chord_duration_beats
-                and chord_num == len(chord_sequence) - 1
+                and chord_num >= len(chord_sequence) - 1
             ):
                 break
 
@@ -94,10 +94,10 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
                 except:
                     current_chord_duration_beats = 1
 
-                current_chord: torch.Tensor = get_chord_tensor(
-                    chord_sequence[chord_num][0]
-                )
                 try:
+                    current_chord: torch.Tensor = get_chord_tensor(
+                        chord_sequence[chord_num][0]
+                    )
                     next_chord: torch.Tensor = get_chord_tensor(
                         chord_sequence[chord_num + 1][0]
                     )
