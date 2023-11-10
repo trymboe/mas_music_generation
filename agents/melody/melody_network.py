@@ -4,38 +4,7 @@ import torch.nn as nn
 import tensorflow as tf
 
 
-from config.params_CM_HRNN import (
-    LOGDIR_ROOT,
-    DATA_DIRECTORY,
-    VAL_DATA_DIR,
-    CHECKPOINT_EVERY,
-    LEARNING_RATE,
-    SEQ_LEN,
-    L2_REGULARIZATION_STRENGTH,
-    MOMENTUM,
-    MAX_TO_KEEP,
-    PIANO_DIM,
-    NOTE_CHANNEL,
-    RHYTHM_CHANNEL,
-    CHORD_CHANNEL,
-    BAR_CHANNEL,
-    BATCH_SIZE,
-    NUM_GPU,
-    BIG_FRAME_SIZE,
-    FRAME_SIZE,
-    RNN_TYPE,
-    DIM,
-    N_RNN,
-    BATCH_SIZE,
-    OPTIMIZER,
-    IF_COND,
-    MODE_CHOICE,
-    DROP_OUT,
-    ALPHA1,
-    ALPHA2,
-    BIRNNDIM,
-    NUM_STEPS,
-)
+
 
 from config import (
     PITCH_SIZE_MELODY,
@@ -65,6 +34,8 @@ class Melody_Network(nn.Module):
         )
         self.dense_pitch = nn.Linear(in_features=512, out_features=129)
         self.dense_duration = nn.Linear(in_features=512, out_features=16)
+
+    def predictive_network(self,):
 
     def forward(self, inputs):
         x = inputs.unsqueeze(1)  # Add channel dimension, [batch, 1, features]

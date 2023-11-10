@@ -1,3 +1,4 @@
+import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -85,6 +86,9 @@ def train_melody(
     # Save the model
     torch.save(model, MODEL_PATH_MELODY)
     plot_loss(all_loss)
+    
+    with open("results/data/medium_melody_50_epochs.json", 'w') as file:
+        json.dump(all_loss, file)
 
 
 def get_gt(gt):
