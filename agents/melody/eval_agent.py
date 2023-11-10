@@ -66,13 +66,6 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
             duration_in_beats: float = round(4 / (next_duration.item() + 1), 2) * 2
             sum_duration += duration_in_beats
-            current_chord_display = (
-                next(i for i, value in enumerate(current_chord) if value == 1),
-                None,
-            )
-            current_pitch = next(
-                (i for i, value in enumerate(pitches) if value == 1), None
-            )
 
             all_notes.append([next_note.item() + 1, duration_in_beats])
 
@@ -202,5 +195,7 @@ def generate_scale_preferences() -> list[int]:
             note_index = midi_note - 1
             if note_index > 0:
                 full_range.append(note_index)
+    # for pause
+    full_range.append(128)
 
     return full_range

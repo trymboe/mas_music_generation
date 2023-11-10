@@ -20,9 +20,11 @@ def play_melody(
 
 
 def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI):
-    melody_instrument = pretty_midi.Instrument(program=0)
+    melody_instrument = pretty_midi.Instrument(program=73)
     running_time: float = 0.0
     for note, duration in note_sequence:
+        if note == 129:
+            continue
         start = beats_to_seconds(running_time)
         end = beats_to_seconds(running_time + (duration))
         melody_note: pretty_midi.Note = pretty_midi.Note(

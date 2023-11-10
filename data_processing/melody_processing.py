@@ -8,6 +8,7 @@ from config import PITCH_VECTOR_SIZE, FULL_CHORD_TO_INT, DATASET_SIZE_MELODY
 
 
 def get_melody_dataset(root_dir: str) -> Melody_Dataset:
+    root_dir = root_dir + "/transposed"
     num_files = 0
     all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
     if not os.path.exists(
