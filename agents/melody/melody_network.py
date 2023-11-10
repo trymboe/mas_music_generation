@@ -4,8 +4,6 @@ import torch.nn as nn
 import tensorflow as tf
 
 
-
-
 from config import (
     PITCH_SIZE_MELODY,
     DURATION_SIZE_MELODY,
@@ -29,35 +27,82 @@ class Melody_Network(nn.Module):
             input_size=256,
             hidden_size=256,
             dropout=0.3,
+            num_layers=2,
             bidirectional=True,
             batch_first=True,
         )
-        self.dense_pitch = nn.Linear(in_features=512, out_features=129)
-        self.dense_duration = nn.Linear(in_features=512, out_features=16)
 
-    def predictive_network(self,):
+        self.dense_x1 = nn.Linear(in_features=512, out_features=129)
 
-    def forward(self, inputs):
-        x = inputs.unsqueeze(1)  # Add channel dimension, [batch, 1, features]
+        self.dense_pitch = nn.Linear(in_features=129, out_features=129)
+        self.dense_duration = nn.Linear(in_features=129, out_features=16)
 
+        self.dense_upsample = nn.Linear(in_features=288, out_features=512)
+
+        self.last_dense_pitch = nn.Linear(in_features=145, out_features=129)
+        self.last_dense_duration = nn.Linear(in_features=145, out_features=16)
+
+    def predictive_network(self, inputs_conv, inputs_lstm):
+        inputs_conv_pooled = torch.mean(inputs_conv, dim=1)
+
+        upsampled_cov = self.upsample_FC(inputs_conv_pooled)
+        combined = upsampled_cov + inputs_lstm
+
+        x_dense1 = self.dense_x1(combined)
+
+        pitch_output = self.dense_pitch(x_dense1)
+        duration_output = self.dense_duration(x_dense1)
+
+        return pitch_output, duration_output
+
+    def upsample_FC(self, inputs):
+        x = self.dense_upsample(inputs)
+        return x
+
+    def conv_block(self, inputs):
         # Pass through the Conv1d and ReLU
-        x = self.conv1d(x)
+        x = self.conv1d(inputs)
         x = self.relu(x)
+        return x
+
+    def lstm_block(self, inputs):
+        lstm_output, _ = self.lstm(inputs)
+        x = lstm_output[:, -1, :]
+        return x
+
+    def last_layer(self, pitch_input1, pitch_input2, duration_input1, duration_input2):
+        pitch_output = pitch_input1 + pitch_input2
+        duration_output = duration_input1 + duration_input2
+
+        x = torch.cat((pitch_output, duration_output), dim=1)
+
+        x_pitch = self.last_dense_pitch(x)
+        x_duration = self.last_dense_duration(x)
+
+        return x_pitch, x_duration
+
+    def forward(self, inputs, acumulated_time):
+        x = inputs.unsqueeze(1)  # Add channel dimension, [batch, 1, features]
+        x = self.conv_block(x)
+        first_conv_output = x[:, :144, :]
+        second_conv_output = x[:, 144:, :]
 
         # The output of Conv1d is [batch, channels, new_steps], we want to get rid of 'channels' for LSTM input
         x = x.permute(0, 2, 1)  # Change to [batch, steps, features]
+        x_lstm = self.lstm_block(x)
 
-        # Pass through the LSTM
-        x, _ = self.lstm(x)
+        pitch_output1, duration_output1 = self.predictive_network(
+            first_conv_output, x_lstm
+        )
+        pitch_output2, duration_output2 = self.predictive_network(
+            second_conv_output, x_lstm
+        )
 
-        # We only want the final step outputs for prediction purposes
-        x = x[:, -1, :]
+        pitch, duration = self.last_layer(
+            pitch_output1, pitch_output2, duration_output1, duration_output2
+        )
 
-        # Separate dense layers for pitch and duration
-        x_pitch = self.dense_pitch(x)
-        x_duration = self.dense_duration(x)
-
-        return x_pitch, x_duration
+        return pitch, duration
 
 
 """class Melody_Network(nn.Module):

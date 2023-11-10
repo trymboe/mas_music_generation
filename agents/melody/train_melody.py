@@ -19,6 +19,8 @@ from config import (
     DEVICE,
     PITCH_SIZE_MELODY,
     DURATION_SIZE_MELODY,
+    ALPHA1,
+    ALPHA2,
 )
 
 
@@ -73,7 +75,7 @@ def train_melody(
             pitch_loss = criterion(pitch_logits, get_gt(gt_pitches))
             duration_loss = criterion(duration_logits, get_gt(gt_durations))
 
-            loss = pitch_loss + duration_loss
+            loss = pitch_loss * ALPHA1 + duration_loss * ALPHA2
 
             all_loss.append(loss.item())
 
@@ -86,8 +88,8 @@ def train_melody(
     # Save the model
     torch.save(model, MODEL_PATH_MELODY)
     plot_loss(all_loss)
-    
-    with open("results/data/medium_melody_50_epochs.json", 'w') as file:
+
+    with open("results/data/medium_melody_50_epochs.json", "w") as file:
         json.dump(all_loss, file)
 
 
