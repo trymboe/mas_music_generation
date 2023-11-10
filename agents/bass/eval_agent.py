@@ -1,11 +1,12 @@
 import torch
 import torch.nn.functional as F
 
+from config import TEMPO, LENGTH_BARS
 from data_processing import Bass_Dataset
 
 
 def predict_next_k_notes_bass(
-    model, bass_dataset_start, dataset_primer, length
+    model, bass_dataset_start, dataset_primer
 ) -> list[int, int]:
     predicted_notes_durations: list[tuple[int, int]] = []
 
@@ -36,9 +37,9 @@ def predict_next_k_notes_bass(
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
 
             # Stop if the sequence length exceeds the specified length
-            if running_length + next_duration > length * 2:
+            if (running_length + next_duration).item() > LENGTH_BARS:
                 # Add the last note/duration
-                predicted_notes_durations.append((0, length * 2 - running_length))
+                predicted_notes_durations.append((0, LENGTH_BARS - running_length))
                 return predicted_notes_durations
 
             predicted_notes_durations.append((next_note.item(), next_duration.item()))

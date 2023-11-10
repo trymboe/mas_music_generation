@@ -2,7 +2,7 @@ import pretty_midi
 import torch
 
 from .eval_agent import predict_next_k_notes_bass
-from config import MODEL_PATH_BASS, LENGTH, DEVICE
+from config import MODEL_PATH_BASS, DEVICE, TEMPO
 from data_processing import Bass_Dataset
 from .bass_network import Bass_Network
 
@@ -17,7 +17,7 @@ def play_bass(
     bass_agent.eval()
 
     predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(
-        bass_agent, bass_dataset, dataset_primer_start, LENGTH
+        bass_agent, bass_dataset, dataset_primer_start
     )
 
     if playstyle == "bass_drum":
@@ -43,7 +43,9 @@ def play_bass(
                 if bass_drum_times[idx] >= chord_start_time + duration:
                     # If no note has been played yet, play a note for the entire duration
                     if running_time == chord_start_time:
-                        end_time == chord_start_time + duration
+                        end_time == chord_start_time + (
+                            bass_drum_times[idx + 1] - running_time
+                        )
                         play_note(
                             bass_instrument,
                             pitch=midi_note,
@@ -118,7 +120,10 @@ def play_note(
     velocity: int = 64,
 ):
     bass_note = pretty_midi.Note(
-        velocity=velocity, pitch=pitch, start=start_time, end=end_time
+        velocity=velocity,
+        pitch=pitch,
+        start=beats_to_seconds(start_time),
+        end=beats_to_seconds(end_time),
     )
     bass_instrument.notes.append(bass_note)
 
@@ -145,6 +150,14 @@ def find_bass_drum(pm: pretty_midi.PrettyMIDI) -> list[float]:
     # Iterate over notes in the drum track
     for note in drum_track.notes:
         if note.pitch == 36:  # 36 is the MIDI number for Acoustic Bass Drum
-            bass_drum_times.append(note.start)
+            bass_drum_times.append(seconds_to_beat(note.start))
 
     return bass_drum_times
+
+
+def beats_to_seconds(beats: float) -> float:
+    return round(beats * (60 / TEMPO), 2)
+
+
+def seconds_to_beat(seconds: float) -> float:
+    return round(seconds * (TEMPO / 60), 2)

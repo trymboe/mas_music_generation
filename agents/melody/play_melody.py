@@ -21,22 +21,25 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI):
     melody_instrument = pretty_midi.Instrument(program=0)
     running_time: float = 0.0
     for note, duration in note_sequence:
-        start = running_time
-        end = running_time + (4 / duration)
+        start = beats_to_seconds(running_time)
+        end = beats_to_seconds(running_time + (duration))
         melody_note: pretty_midi.Note = pretty_midi.Note(
             velocity=64, pitch=note, start=start, end=end
         )
         melody_instrument.notes.append(melody_note)
-        running_time += 4 / duration
+        running_time += duration
 
     mid.instruments.append(melody_instrument)
 
     return mid
 
 
-def predict_next_notes(chord_sequence, melody_agent):
+def beats_to_seconds(beats: float) -> float:
+    return beats * (60 / TEMPO)
+
+
+def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
     with torch.no_grad():
-        print(chord_sequence)
         all_notes: list[list[int]] = []
 
         running_time_total: int = 0
@@ -80,7 +83,8 @@ def predict_next_notes(chord_sequence, melody_agent):
             # Sample from the distributions
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
-            all_notes.append([next_note.item() + 1, (next_duration.item() + 1) / 4])
+            duration_in_bars: float = round(4 / (next_duration.item() + 1), 2) * 2
+            all_notes.append([next_note.item() + 1, duration_in_bars])
 
             running_time_on_chord += (1 / (next_duration.item() + 1)) / 4
 
@@ -125,7 +129,6 @@ def predict_next_notes(chord_sequence, melody_agent):
             else:
                 is_end_of_bar: bool = False
             bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
-    print(all_notes)
     return all_notes
 
 
@@ -166,3 +169,7 @@ def get_key(val, dic):
         if value == val:
             return key
     return "Key not found"
+
+
+def beats_to_seconds(beats: float) -> float:
+    return round(beats * (60 / TEMPO), 2)

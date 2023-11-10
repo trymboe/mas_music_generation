@@ -2,6 +2,7 @@ import torch
 
 NUMBER_OF_NOTES_FOR_TRAINING = 500  # 0 for all notes
 LENGTH = 24  # Number of measures to be generated
+LENGTH_BARS = LENGTH * 4
 TEMPO = 120
 
 SEED = 42  # Random seed

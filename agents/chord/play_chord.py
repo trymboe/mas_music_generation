@@ -47,8 +47,8 @@ def play_chord_hold(pretty_midi_obj, chord_sequence):
             piano_note = pretty_midi.Note(
                 velocity=64,  # volume
                 pitch=midi_note,  # MIDI note number
-                start=current_time,  # start time
-                end=current_time + duration,  # end time
+                start=beats_to_seconds(current_time),  # start time
+                end=beats_to_seconds(current_time + duration),  # end time
             )
             # Add note to the piano_instrument
             piano_instrument.notes.append(piano_note)
@@ -98,8 +98,8 @@ def play_chord_arpeggiate(pm, chord_sequence):
                 note = pretty_midi.Note(
                     velocity=velocity,
                     pitch=midi_note,
-                    start=start_time,
-                    end=start_time + note_duration,
+                    start=beats_to_seconds(start_time),
+                    end=beats_to_seconds(start_time + note_duration),
                 )
                 piano.notes.append(note)
                 start_time += note_duration
@@ -120,8 +120,8 @@ def play_chord_arpeggiate(pm, chord_sequence):
                         note = pretty_midi.Note(
                             velocity=velocity,
                             pitch=midi_note,
-                            start=start_time,
-                            end=start_time + note_duration,
+                            start=beats_to_seconds(start_time),
+                            end=beats_to_seconds(start_time + note_duration),
                         )
                         piano.notes.append(note)
                         start_time += note_duration
@@ -157,3 +157,7 @@ def get_timed_chord_sequence(
         full_chord_timed.append((full_chord, duration))
 
     return full_chord_timed
+
+
+def beats_to_seconds(beats: float) -> float:
+    return round(beats * (60 / TEMPO), 2)
