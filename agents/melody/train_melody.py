@@ -1,5 +1,6 @@
 import json
 import torch
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
@@ -41,7 +42,7 @@ def train_melody(
     """
 
     dataloader = DataLoader(
-        dataset, batch_size=BATCH_SIZE_MELODY, shuffle=True, collate_fn=process_data
+        dataset, batch_size=BATCH_SIZE_MELODY, shuffle=False, collate_fn=process_data
     )
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -54,6 +55,7 @@ def train_melody(
         for idx, batch in enumerate(dataloader):
             pitches, durations, current_chord, next_chord, bars = batch[0]
             gt_pitches, gt_durations = batch[1]
+            accumulated_time = batch[2]
 
             # Zero the parameter gradients
             optimizer.zero_grad()
@@ -69,7 +71,7 @@ def train_melody(
                 dim=1,
             )
 
-            pitch_logits, duration_logits = model(x)
+            pitch_logits, duration_logits = model(x, accumulated_time)
 
             # Calculate loss
             pitch_loss = criterion(pitch_logits, get_gt(gt_pitches))
@@ -127,10 +129,26 @@ def process_data(batch):
     next_chord = [item[0][3] for item in batch]
     bars = [torch.tensor(item[0][4], dtype=torch.int64) for item in batch]
 
+    sum_time = 0
+    dur_list = []
+    accumulated_time: list[int] = []
+    for dur in durations:
+        dur = dur.tolist()
+        dur = next((i for i, value in enumerate(dur) if value == 1), None)
+        dur_list.append(dur)
+        try:
+            sum_time += 4 / dur
+        except ZeroDivisionError:
+            sum_time += 0
+
+        accumulated_time.append(torch.tensor(int(sum_time) % 4))
+
     ground_truth_pitches = [item[1][0] for item in batch]
     ground_truth_durations = [item[1][1] for item in batch]
 
     # Convert lists of tensors to a single tensor for each
+
+    accumulated_time_tensor = torch.stack(accumulated_time)
     pitches_tensor = torch.stack(pitches)
     durations_tensor = torch.stack(durations)
     current_chord_tensor = torch.stack(current_chord)
@@ -153,4 +171,4 @@ def process_data(batch):
         ground_truth_durations_tensor,
     )
 
-    return inputs, targets
+    return inputs, targets, accumulated_time_tensor

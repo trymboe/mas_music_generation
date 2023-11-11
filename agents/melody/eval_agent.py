@@ -32,6 +32,8 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
         is_end_of_bar: bool = True
         bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
 
+        accumulated_time: int = 0
+
         sum_duration: float = 0.0
         while True:
             x = torch.cat(
@@ -46,8 +48,9 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             )
             # add batch dimension
             x = x.unsqueeze(0)
+            accumulated_time_tensor = torch.tensor([accumulated_time])
 
-            note_output, duration_output = melody_agent(x)
+            note_output, duration_output = melody_agent(x, accumulated_time_tensor)
 
             # Apply softmax to get probabilities for notes and durations
             note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
@@ -66,6 +69,8 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
             duration_in_beats: float = round(4 / (next_duration.item() + 1), 2) * 2
             sum_duration += duration_in_beats
+
+            accumulated_time += duration_in_beats
 
             all_notes.append([next_note.item() + 1, duration_in_beats])
 

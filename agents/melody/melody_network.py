@@ -32,7 +32,7 @@ class Melody_Network(nn.Module):
             batch_first=True,
         )
 
-        self.dense_x1 = nn.Linear(in_features=512, out_features=129)
+        self.dense_x1 = nn.Linear(in_features=513, out_features=129)
 
         self.dense_pitch = nn.Linear(in_features=129, out_features=129)
         self.dense_duration = nn.Linear(in_features=129, out_features=16)
@@ -42,13 +42,17 @@ class Melody_Network(nn.Module):
         self.last_dense_pitch = nn.Linear(in_features=145, out_features=129)
         self.last_dense_duration = nn.Linear(in_features=145, out_features=16)
 
-    def predictive_network(self, inputs_conv, inputs_lstm):
+    def predictive_network(self, inputs_conv, inputs_lstm, accumulated_time):
+        accumulated_time = accumulated_time.unsqueeze(1)
+
         inputs_conv_pooled = torch.mean(inputs_conv, dim=1)
 
         upsampled_cov = self.upsample_FC(inputs_conv_pooled)
         combined = upsampled_cov + inputs_lstm
 
-        x_dense1 = self.dense_x1(combined)
+        concated = torch.cat((combined, accumulated_time), dim=1)
+
+        x_dense1 = self.dense_x1(concated)
 
         pitch_output = self.dense_pitch(x_dense1)
         duration_output = self.dense_duration(x_dense1)
@@ -81,7 +85,7 @@ class Melody_Network(nn.Module):
 
         return x_pitch, x_duration
 
-    def forward(self, inputs, acumulated_time):
+    def forward(self, inputs, accumulated_time):
         x = inputs.unsqueeze(1)  # Add channel dimension, [batch, 1, features]
         x = self.conv_block(x)
         first_conv_output = x[:, :144, :]
@@ -92,10 +96,10 @@ class Melody_Network(nn.Module):
         x_lstm = self.lstm_block(x)
 
         pitch_output1, duration_output1 = self.predictive_network(
-            first_conv_output, x_lstm
+            first_conv_output, x_lstm, accumulated_time
         )
         pitch_output2, duration_output2 = self.predictive_network(
-            second_conv_output, x_lstm
+            second_conv_output, x_lstm, accumulated_time
         )
 
         pitch, duration = self.last_layer(
