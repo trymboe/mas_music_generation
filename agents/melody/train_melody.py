@@ -22,6 +22,7 @@ from config import (
     DURATION_SIZE_MELODY,
     ALPHA1,
     ALPHA2,
+    DATASET_SIZE_MELODY,
 )
 
 
@@ -91,7 +92,7 @@ def train_melody(
     torch.save(model, MODEL_PATH_MELODY)
     plot_loss(all_loss)
 
-    with open("results/data/medium_melody_50_epochs.json", "w") as file:
+    with open("results/data/" +DATASET_SIZE_MELODY+str(NUM_EPOCHS_MELODY), "w") as file:
         json.dump(all_loss, file)
 
 
