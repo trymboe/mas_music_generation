@@ -9,6 +9,8 @@ from config import (
     INT_TO_TRIAD,
     SCALE_MELODY,
     TEMPO,
+    NOTE_TEMPERATURE_MELODY,
+    DURATION_TEMPERATURE_MELODY,
 )
 
 
@@ -51,6 +53,13 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             accumulated_time_tensor = torch.tensor([accumulated_time])
 
             note_output, duration_output = melody_agent(x, accumulated_time_tensor)
+
+            note_logits_temperature = apply_temperature(
+                note_output[0, :], NOTE_TEMPERATURE_MELODY
+            )
+            duration_logits_temperature = apply_temperature(
+                duration_output[0, :], DURATION_TEMPERATURE_MELODY
+            )
 
             # Apply softmax to get probabilities for notes and durations
             note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
@@ -120,6 +129,11 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
 
     return all_notes
+
+
+def apply_temperature(logits, temperature):
+    # Adjust the logits by the temperature
+    return logits / temperature
 
 
 def seconds_to_beat(seconds: float) -> float:
