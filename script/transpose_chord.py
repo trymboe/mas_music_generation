@@ -1,5 +1,5 @@
 import os
-import pretty_midi
+import shutil
 
 
 def transpose(directory):
@@ -11,7 +11,14 @@ def transpose(directory):
         if file == "chord_audio.txt":
             key = get_key(directory, "key_audio.txt")
             if len(key) > 1:
-                continue
+                # root_dir = "/".join(directory.split("/")[:2])
+                # song_name = directory.split("/")[-1]
+                # dir_path = os.path.join(root_dir, "transposed", song_name)
+                # try:
+                #     shutil.rmtree(dir_path)
+                # except OSError as e:
+                #     print(e)
+                return
 
             with open(os.path.join(directory, file), "r") as file:
                 for idx, line in enumerate(file):
@@ -47,9 +54,10 @@ def transpose(directory):
                 song_name = directory.split("/")[-1]
 
                 filename = os.path.join(
-                    root_dir, "transposed", song_name, "chord_midi.txt"
+                    root_dir, "transposed", song_name, "chord_audio.txt"
                 )
-                if os.path.exists(filename):
+
+                if os.path.exists(os.path.join(root_dir, "transposed", song_name)):
                     # Write to a file
                     with open(filename, "w") as file:
                         for note in all_notes:
@@ -124,4 +132,4 @@ for idx, directory in enumerate(os.listdir("data/POP909/")):
     for file in os.listdir(os.path.join("data/POP909/", directory)):
         if ".mid" in file:
             transpose(os.path.join("data/POP909/", directory))
-            print("Working.. " + str(idx / 909 * 100) + "%", end="\r")
+            # print("Working.. " + str(idx / 909 * 100) + "%", end="\r")
