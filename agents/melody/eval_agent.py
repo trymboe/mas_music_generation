@@ -30,45 +30,50 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
         current_chord: torch.Tensor = get_chord_tensor(chord_sequence[0][0])
         next_chord: torch.Tensor = get_chord_tensor(chord_sequence[0][0])
         pitches, durations = get_pitch_duration_tensor(chord_sequence[0][0][0] + 59, 7)
-        is_start_of_bar: bool = False
-        is_end_of_bar: bool = True
-        bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
+        time_left_on_chord: torch.Tensor = None
 
         accumulated_time: int = 0
 
         sum_duration: float = 0.0
         while True:
+            accumulated_time_tensor = get_accumulated_time_tensor(accumulated_time)
+
+            time_left_on_chord = get_time_left_on_chord_tensor(
+                current_chord_duration_beats, running_time_on_chord_beats
+            )
+
             x = torch.cat(
-                (
-                    pitches,
-                    durations,
-                    current_chord,
-                    next_chord,
-                    bars.float(),
-                ),
+                (pitches, durations, current_chord, next_chord),
                 dim=0,
             )
             # add batch dimension
             x = x.unsqueeze(0)
-            accumulated_time_tensor = torch.tensor([accumulated_time])
 
-            note_output, duration_output = melody_agent(x, accumulated_time_tensor)
+            note_output, duration_output = melody_agent(
+                x, accumulated_time_tensor, time_left_on_chord
+            )
 
             note_logits_temperature = apply_temperature(
                 note_output[0, :], NOTE_TEMPERATURE_MELODY
             )
+
             duration_logits_temperature = apply_temperature(
                 duration_output[0, :], DURATION_TEMPERATURE_MELODY
             )
 
+            note_probabilities = F.softmax(note_logits_temperature, dim=0).view(-1)
+            duration_probabilities = F.softmax(duration_logits_temperature, dim=0).view(
+                -1
+            )
+
             # Apply softmax to get probabilities for notes and durations
-            note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
-            if pitch_preferences:
+            # note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
+            if SCALE_MELODY:
                 note_probabilities = select_with_preference(
                     note_probabilities, pitch_preferences
                 )
 
-            duration_probabilities = F.softmax(duration_output[0, :], dim=0)
+            # duration_probabilities = F.softmax(duration_output[0, :], dim=0)
             duration_probabilities = select_with_preference(
                 duration_probabilities, duration_preferences
             )
@@ -129,6 +134,28 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
             bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
 
     return all_notes
+
+
+def get_time_left_on_chord_tensor(
+    current_chord_duration_beats: int, running_time_on_chord_beats: float
+) -> torch.Tensor:
+    time_left_on_chord: float = (
+        current_chord_duration_beats - running_time_on_chord_beats
+    )
+    time_left_vector: list[int] = [0] * 16
+
+    time_left_on_chord = min(time_left_on_chord, 15)
+    time_left_vector[round(time_left_on_chord)] = 1
+
+    return torch.tensor([time_left_vector])
+
+
+def get_accumulated_time_tensor(accumulated_bars: int) -> torch.Tensor:
+    index: int = int(accumulated_bars % 4)
+
+    accumulated_list = [0, 0, 0, 0]
+    accumulated_list[index] = 1
+    return torch.tensor([accumulated_list])
 
 
 def apply_temperature(logits, temperature):

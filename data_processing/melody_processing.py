@@ -20,7 +20,7 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
             for file in os.listdir(os.path.join(root_dir, directory)):
                 if ".mid" in file:
                     midi_file: str = os.path.join(root_dir, directory, file)
-                if "chord_midi" in file:
+                if "chord_audio" in file:
                     chord_file: str = os.path.join(root_dir, directory, file)
                 else:
                     continue
@@ -34,9 +34,9 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
                 num_files += 1
                 print(num_files)
 
-            if num_files == 10 and DATASET_SIZE_MELODY == "small":
+            if num_files == 20 and DATASET_SIZE_MELODY == "small":
                 break
-            if num_files == 100 and DATASET_SIZE_MELODY == "medium":
+            if num_files == 33 and DATASET_SIZE_MELODY == "medium":
                 break
         melody_dataset: Melody_Dataset = Melody_Dataset(all_events)
         torch.save(
@@ -72,7 +72,6 @@ def process_melody_and_chord(
     if melody_track is None:
         raise Exception("No melody track found")
 
-    print(midi_file)
     chord_list: list[list[list[int], int]] = process_chord(chord_file)
 
     ticks_per_beat: int = pm.resolution
@@ -83,33 +82,52 @@ def process_melody_and_chord(
 
     current_tick: int = 0
     list_of_events: list[list[int], list[int], list[list[int]], list[bool]] = []
-    chords: list[list[int]] = []
 
     no_chord: bool = False
 
     # Iterate over the notes in the melody track
     for idx, note in enumerate(melody_track.notes):
+        # if idx > 20:
+        #     print("file", midi_file)
+        #     exit()
         start_tick: float = pm.time_to_tick(note.start)
         end_tick: float = pm.time_to_tick(note.end)
+        note_start_seconds: float = note.start
         duration_ticks: float = end_tick - start_tick
 
+        current_chord_vector = None
+        next_chord_vector = None
         duration_vector: list[int] = get_duration_list(duration_ticks, ticks_per_bar)
 
+        # Find the corresponding chord
         for j, (timing, chord) in enumerate(chord_list):
             chord_start_time = seconds_to_ticks(timing[0], tempo, ticks_per_beat)
             chord_end_time = seconds_to_ticks(timing[1], tempo, ticks_per_beat)
 
-            if chord_start_time <= start_tick and chord_end_time >= end_tick:
+            if chord_start_time <= start_tick and chord_end_time >= start_tick:
                 # Only save chord if there is a chord, and not the last chord
                 if "N" not in chord:
                     current_chord: str = chord
+                    chord_end = float(chord_list[j][0][1])
+                    time_left_current_chord: float = calculate_chord_beats(
+                        note_start_seconds, chord_end, tempo
+                    )  # In beats
+
                     try:
-                        current_chord: list[int] = get_chord_list(chord_list[j][1])
-                        next_chord: list[int] = get_chord_list(chord_list[j + 1][1])
-                        chords = [current_chord, next_chord]
+                        current_chord_vector: list[int] = get_chord_list(
+                            chord_list[j][1]
+                        )
+                        next_chord_vector: list[int] = get_chord_list(
+                            chord_list[j + 1][1]
+                        )
+
                     except:
                         no_chord = True
                         break
+
+                    chord = next(
+                        (i for i, value in enumerate(current_chord) if value == 1), None
+                    )
                 # If there is no chord played, or last chord
                 else:
                     no_chord = True
@@ -120,15 +138,37 @@ def process_melody_and_chord(
             no_chord = False
             continue
 
-        # Check if the note is the start of a bar
-        is_start_of_bar: bool = (
-            abs(start_tick % ticks_per_bar) <= sixteenth_note_tolerance
+        # # Check if the note is the start of a bar
+        # is_start_of_bar: bool = (
+        #     abs(start_tick % ticks_per_bar) <= sixteenth_note_tolerance
+        # )
+        # is_end_of_bar: bool = (
+        #     abs(end_tick % ticks_per_bar) <= sixteenth_note_tolerance
+        #     or abs((end_tick % ticks_per_bar) - ticks_per_bar)
+        #     <= sixteenth_note_tolerance
+        # )
+
+        time_left_current_chord_vector: list[int] = one_hote_time_left(
+            time_left_current_chord
         )
-        is_end_of_bar: bool = (
-            abs(end_tick % ticks_per_bar) <= sixteenth_note_tolerance
-            or abs((end_tick % ticks_per_bar) - ticks_per_bar)
-            <= sixteenth_note_tolerance
-        )
+
+        accumulated_time_vector = get_accumulated_time(note.start, tempo)
+
+        # current_chord_num = next(
+        #     (i for i, value in enumerate(current_chord) if value == 1), None
+        # )
+        # print(
+        #     "pitch",
+        #     note.pitch,
+        #     "note start",
+        #     note.start,
+        #     "note_end",
+        #     note.end,
+        #     "current chord",
+        #     current_chord_num,
+        # )
+        # print("accumulated time", accumulated_time_vector)
+        # print()
 
         pitch_vector: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
         if note.start > current_tick:
@@ -140,12 +180,52 @@ def process_melody_and_chord(
             pitch_vector[note.pitch - 1] = 1
 
         current_tick = end_tick
-        if not chords:
+        if not current_chord_vector:
             continue
         list_of_events.append(
-            [pitch_vector, duration_vector, chords, [is_start_of_bar, is_end_of_bar]]
+            [
+                pitch_vector,
+                duration_vector,
+                current_chord_vector,
+                next_chord_vector,
+                time_left_current_chord_vector,
+                accumulated_time_vector,
+            ]
         )
     return list_of_events
+
+
+def get_accumulated_time(note_start: int, tempo: int) -> list[int]:
+    note_start_beats = round(note_start * tempo / 60)
+    relative_bar = note_start_beats % 4
+    accumulated_time: list[int] = [0] * 4
+
+    accumulated_time[relative_bar] = 1
+    return accumulated_time
+
+
+def get_key(val, dic):
+    for key, value in dic.items():
+        if value == val:
+            return key
+    return "Key not found"
+
+
+def one_hote_time_left(time_left_current_chord: float) -> list[int]:
+    list_oh: list[int] = [0] * 16
+    time_left_current_chord *= 2
+    index = round(time_left_current_chord) - 1
+    index = max(index, 0)
+    index = min(index, 15)
+    list_oh[index] = 1
+    return list_oh
+
+
+def calculate_chord_beats(start_time: float, end_time: float, tempo: int) -> float:
+    duration_seconds = end_time - start_time
+    beats_per_second = tempo / 60
+    number_of_beats = duration_seconds * beats_per_second
+    return round(number_of_beats, 1)
 
 
 def process_chord(chord_file: str) -> list[list[list[int], int]]:

@@ -439,10 +439,11 @@ class Melody_Dataset(Dataset):
         pitch = torch.tensor(self.serialized_data[idx][0])
         duration = torch.tensor(self.serialized_data[idx][1])
 
-        current_chord = torch.tensor(self.serialized_data[idx][2][0])
-        next_chord = torch.tensor(self.serialized_data[idx][2][1])
+        current_chord = torch.tensor(self.serialized_data[idx][2])
+        next_chord = torch.tensor(self.serialized_data[idx][3])
 
-        is_start_end_of_bar = torch.tensor(self.serialized_data[idx][3])
+        time_left_on_chord = torch.tensor(self.serialized_data[idx][4])
+        accumulated_time = torch.tensor(self.serialized_data[idx][5])
 
         # Extracting ground truth (targets)
         try:
@@ -452,7 +453,14 @@ class Melody_Dataset(Dataset):
             next_pitch = pitch
             next_duration = duration
 
-        return (pitch, duration, current_chord, next_chord, is_start_end_of_bar), (
+        return (
+            pitch,
+            duration,
+            current_chord,
+            next_chord,
+            time_left_on_chord,
+            accumulated_time,
+        ), (
             next_pitch,
             next_duration,
         )

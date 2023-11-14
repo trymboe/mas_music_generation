@@ -10,54 +10,115 @@ from config import (
     CHORD_SIZE_MELODY,
     HIDDEN_SIZE_MELODY,
     NUM_LAYERS_MELODY,
+    DEVICE,
 )
 
 import torch
 import torch.nn as nn
+import torch.nn.init as init
 
 
 class Melody_Network(nn.Module):
     def __init__(self):
         super(Melody_Network, self).__init__()
+        self.device = DEVICE
 
         self.conv1d = nn.Conv1d(in_channels=1, out_channels=256, kernel_size=4)
         self.relu = nn.ReLU()
 
         self.lstm = nn.LSTM(
-            input_size=291,
+            input_size=289,
             hidden_size=256,
             dropout=0.3,
-            num_layers=2,
+            num_layers=6,
             bidirectional=True,
             batch_first=True,
         )
 
-        self.dense_x1 = nn.Linear(in_features=292, out_features=129)
+        self.dense_x1 = nn.Linear(in_features=306, out_features=129)
 
-        self.dense_pitch = nn.Linear(in_features=129, out_features=129)
-        self.dense_duration = nn.Linear(in_features=129, out_features=16)
+        self.dense_pitch1 = nn.Linear(in_features=129, out_features=129)
+        self.dense_duration1 = nn.Linear(in_features=129, out_features=16)
+        self.dense_pitch2 = nn.Linear(in_features=129, out_features=129)
+        self.dense_duration2 = nn.Linear(in_features=129, out_features=16)
 
         self.dense_upsample = nn.Linear(in_features=288, out_features=291)
 
         self.last_dense_pitch = nn.Linear(in_features=289, out_features=129)
         self.last_dense_duration = nn.Linear(in_features=289, out_features=16)
 
-        self.downscale_for_lstm = nn.Linear(in_features=1024, out_features=291)
+        self.downscale_for_lstm = nn.Linear(in_features=512, out_features=286)
 
-    def predictive_network(self, inputs_conv, inputs_lstm, accumulated_time):
-        accumulated_time = accumulated_time.unsqueeze(1)
+        self.lstm_dense1 = nn.Linear(in_features=512, out_features=286)
+        self.lstm_dense2 = nn.Linear(in_features=512, out_features=286)
 
+        self.initialize_weights()
+
+    def initialize_weights(self):
+        # Initialize weights using Xavier initialization
+        for name, param in self.lstm.named_parameters():
+            if "weight_ih" in name:
+                init.xavier_uniform_(param.data)
+            elif "weight_hh" in name:
+                init.xavier_uniform_(param.data)
+            elif "bias" in name:
+                param.data.fill_(0)
+                # Optional: initializing forget gate bias to 1 or a small value
+                n = param.size(0)
+                start, end = n // 4, n // 2
+                param.data[start:end].fill_(1.0)
+
+    def predictive_network(
+        self, inputs_conv, inputs_lstm, accumulated_time, time_left_on_chord
+    ):
         inputs_conv_pooled = torch.mean(inputs_conv, dim=1)
 
-        upsampled_cov = self.upsample_FC(inputs_conv_pooled)
-        combined = upsampled_cov + inputs_lstm
+        # upsampled_cov = self.upsample_FC(inputs_conv_pooled)
 
-        concated = torch.cat((combined, accumulated_time), dim=1)
+        combined = inputs_conv_pooled + inputs_lstm
+
+        concated = torch.cat((combined, accumulated_time, time_left_on_chord), dim=1)
 
         x_dense1 = self.dense_x1(concated)
 
         pitch_output = self.dense_pitch(x_dense1)
         duration_output = self.dense_duration(x_dense1)
+
+        return pitch_output, duration_output
+
+    def predictive_network1(
+        self, inputs_conv, inputs_lstm, accumulated_time, time_left_on_chord
+    ):
+        inputs_conv_pooled = torch.mean(inputs_conv, dim=1)
+
+        upsampled_cov = inputs_conv_pooled
+
+        combined = inputs_conv_pooled + inputs_lstm
+
+        concated = torch.cat((combined, accumulated_time, time_left_on_chord), dim=1)
+
+        x_dense1 = self.dense_x1(concated)
+
+        pitch_output = self.dense_pitch1(x_dense1)
+        duration_output = self.dense_duration1(x_dense1)
+
+        return pitch_output, duration_output
+
+    def predictive_network2(
+        self, inputs_conv, inputs_lstm, accumulated_time, time_left_on_chord
+    ):
+        inputs_conv_pooled = torch.mean(inputs_conv, dim=1)
+
+        # upsampled_cov = self.upsample_FC(inputs_conv_pooled)
+
+        combined = inputs_conv_pooled + inputs_lstm
+
+        concated = torch.cat((combined, accumulated_time, time_left_on_chord), dim=1)
+
+        x_dense1 = self.dense_x1(concated)
+
+        pitch_output = self.dense_pitch2(x_dense1)
+        duration_output = self.dense_duration2(x_dense1)
 
         return pitch_output, duration_output
 
@@ -67,17 +128,17 @@ class Melody_Network(nn.Module):
 
     def conv_block(self, inputs):
         # Pass through the Conv1d and ReLU
-        x = self.conv1d(inputs)
+
+        x = self.conv1d(inputs.float())
         x = self.relu(x)
+
         return x
 
     def lstm_block(self, inputs):
-        lstm_output_1, _ = self.lstm(inputs)
-        lstm_output_2, _ = self.lstm(inputs)
-        lstm_cat = torch.cat((lstm_output_1, lstm_output_2), dim=1)
-        x = self.downscale_for_lstm(lstm_cat)
-
-        return x
+        lstm_output, _ = self.lstm(inputs)
+        x1 = self.lstm_dense1(lstm_output)
+        x2 = self.lstm_dense2(lstm_output)
+        return x1, x2
 
     def last_layer(
         self,
@@ -98,25 +159,37 @@ class Melody_Network(nn.Module):
 
         return x_pitch, x_duration
 
-    def forward(self, inputs, accumulated_time):
+    def forward(self, inputs, accumulated_time, time_left_on_chord):
+        inputs = (
+            inputs.clone()
+            .detach()
+            .to(device=self.device, dtype=self.conv1d.weight.dtype)
+        )
+        pitches_and_duration = inputs[:, :145]
+
         current_chord = inputs[:, 145:217]
         next_chord = inputs[:, 217:289]
 
         x = inputs.unsqueeze(1)  # Add channel dimension, [batch, 1, features]
-        x = self.conv_block(x)
-        first_conv_output = x[:, :144, :]
-        second_conv_output = x[:, 144:, :]
+
+        x_conv = self.conv_block(x)
+        first_conv_output = x_conv[:, :145, :]
+        second_conv_output = x_conv[:, 145:, :]
 
         # The output of Conv1d is [batch, channels, new_steps], we want to get rid of 'channels' for LSTM input
         # x = inputs.permute(0, 2, 1)  # Change to [batch, steps, features]
 
-        x_lstm = self.lstm_block(inputs)
+        x_lstm1, x_lstm2 = self.lstm_block(inputs)
 
-        pitch_output1, duration_output1 = self.predictive_network(
-            first_conv_output, x_lstm, accumulated_time
+        # pitch_output, duration_output = self.predictive_network(
+        #     x_conv, x_lstm, accumulated_time, time_left_on_chord
+        # )
+
+        pitch_output1, duration_output1 = self.predictive_network1(
+            first_conv_output, x_lstm1, accumulated_time, time_left_on_chord
         )
-        pitch_output2, duration_output2 = self.predictive_network(
-            second_conv_output, x_lstm, accumulated_time
+        pitch_output2, duration_output2 = self.predictive_network2(
+            second_conv_output, x_lstm2, accumulated_time, time_left_on_chord
         )
 
         pitch, duration = self.last_layer(

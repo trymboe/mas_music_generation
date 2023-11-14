@@ -54,9 +54,15 @@ def train_melody(
     # Training loop
     for epoch in range(NUM_EPOCHS_MELODY):
         for idx, batch in enumerate(dataloader):
-            pitches, durations, current_chord, next_chord, bars = batch[0]
+            (
+                pitches,
+                durations,
+                current_chord,
+                next_chord,
+            ) = batch[0]
             gt_pitches, gt_durations = batch[1]
             accumulated_time = batch[2]
+            time_left_on_chord = batch[3]
 
             # Zero the parameter gradients
             optimizer.zero_grad()
@@ -67,12 +73,13 @@ def train_melody(
                     durations,
                     current_chord,
                     next_chord,
-                    bars.float(),
                 ),
                 dim=1,
             )
 
-            pitch_logits, duration_logits = model(x, accumulated_time)
+            pitch_logits, duration_logits = model(
+                x, accumulated_time, time_left_on_chord
+            )
 
             # Calculate loss
             pitch_loss = criterion(pitch_logits, get_gt(gt_pitches))
@@ -92,8 +99,11 @@ def train_melody(
     torch.save(model, MODEL_PATH_MELODY)
     plot_loss(all_loss)
 
-    with open("results/data/" +DATASET_SIZE_MELODY+str(NUM_EPOCHS_MELODY), "w") as file:
+    with open(
+        "results/data/" + DATASET_SIZE_MELODY + str(NUM_EPOCHS_MELODY) + ".json", "w"
+    ) as file:
         json.dump(all_loss, file)
+    plt.show()
 
 
 def get_gt(gt):
@@ -128,33 +138,20 @@ def process_data(batch):
     durations = [item[0][1] for item in batch]
     current_chord = [item[0][2] for item in batch]
     next_chord = [item[0][3] for item in batch]
-    bars = [torch.tensor(item[0][4], dtype=torch.int64) for item in batch]
-
-    sum_time = 0
-    dur_list = []
-    accumulated_time: list[int] = []
-    for dur in durations:
-        dur = dur.tolist()
-        dur = next((i for i, value in enumerate(dur) if value == 1), None)
-        dur_list.append(dur)
-        try:
-            sum_time += 4 / dur
-        except ZeroDivisionError:
-            sum_time += 0
-
-        accumulated_time.append(torch.tensor(int(sum_time) % 4))
+    current_chord_time_left = [item[0][4] for item in batch]
+    accumulated_time = [item[0][5] for item in batch]
 
     ground_truth_pitches = [item[1][0] for item in batch]
     ground_truth_durations = [item[1][1] for item in batch]
 
     # Convert lists of tensors to a single tensor for each
 
-    accumulated_time_tensor = torch.stack(accumulated_time)
     pitches_tensor = torch.stack(pitches)
     durations_tensor = torch.stack(durations)
     current_chord_tensor = torch.stack(current_chord)
     next_chord_tensor = torch.stack(next_chord)
-    bars_tensor = torch.stack(bars)
+    current_chord_time_left_tensor = torch.stack(current_chord_time_left)
+    accumulated_time_tensor = torch.stack(accumulated_time)
 
     # Stack ground truth pitches and durations
     ground_truth_pitches_tensor = torch.stack(ground_truth_pitches)
@@ -165,11 +162,10 @@ def process_data(batch):
         durations_tensor,
         current_chord_tensor,
         next_chord_tensor,
-        bars_tensor,
     )
     targets = (
         ground_truth_pitches_tensor,
         ground_truth_durations_tensor,
     )
 
-    return inputs, targets, accumulated_time_tensor
+    return inputs, targets, accumulated_time_tensor, current_chord_time_left_tensor

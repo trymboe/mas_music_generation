@@ -106,16 +106,10 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                     chords = flat_to_sharp(chords)
                     key = flat_to_sharp_key(key[0])
 
-                    # for major
                     if key[-1] == "j" and key != "C:maj":
-                        chords = transpose_major(chords, key)
+                        chords = transpose_chord(chords, key)
                         all_chords.append(chords)
                         all_beats.append(num_beats_list)
-
-                    # for minor
-                    if key[-1] == "n" and key != "A:min":
-                        pass
-                        # chord = transpose_minor(chords, key)
 
                     if not endless and total_length(all_chords) >= limit:
                         all_notes = get_notes_from_chords(all_chords)
@@ -234,7 +228,7 @@ def get_key(dir_name, file_name):
     return key
 
 
-def transpose_major(chords, key):
+def transpose_chord(chords, key):
     # Define the musical notes in order
     notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     root = key.split(":")[0]

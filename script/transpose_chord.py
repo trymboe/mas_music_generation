@@ -39,8 +39,18 @@ def transpose(directory):
 
                 key = flat_to_sharp_key(key[0])
 
-                # if key[-1] == "j" and key != "C:maj":
-                chords = transpose_chord(chords, key)
+                # Only songs in major
+                if key[-1] == "j" and key != "C:maj":
+                    chords = transpose_chord_major(chords, key)
+
+                if key[-1] != "j":
+                    root_dir = "/".join(directory.split("/")[:2])
+                    song_name = directory.split("/")[-1]
+                    dir_path = os.path.join(root_dir, "transposed", song_name)
+                    try:
+                        shutil.rmtree(dir_path)
+                    except OSError as e:
+                        print(e)
 
                 all_notes = [
                     [start, end, f"{chord[0]}:{chord[1]}"]
@@ -82,7 +92,7 @@ def flat_to_sharp(chords):
     return new_chords
 
 
-def transpose_chord(chords, key):
+def transpose_chord_major(chords, key):
     # Define the musical notes in order
     notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
     root = key.split(":")[0]
