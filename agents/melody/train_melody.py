@@ -74,14 +74,13 @@ def train_melody(
                     current_chord,
                     next_chord,
                 ),
-                dim=1,
+                dim=2,
             )
 
             pitch_logits, duration_logits = model(
                 x, accumulated_time, time_left_on_chord
             )
 
-            # Calculate loss
             pitch_loss = criterion(pitch_logits, get_gt(gt_pitches))
             duration_loss = criterion(duration_logits, get_gt(gt_durations))
 
@@ -174,7 +173,21 @@ def process_data(batch):
         ground_truth_pitches[idx] = torch.stack(ground_truth_pitches[idx])
         ground_truth_durations[idx] = torch.stack(ground_truth_durations[idx])
 
-    inputs = (pitches, durations, current_chords, next_chords)
-    targets = (ground_truth_pitches, ground_truth_durations)
+    # Convert lists of tensors to a single tensor for each
+    pitches_tensor = torch.stack(pitches)
+    pitches_tensor = torch.stack(pitches)
+    durations_tensor = torch.stack(durations)
+    current_chord_tensor = torch.stack(current_chords)
+    next_chord_tensor = torch.stack(next_chords)
+    current_chord_time_left_tensor = torch.stack(current_chord_time_lefts)
+    accumulated_time_tensor = torch.stack(accumulated_times)
 
-    return inputs, targets, accumulated_times, current_chord_time_lefts
+    # Stack ground truth pitches and durations
+    ground_truth_pitches_tensor = torch.stack(ground_truth_pitches)
+    ground_truth_durations_tensor = torch.stack(ground_truth_durations)
+
+    # Group the inputs and targets
+    inputs = (pitches_tensor, durations_tensor, current_chord_tensor, next_chord_tensor)
+    targets = (ground_truth_pitches_tensor, ground_truth_durations_tensor)
+
+    return inputs, targets, accumulated_time_tensor, current_chord_time_left_tensor
