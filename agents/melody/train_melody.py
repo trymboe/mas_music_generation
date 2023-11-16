@@ -43,7 +43,7 @@ def train_melody(
     """
 
     dataloader = DataLoader(
-        dataset, batch_size=BATCH_SIZE_MELODY, shuffle=False, collate_fn=process_data
+        dataset, batch_size=BATCH_SIZE_MELODY, shuffle=True, collate_fn=process_data
     )
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -134,38 +134,47 @@ def plot_loss(loss_values: list[float]) -> None:
 
 
 def process_data(batch):
-    pitches = [item[0][0] for item in batch]
-    durations = [item[0][1] for item in batch]
-    current_chord = [item[0][2] for item in batch]
-    next_chord = [item[0][3] for item in batch]
-    current_chord_time_left = [item[0][4] for item in batch]
-    accumulated_time = [item[0][5] for item in batch]
+    # batch - input/label - Sequence - note - pitch/duration/chord
+    # Initialize lists to store sequence data
+    pitches, durations, current_chords, next_chords = [], [], [], []
+    current_chord_time_lefts, accumulated_times = [], []
+    ground_truth_pitches, ground_truth_durations = [], []
 
-    ground_truth_pitches = [item[1][0] for item in batch]
-    ground_truth_durations = [item[1][1] for item in batch]
+    # Iterate through each sequence of inputs in the batch
+    for idx, sequence in enumerate(batch):
+        pitches.append([])
+        durations.append([])
+        current_chords.append([])
+        next_chords.append([])
+        current_chord_time_lefts.append([])
+        accumulated_times.append([])
+        for note in sequence[0]:
+            # Convert each item to a tensor before appending
+            pitches[idx].append(torch.tensor(note[0]))
+            durations[idx].append(torch.tensor(note[1]))
+            current_chords[idx].append(torch.tensor(note[2]))
+            next_chords[idx].append(torch.tensor(note[3]))
+            current_chord_time_lefts[idx].append(torch.tensor(note[4]))
+            accumulated_times[idx].append(torch.tensor(note[5]))
+        pitches[idx] = torch.stack(pitches[idx])
+        durations[idx] = torch.stack(durations[idx])
+        current_chords[idx] = torch.stack(current_chords[idx])
+        next_chords[idx] = torch.stack(next_chords[idx])
+        current_chord_time_lefts[idx] = torch.stack(current_chord_time_lefts[idx])
+        accumulated_times[idx] = torch.stack(accumulated_times[idx])
 
-    # Convert lists of tensors to a single tensor for each
+    # Iterate through each sequence of labels in the batch
+    for idx, sequence in enumerate(batch):
+        ground_truth_pitches.append([])
+        ground_truth_durations.append([])
+        for note in sequence[1]:
+            # Convert each item to a tensor before appending
+            ground_truth_pitches[idx].append(torch.tensor(note[0]))
+            ground_truth_durations[idx].append(torch.tensor(note[1]))
+        ground_truth_pitches[idx] = torch.stack(ground_truth_pitches[idx])
+        ground_truth_durations[idx] = torch.stack(ground_truth_durations[idx])
 
-    pitches_tensor = torch.stack(pitches)
-    durations_tensor = torch.stack(durations)
-    current_chord_tensor = torch.stack(current_chord)
-    next_chord_tensor = torch.stack(next_chord)
-    current_chord_time_left_tensor = torch.stack(current_chord_time_left)
-    accumulated_time_tensor = torch.stack(accumulated_time)
+    inputs = (pitches, durations, current_chords, next_chords)
+    targets = (ground_truth_pitches, ground_truth_durations)
 
-    # Stack ground truth pitches and durations
-    ground_truth_pitches_tensor = torch.stack(ground_truth_pitches)
-    ground_truth_durations_tensor = torch.stack(ground_truth_durations)
-
-    inputs = (
-        pitches_tensor,
-        durations_tensor,
-        current_chord_tensor,
-        next_chord_tensor,
-    )
-    targets = (
-        ground_truth_pitches_tensor,
-        ground_truth_durations_tensor,
-    )
-
-    return inputs, targets, accumulated_time_tensor, current_chord_time_left_tensor
+    return inputs, targets, accumulated_times, current_chord_time_lefts

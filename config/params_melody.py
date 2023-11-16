@@ -1,5 +1,5 @@
 PITCH_VECTOR_SIZE = 128  # Number of pitches that can be repre
-DATASET_SIZE_MELODY = "medium"
+DATASET_SIZE_MELODY = "small"
 MODEL_PATH_MELODY = "models/melody/melody_model_" + DATASET_SIZE_MELODY + ".pt"
 
 SCALE_MELODY = "major pentatonic"  # "major pentatonic",
@@ -9,6 +9,7 @@ NUM_LAYERS_MELODY = 5
 PITCH_SIZE_MELODY = PITCH_VECTOR_SIZE + 1
 DURATION_SIZE_MELODY = 16
 CHORD_SIZE_MELODY = 72
+SEQUENCE_LENGHT_MELODY = 16
 
 ALPHA1 = 0.6
 ALPHA2 = 0.4

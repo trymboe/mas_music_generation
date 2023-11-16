@@ -422,6 +422,34 @@ class Drum_Dataset:
 
 
 class Melody_Dataset(Dataset):
+    def __init__(self, data, sequence_length):
+        self.data = data
+        self.sequence_length = sequence_length
+        self._process_data()
+
+    def _process_data(self):
+        self.indices = []
+        for song in self.data:
+            for i in range(len(song) - (self.sequence_length * 2) + 1):
+                self.indices.append((song, i))
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, idx):
+        song, start_idx = self.indices[idx]
+        # Return two sequences of length sequence_length. These corresponds to the input and target sequences
+        return (
+            song[start_idx : start_idx + self.sequence_length],
+            song[
+                start_idx
+                + self.sequence_length : start_idx
+                + (self.sequence_length * 2)
+            ],
+        )
+
+
+class Melody_Dataset2(Dataset):
     def __init__(self, data):
         self.serialized_data = self._process_data(data)
 
