@@ -72,19 +72,31 @@ class Melody_Network(nn.Module):
             super(Melody_Network.ConvNetwork, self).__init__()
             self.conv1d = nn.Conv1d(in_channels=4, out_channels=256, kernel_size=4)
             self.relu = nn.ReLU()
+            self.lstm = nn.LSTM(
+                input_size=256,
+                hidden_size=256,
+                dropout=0.3,
+                bidirectional=True,
+                batch_first=True,
+            )
 
         def forward(self, input):
             x = self.conv1d(input)
             x = self.relu(x)
+            x = x.permute(0, 2, 1)
+            x = self.lstm(x)[0][:, -1, :]
             return x
 
     class PredictiveNetwork(nn.Module):
         def __init__(self):
             super(Melody_Network.PredictiveNetwork, self).__init__()
-            self.upscale = nn.Linear(in_features=256, out_features=289)
+            self.upscale = nn.Linear(in_features=289, out_features=512)
 
-            self.FC_pitch = nn.Linear(in_features=309, out_features=129)
-            self.FC_duration = nn.Linear(in_features=309, out_features=16)
+            self.FC_pitch = nn.Linear(in_features=516, out_features=129)
+            self.FC_duration = nn.Linear(in_features=516, out_features=16)
+
+            self.FC_pitch_full = nn.Linear(in_features=661, out_features=129)
+            self.FC_duration_full = nn.Linear(in_features=661, out_features=16)
 
         def forward(
             self,
@@ -93,17 +105,33 @@ class Melody_Network(nn.Module):
             inputs_lstm_tier3,
             accumulated_time,
             time_left_on_chord,
+            previous_pitch,
+            previous_duration,
         ):
-            inputs_conv = F.adaptive_avg_pool1d(inputs_conv, 1).squeeze(2)
+            # inputs_conv = F.adaptive_avg_pool1d(inputs_conv, 1).squeeze(2)
 
-            inputs_conv = self.upscale(inputs_conv)
+            inputs_lstm_tier2 = self.upscale(inputs_lstm_tier2)
+            inputs_lstm_tier3 = self.upscale(inputs_lstm_tier3)
 
             combined = inputs_conv + inputs_lstm_tier2 + inputs_lstm_tier3
 
-            concat = torch.cat((combined, accumulated_time, time_left_on_chord), dim=1)
+            # concat = torch.cat((combined, accumulated_time, time_left_on_chord), dim=1)
+            if previous_pitch == None:
+                concat = torch.cat(
+                    (combined, accumulated_time),
+                    dim=1,
+                )
 
-            pitch_output = self.FC_pitch(concat)
-            duration_output = self.FC_duration(concat)
+                pitch_output = self.FC_pitch(concat)
+                duration_output = self.FC_duration(concat)
+                return pitch_output, duration_output
+
+            concat = torch.cat(
+                (combined, accumulated_time, previous_pitch, previous_duration), dim=1
+            )
+
+            pitch_output = self.FC_pitch_full(concat)
+            duration_output = self.FC_duration_full(concat)
 
             return pitch_output, duration_output
 
@@ -211,15 +239,30 @@ class Melody_Network(nn.Module):
         # Pass data through predictive network
         predictive_outputs = []
         for idx, cell in enumerate(self.predictive_networks):
-            predictive_outputs.append(
-                cell.forward(
-                    conv_outputs[math.floor(idx / 4)],
-                    tier_2_outputs[math.floor(idx / 2) + 1],
-                    tier_3_outputs[math.floor(idx / 8)],
-                    accumulated_time_chunk[idx],
-                    time_left_on_chord_chunk[idx],
+            if idx == 0:
+                predictive_outputs.append(
+                    cell.forward(
+                        conv_outputs[math.floor(idx / 4)],
+                        tier_2_outputs[math.floor(idx / 2) + 1],
+                        tier_3_outputs[math.floor(idx / 8)],
+                        accumulated_time_chunk[idx],
+                        time_left_on_chord_chunk[idx],
+                        None,
+                        None,
+                    )
                 )
-            )
+            else:
+                predictive_outputs.append(
+                    cell.forward(
+                        conv_outputs[math.floor(idx / 4)],
+                        tier_2_outputs[math.floor(idx / 2) + 1],
+                        tier_3_outputs[math.floor(idx / 8)],
+                        accumulated_time_chunk[idx],
+                        time_left_on_chord_chunk[idx],
+                        predictive_outputs[idx - 1][0],
+                        predictive_outputs[idx - 1][1],
+                    )
+                )
 
         output_vector = [[], []]
         for i in range(len(predictive_outputs)):
