@@ -106,7 +106,6 @@ def process_melody_and_chord(
         next_chord_vector = None
 
         duration_vector: list[int] = get_duration_list(duration_ticks, ticks_per_bar)
-        pitch_vector: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
 
         current_chord_vector, next_chord_vector, time_left_current_chord = find_chord(
             chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
@@ -164,6 +163,9 @@ def process_melody_and_chord(
                 start_tick - rest_duration,
                 note_start_seconds,
             )
+
+            if not current_chord_vector_pause:
+                continue
             accumulated_time_vector_pause = get_accumulated_time(
                 note.start - rest_duration, tempo
             )
@@ -182,7 +184,9 @@ def process_melody_and_chord(
                 ]
             )
 
-        pitch_vector[note.pitch - 1] = 1
+        # Add the note
+
+        pitch_vector = add_note(note.pitch)
 
         current_tick = end_tick
         if not current_chord_vector:
@@ -202,8 +206,26 @@ def process_melody_and_chord(
     return list_of_events
 
 
+def add_note(pitch: int):
+    pitch_vector: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
+    assert PITCH_VECTOR_SIZE % 12 == 0
+    octaves = pitch // 12
+    octaves = max(octaves, 5)
+    octaves = min(octaves, 8)
+    octaves -= 5
+
+    note = pitch % 12
+
+    index = 12 * octaves + note
+    pitch_vector[index - 1] = 1
+    return pitch_vector
+
+
 def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds):
     # Find the corresponding chord
+    current_chord_vector = None
+    next_chord_vector = None
+    time_left_current_chord = None
     for j, (timing, chord) in enumerate(chord_list):
         chord_start_time = seconds_to_ticks(timing[0], tempo, ticks_per_beat)
         chord_end_time = seconds_to_ticks(timing[1], tempo, ticks_per_beat)

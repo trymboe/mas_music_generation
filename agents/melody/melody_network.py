@@ -25,7 +25,7 @@ class Melody_Network(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier3LSTM, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=289,
+                input_size=197,
                 hidden_size=256,
                 dropout=0.3,
                 num_layers=2,
@@ -33,7 +33,7 @@ class Melody_Network(nn.Module):
                 batch_first=True,
             )
 
-            self.downscale = nn.Linear(in_features=512, out_features=289)
+            self.downscale = nn.Linear(in_features=512, out_features=197)
 
         def forward(self, input_sequence):
             x = self.lstm(input_sequence)[0][:, -1, :]
@@ -44,7 +44,7 @@ class Melody_Network(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier2LSTM, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=289,
+                input_size=197,
                 hidden_size=256,
                 dropout=0.3,
                 num_layers=2,
@@ -52,7 +52,7 @@ class Melody_Network(nn.Module):
                 batch_first=True,
             )
 
-            self.downscale = nn.Linear(in_features=512, out_features=289)
+            self.downscale = nn.Linear(in_features=512, out_features=197)
 
         def forward(self, inputs_sequence, tier3_output, tier2_output):
             if tier2_output is None:
@@ -63,6 +63,7 @@ class Melody_Network(nn.Module):
                     + tier3_output.unsqueeze(1)
                     + tier2_output.unsqueeze(1)
                 )
+
             x = self.lstm(combined)[0][:, -1, :]
             x = self.downscale(x)
             return x
@@ -90,13 +91,13 @@ class Melody_Network(nn.Module):
     class PredictiveNetwork(nn.Module):
         def __init__(self):
             super(Melody_Network.PredictiveNetwork, self).__init__()
-            self.upscale = nn.Linear(in_features=289, out_features=512)
+            self.upscale = nn.Linear(in_features=197, out_features=512)
 
-            self.FC_pitch = nn.Linear(in_features=516, out_features=129)
+            self.FC_pitch = nn.Linear(in_features=516, out_features=37)
             self.FC_duration = nn.Linear(in_features=516, out_features=16)
 
-            self.FC_pitch_full = nn.Linear(in_features=661, out_features=129)
-            self.FC_duration_full = nn.Linear(in_features=661, out_features=16)
+            self.FC_pitch_full = nn.Linear(in_features=569, out_features=37)
+            self.FC_duration_full = nn.Linear(in_features=569, out_features=16)
 
         def forward(
             self,
