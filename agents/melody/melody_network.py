@@ -21,71 +21,65 @@ import torch.nn.functional as F
 
 
 class Melody_Network(nn.Module):
-    class Tier3LSTM(nn.Module):
+    class ChordTier(nn.Module):
         def __init__(self):
-            super(Melody_Network.Tier3LSTM, self).__init__()
+            super(Melody_Network.ChordTier, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=197,
+                input_size=160,
                 hidden_size=256,
                 dropout=0.3,
-                num_layers=2,
+                num_layers=6,
                 bidirectional=True,
                 batch_first=True,
             )
 
-            self.downscale = nn.Linear(in_features=512, out_features=197)
+            self.downscale = nn.Linear(in_features=512, out_features=64)
 
         def forward(self, input_sequence):
             x = self.lstm(input_sequence)[0][:, -1, :]
             x = self.downscale(x)
             return x
 
-    class Tier2LSTM(nn.Module):
+    class DurationTier(nn.Module):
         def __init__(self):
-            super(Melody_Network.Tier2LSTM, self).__init__()
+            super(Melody_Network.DurationTier, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=197,
+                input_size=36,
                 hidden_size=256,
                 dropout=0.3,
-                num_layers=2,
+                num_layers=6,
                 bidirectional=True,
                 batch_first=True,
             )
 
-            self.downscale = nn.Linear(in_features=512, out_features=197)
+            self.downscale = nn.Linear(in_features=512, out_features=64)
 
-        def forward(self, inputs_sequence, tier3_output, tier2_output):
-            if tier2_output is None:
-                combined = inputs_sequence + tier3_output.unsqueeze(1)
-            else:
-                combined = (
-                    inputs_sequence
-                    + tier3_output.unsqueeze(1)
-                    + tier2_output.unsqueeze(1)
-                )
-
-            x = self.lstm(combined)[0][:, -1, :]
+        def forward(self, inputs_sequence):
+            x = self.lstm(inputs_sequence)[0][:, -1, :]
             x = self.downscale(x)
             return x
 
-    class ConvNetwork(nn.Module):
+    class PitchTier(nn.Module):
         def __init__(self):
-            super(Melody_Network.ConvNetwork, self).__init__()
-            self.conv1d = nn.Conv1d(in_channels=4, out_channels=256, kernel_size=4)
+            super(Melody_Network.PitchTier, self).__init__()
+            self.conv1d = nn.Conv1d(in_channels=16, out_channels=256, kernel_size=4)
             self.relu = nn.ReLU()
             self.lstm = nn.LSTM(
                 input_size=256,
                 hidden_size=256,
                 dropout=0.3,
+                num_layers=6,
                 bidirectional=True,
                 batch_first=True,
             )
+            self.downscale = nn.Linear(in_features=512, out_features=64)
 
         def forward(self, input):
             x = self.conv1d(input)
             x = self.relu(x)
             x = x.permute(0, 2, 1)
             x = self.lstm(x)[0][:, -1, :]
+            x = self.downscale(x)
             return x
 
     class PredictiveNetwork(nn.Module):
@@ -93,78 +87,52 @@ class Melody_Network(nn.Module):
             super(Melody_Network.PredictiveNetwork, self).__init__()
             self.upscale = nn.Linear(in_features=197, out_features=512)
 
-            self.FC_pitch = nn.Linear(in_features=516, out_features=37)
-            self.FC_duration = nn.Linear(in_features=516, out_features=16)
+            self.FC_pitch = nn.Linear(in_features=192, out_features=37)
+            self.FC_duration = nn.Linear(in_features=192, out_features=16)
 
             self.FC_pitch_full = nn.Linear(in_features=569, out_features=37)
             self.FC_duration_full = nn.Linear(in_features=569, out_features=16)
 
         def forward(
             self,
-            inputs_conv,
-            inputs_lstm_tier2,
-            inputs_lstm_tier3,
-            accumulated_time,
-            time_left_on_chord,
-            previous_pitch,
-            previous_duration,
+            x_pitch,
+            x_duration,
+            x_chord,
         ):
-            # inputs_conv = F.adaptive_avg_pool1d(inputs_conv, 1).squeeze(2)
+            inputs = torch.cat((x_pitch, x_duration, x_chord), dim=1)
 
-            inputs_lstm_tier2 = self.upscale(inputs_lstm_tier2)
-            inputs_lstm_tier3 = self.upscale(inputs_lstm_tier3)
-
-            combined = inputs_conv + inputs_lstm_tier2 + inputs_lstm_tier3
-
-            # concat = torch.cat((combined, accumulated_time, time_left_on_chord), dim=1)
-            if previous_pitch == None:
-                concat = torch.cat(
-                    (combined, accumulated_time),
-                    dim=1,
-                )
-
-                pitch_output = self.FC_pitch(concat)
-                duration_output = self.FC_duration(concat)
-                return pitch_output, duration_output
-
-            concat = torch.cat(
-                (combined, accumulated_time, previous_pitch, previous_duration), dim=1
-            )
-
-            pitch_output = self.FC_pitch_full(concat)
-            duration_output = self.FC_duration_full(concat)
+            pitch_output = self.FC_pitch(inputs)
+            duration_output = self.FC_duration(inputs)
 
             return pitch_output, duration_output
 
     def __init__(self):
         super(Melody_Network, self).__init__()
         self.device = DEVICE
-        self._create_tier2_lstms()
-        self._create_tier3_lstms()
+        self._create_ChordTier()
+        self._create_DurationTier()
         self._create_predictive_networks()
-        self._create_conv_networks()
+        self._create_PitchTier()
 
-    def _create_conv_networks(self):
-        self.conv_networks = nn.ModuleList()
-        for i in range(4):
-            self.conv_networks.append(self.ConvNetwork())
+    def _create_PitchTier(self):
+        self.pitchTier = nn.ModuleList()
+        for i in range(1):
+            self.pitchTier.append(self.PitchTier())
 
     def _create_predictive_networks(self):
         self.predictive_networks = nn.ModuleList()
-        for i in range(16):
+        for i in range(1):
             self.predictive_networks.append(self.PredictiveNetwork())
 
-    def _create_tier2_lstms(self):
-        self.tier2_lstms = nn.ModuleList()
-        for i in range(8):
-            t2_lstm: list[self.Tier2LSTM] = self.Tier2LSTM()
-            self.tier2_lstms.append(t2_lstm)
+    def _create_ChordTier(self):
+        self.chordTier = nn.ModuleList()
+        for i in range(1):
+            self.chordTier.append(self.ChordTier())
 
-    def _create_tier3_lstms(self):
-        self.tier3_lstm = nn.ModuleList()
-        for i in range(2):
-            t3_lstm: list[self.Tier3LSTM] = self.Tier3LSTM()
-            self.tier3_lstm.append(t3_lstm)
+    def _create_DurationTier(self):
+        self.durationTier = nn.ModuleList()
+        for i in range(1):
+            self.durationTier.append(self.DurationTier())
 
     def initialize_weights(self):
         # Initialize weights using Xavier initialization
@@ -192,87 +160,129 @@ class Melody_Network(nn.Module):
             paired_events.append(inputs[:, i : i + 4, :])
         return paired_events
 
-    def forward(self, inputs, accumulated_time, time_left_on_chord):
-        inputs = (
-            inputs.clone()
-            .detach()
-            .to(device=self.device, dtype=self.conv_networks[0].conv1d.weight.dtype)
+    def forward(
+        self,
+        pitches,
+        durations,
+        current_chord,
+        next_chord,
+        accumulated_time,
+        time_left_on_chord,
+    ):
+        # print("pitches", pitches.shape)
+        # print("durations", durations.shape)
+        # print("current_chord", current_chord.shape)
+        # print("next_chord", next_chord.shape)
+        # print("accumulated_time", accumulated_time.shape)
+        # print("time_left_on_chord", time_left_on_chord.shape)
+
+        chord_input = torch.cat((current_chord, next_chord, time_left_on_chord), dim=2)
+        chord_input = (
+            chord_input.clone().detach().to(device=self.device, dtype=torch.float32)
         )
-        event_1_to_8 = inputs[:, :8, :]
-        event_9_to_16 = inputs[:, -8:, :]
+        for cell in self.chordTier:
+            x_chord = cell.forward(chord_input)
 
-        accumulated_time_chunk = torch.chunk(accumulated_time, 16, dim=1)
-        accumulated_time_chunk = [chunk.squeeze(1) for chunk in accumulated_time_chunk]
+        duration_input = torch.cat(
+            (durations, time_left_on_chord, accumulated_time), dim=2
+        )
+        duration_input = (
+            duration_input.clone().detach().to(device=self.device, dtype=torch.float32)
+        )
+        for cell in self.durationTier:
+            x_duration = cell.forward(duration_input)
 
-        time_left_on_chord_chunk = torch.chunk(time_left_on_chord, 16, dim=1)
-        time_left_on_chord_chunk = [
-            chunk.squeeze(1) for chunk in time_left_on_chord_chunk
-        ]
+        pitch_input = (
+            pitches.clone().detach().to(device=self.device, dtype=torch.float32)
+        )
+        for cell in self.pitchTier:
+            x_pitch = cell.forward(pitch_input)
 
-        events = self._get_paired_events(inputs)
-        conv_events = self._get_conv_events(inputs)
+        for cell in self.predictive_networks:
+            output_pitch, output_duration = cell.forward(x_pitch, x_duration, x_chord)
 
-        # Pass data through tier 3
-        tier_3_outputs = []
+        return output_pitch, output_duration
 
-        tier_3_outputs.append(self.tier3_lstm[0](event_1_to_8))
-        tier_3_outputs.append(self.tier3_lstm[1](event_9_to_16))
+        # # inputs = (
+        # #     inputs.clone()
+        # #     .detach()
+        # #     .to(device=self.device, dtype=self.conv_networks[0].conv1d.weight.dtype)
+        # # )
+        # event_1_to_8 = inputs[:, :8, :]
+        # event_9_to_16 = inputs[:, -8:, :]
 
-        # Pass data through tier 2
-        tier_2_outputs = []
-        for idx, cell in enumerate(self.tier2_lstms):
-            if idx < 4:
-                if idx == 0:
-                    tier_2_outputs.append(cell(events[idx], tier_3_outputs[0], None))
-                tier_2_outputs.append(
-                    cell(events[idx], tier_3_outputs[0], tier_2_outputs[idx - 1])
-                )
-            else:
-                tier_2_outputs.append(
-                    cell(events[idx], tier_3_outputs[0], tier_2_outputs[idx - 1])
-                )
+        # accumulated_time_chunk = torch.chunk(accumulated_time, 16, dim=1)
+        # accumulated_time_chunk = [chunk.squeeze(1) for chunk in accumulated_time_chunk]
 
-        # Pass data through tier 1
-        conv_outputs = []
-        for idx, cell in enumerate(self.conv_networks):
-            conv_outputs.append(cell.forward(conv_events[idx]))
+        # time_left_on_chord_chunk = torch.chunk(time_left_on_chord, 16, dim=1)
+        # time_left_on_chord_chunk = [
+        #     chunk.squeeze(1) for chunk in time_left_on_chord_chunk
+        # ]
 
-        # Pass data through predictive network
-        predictive_outputs = []
-        for idx, cell in enumerate(self.predictive_networks):
-            if idx == 0:
-                predictive_outputs.append(
-                    cell.forward(
-                        conv_outputs[math.floor(idx / 4)],
-                        tier_2_outputs[math.floor(idx / 2) + 1],
-                        tier_3_outputs[math.floor(idx / 8)],
-                        accumulated_time_chunk[idx],
-                        time_left_on_chord_chunk[idx],
-                        None,
-                        None,
-                    )
-                )
-            else:
-                predictive_outputs.append(
-                    cell.forward(
-                        conv_outputs[math.floor(idx / 4)],
-                        tier_2_outputs[math.floor(idx / 2) + 1],
-                        tier_3_outputs[math.floor(idx / 8)],
-                        accumulated_time_chunk[idx],
-                        time_left_on_chord_chunk[idx],
-                        predictive_outputs[idx - 1][0],
-                        predictive_outputs[idx - 1][1],
-                    )
-                )
+        # events = self._get_paired_events(inputs)
+        # conv_events = self._get_conv_events(inputs)
 
-        output_vector = [[], []]
-        for i in range(len(predictive_outputs)):
-            output_vector[0].append(predictive_outputs[i][0]),
-            output_vector[1].append(predictive_outputs[i][1]),
+        # # Pass data through tier 3
+        # tier_3_outputs = []
 
-        output_vector = [torch.stack(output_vector[0]), torch.stack(output_vector[1])]
-        output_vector[0] = output_vector[0].permute(1, 0, 2)
-        output_vector[1] = output_vector[1].permute(1, 0, 2)
+        # tier_3_outputs.append(self.tier3_lstm[0](event_1_to_8))
+        # tier_3_outputs.append(self.tier3_lstm[1](event_9_to_16))
+
+        # # Pass data through tier 2
+        # tier_2_outputs = []
+        # for idx, cell in enumerate(self.tier2_lstms):
+        #     if idx < 4:
+        #         if idx == 0:
+        #             tier_2_outputs.append(cell(events[idx], tier_3_outputs[0], None))
+        #         tier_2_outputs.append(
+        #             cell(events[idx], tier_3_outputs[0], tier_2_outputs[idx - 1])
+        #         )
+        #     else:
+        #         tier_2_outputs.append(
+        #             cell(events[idx], tier_3_outputs[0], tier_2_outputs[idx - 1])
+        #         )
+
+        # # Pass data through tier 1
+        # conv_outputs = []
+        # for idx, cell in enumerate(self.conv_networks):
+        #     conv_outputs.append(cell.forward(conv_events[idx]))
+
+        # # Pass data through predictive network
+        # predictive_outputs = []
+        # for idx, cell in enumerate(self.predictive_networks):
+        #     if idx == 0:
+        #         predictive_outputs.append(
+        #             cell.forward(
+        #                 conv_outputs[math.floor(idx / 4)],
+        #                 tier_2_outputs[math.floor(idx / 2) + 1],
+        #                 tier_3_outputs[math.floor(idx / 8)],
+        #                 accumulated_time_chunk[idx],
+        #                 time_left_on_chord_chunk[idx],
+        #                 None,
+        #                 None,
+        #             )
+        #         )
+        #     else:
+        #         predictive_outputs.append(
+        #             cell.forward(
+        #                 conv_outputs[math.floor(idx / 4)],
+        #                 tier_2_outputs[math.floor(idx / 2) + 1],
+        #                 tier_3_outputs[math.floor(idx / 8)],
+        #                 accumulated_time_chunk[idx],
+        #                 time_left_on_chord_chunk[idx],
+        #                 predictive_outputs[idx - 1][0],
+        #                 predictive_outputs[idx - 1][1],
+        #             )
+        #         )
+
+        # output_vector = [[], []]
+        # for i in range(len(predictive_outputs)):
+        #     output_vector[0].append(predictive_outputs[i][0]),
+        #     output_vector[1].append(predictive_outputs[i][1]),
+
+        # output_vector = [torch.stack(output_vector[0]), torch.stack(output_vector[1])]
+        # output_vector[0] = output_vector[0].permute(1, 0, 2)
+        # output_vector[1] = output_vector[1].permute(1, 0, 2)
 
         return output_vector
 

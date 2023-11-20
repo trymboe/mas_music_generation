@@ -122,15 +122,20 @@ def play_agents(
     melody_agent.eval()
     melody_agent.to(DEVICE)
     pitch, duration = melody_agent(
-        x, accumulated_time_tensor, time_left_current_chord_tensor
+        pitches_tensor.unsqueeze(0),
+        durations_tensor.unsqueeze(0),
+        current_chord_tensor.unsqueeze(0),
+        next_chord_tensor.unsqueeze(0),
+        accumulated_time_tensor,
+        time_left_current_chord_tensor,
     )
 
     pairs = []
     for i in range(16):
         pairs.append([])
 
-        pitch_softmax = torch.softmax(pitch[0][i], dim=0)
-        duration_softmax = torch.softmax(duration[0][i], dim=0)
+        pitch_softmax = torch.softmax(pitch[0], dim=0)
+        duration_softmax = torch.softmax(duration[0], dim=0)
 
         pitch_softmax = select_with_preference(pitch_softmax, preference)
 

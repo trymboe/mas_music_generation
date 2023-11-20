@@ -444,7 +444,8 @@ class Melody_Dataset(Dataset):
             song[
                 start_idx
                 + self.sequence_length : start_idx
-                + (self.sequence_length * 2)
+                + (self.sequence_length)
+                + 1
             ],
         )
 
@@ -492,3 +493,17 @@ class Melody_Dataset2(Dataset):
             next_pitch,
             next_duration,
         )
+
+
+class EvalDataset(Dataset):
+    def __init__(self, data):
+        self.data = data
+
+    def _process_data(self):
+        pass
+
+    def __len__(self):
+        return len(self.indices)
+
+    def __getitem__(self, idx):
+        pass

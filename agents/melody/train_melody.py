@@ -78,7 +78,12 @@ def train_melody(
             )
 
             pitch_logits, duration_logits = model(
-                x, accumulated_time, time_left_on_chord
+                pitches,
+                durations,
+                current_chord,
+                next_chord,
+                accumulated_time,
+                time_left_on_chord,
             )
 
             pitch_loss = criterion(pitch_logits, get_gt(gt_pitches))
@@ -108,6 +113,9 @@ def train_melody(
 def get_gt(gt):
     if len(gt.size()) > 1 and gt.size(1) > 1:  # Check for one-hot encoding
         return torch.argmax(gt, dim=1)
+    else:
+        print(gt.size())
+        print(gt.size(1))
 
 
 def plot_loss(loss_values: list[float]) -> None:
@@ -188,6 +196,9 @@ def process_data(batch):
 
     # Group the inputs and targets
     inputs = (pitches_tensor, durations_tensor, current_chord_tensor, next_chord_tensor)
-    targets = (ground_truth_pitches_tensor, ground_truth_durations_tensor)
+    targets = (
+        ground_truth_pitches_tensor.squeeze(1),
+        ground_truth_durations_tensor.squeeze(1),
+    )
 
     return inputs, targets, accumulated_time_tensor, current_chord_time_left_tensor
