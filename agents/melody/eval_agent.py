@@ -11,6 +11,7 @@ from config import (
     TEMPO,
     NOTE_TEMPERATURE_MELODY,
     DURATION_TEMPERATURE_MELODY,
+    PITCH_VECTOR_SIZE,
 )
 
 
@@ -235,13 +236,14 @@ def generate_scale_preferences() -> list[int]:
     full_range = []
 
     # Iterate through all MIDI notes
-    for midi_note in range(128):  # MIDI notes range from 0 to 127
+    for midi_note in range(PITCH_VECTOR_SIZE):  # MIDI notes range from 0 to 127
         # Check if the note is in the correct scale
         if midi_note % 12 in intervals:
             note_index = midi_note - 1
             if note_index > 0:
                 full_range.append(note_index)
     # for pause
-    full_range.append(128)
+    full_range.append(PITCH_VECTOR_SIZE)
 
+    print(full_range)
     return full_range
