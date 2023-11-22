@@ -442,9 +442,7 @@ class Melody_Dataset(Dataset):
         return (
             song[start_idx : start_idx + self.sequence_length],
             song[
-                start_idx
-                + self.sequence_length : start_idx
-                + (self.sequence_length * 2)
+                start_idx + self.sequence_length : start_idx + self.sequence_length + 1
             ],
         )
 

@@ -229,7 +229,9 @@ def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
     for j, (timing, chord) in enumerate(chord_list):
         chord_start_time = seconds_to_ticks(timing[0], tempo, ticks_per_beat)
         chord_end_time = seconds_to_ticks(timing[1], tempo, ticks_per_beat)
-
+        total_chord_length = calculate_chord_beats(
+            chord_start_time, chord_end_time, tempo
+        )
         if chord_start_time <= start_tick and chord_end_time >= start_tick:
             # Only save chord if there is a chord, and not the last chord
             if "N" not in chord:
@@ -252,7 +254,12 @@ def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
             # If there is no chord played, or last chord
             else:
                 return None, None, None
-    return current_chord_vector, next_chord_vector, time_left_current_chord
+    return (
+        current_chord_vector,
+        next_chord_vector,
+        time_left_current_chord,
+        total_chord_length,
+    )
 
 
 def get_accumulated_time(note_start: int, tempo: int) -> list[int]:
