@@ -10,9 +10,7 @@ def predict_next_k_notes_bass(
 ) -> list[int, int]:
     predicted_notes_durations: list[tuple[int, int]] = []
 
-    note_sequence, duration_sequence = get_primer_sequence(
-        bass_dataset_start, dataset_primer
-    )
+    note_sequence, duration_sequence = get_primer_sequence(dataset_primer)
     note_sequence = note_sequence.unsqueeze(0)  # Add a batch dimension
     duration_sequence = duration_sequence.unsqueeze(0)  # Add a batch dimension
 
@@ -54,13 +52,11 @@ def predict_next_k_notes_bass(
             )
 
 
-def get_primer_sequence(
-    bass_dataset: Bass_Dataset, dataset_primer_start: int
-) -> tuple[int, int]:
-    primer_part: int = dataset_primer_start
+def get_primer_sequence(dataset_primer: int) -> tuple[int, int]:
+    # primer_part: int = dataset_primer_start
     primer_sequence: tuple[int, int] = (
-        bass_dataset[primer_part][0],
-        bass_dataset[primer_part][1],
+        dataset_primer[0],
+        dataset_primer[1],
     )
 
     return primer_sequence

@@ -63,19 +63,24 @@ class Chord_Dataset(Dataset):
         for song in songs:
             for i in range(len(song) - self.sequence_length):
                 seq = song[i : i + self.sequence_length]
-
                 # Convert to pairs
                 try:
-                    pairs = [
-                        (NOTE_TO_INT[pair[0]], CHORD_TO_INT[pair[1]]) for pair in seq
+                    chord = [
+                        (
+                            NOTE_TO_INT[pair[0]],
+                            CHORD_TO_INT[pair[1]],
+                            int(pair[2][0]),
+                            pair[2][1],
+                        )
+                        for pair in seq
                     ]
                 except KeyError:
                     continue
 
                 # Replace the chord type of the last pair with a placeholder (6)
-                pairs[-1] = (pairs[-1][0], 6)
+                chord[-1] = (chord[-1][0], 6, int(chord[-1][2]), chord[-1][3])
 
-                data.append(pairs)
+                data.append(chord)
                 labels.append(CHORD_TO_INT[seq[-1][1]])
 
         return data, labels
@@ -85,9 +90,7 @@ class Chord_Dataset(Dataset):
 
     def __getitem__(self, idx):
         try:
-            return torch.tensor(self.data[idx], dtype=torch.int64), torch.tensor(
-                self.labels[idx], dtype=torch.int64
-            )
+            return torch.tensor(self.data[idx]), torch.tensor(self.labels[idx])
         except TypeError as e:
             print(f"Error for index {idx}: {self.data[idx]}, {self.labels[idx]}")
             raise e
@@ -425,9 +428,10 @@ class Melody_Dataset(Dataset):
     def __init__(self, data, sequence_length):
         self.data = data
         self.sequence_length = sequence_length
-        self._process_data()
+        self.num_songs = len(data)
+        self._get_indices()
 
-    def _process_data(self):
+    def _get_indices(self):
         self.indices = []
         for song in self.data:
             for i in range(len(song) - (self.sequence_length * 2) + 1):

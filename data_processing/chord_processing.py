@@ -89,7 +89,7 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                 for fn in file_list:
                     if fn[0] == "C":
                         song_name = fn.split("_")[1].split(".")[0]
-
+                print(dir_name)
                 with open(os.path.join(dir_name, file_name), "r") as file:
                     for line in file:
                         # Split the line into components

@@ -10,14 +10,14 @@ from .bass_network import Bass_Network
 def play_bass(
     mid: pretty_midi.PrettyMIDI,
     bass_dataset: Bass_Dataset,
-    dataset_primer_start: int,
+    primer: list,
     playstyle: str = "bass_drum",
 ) -> tuple[pretty_midi.PrettyMIDI, list[int, int]]:
     bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
     bass_agent.eval()
 
     predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(
-        bass_agent, bass_dataset, dataset_primer_start
+        bass_agent, bass_dataset, primer
     )
 
     if playstyle == "bass_drum":

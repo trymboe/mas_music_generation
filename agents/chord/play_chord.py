@@ -12,13 +12,11 @@ def play_chord(
     mid: MidiFile,
     arpeggiate,
     predicted_bass_sequence,
-    chord_dataset,
     dataset_primer,
 ) -> tuple[MidiFile, list]:
     timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence,
         predicted_bass_sequence,
-        chord_dataset,
         dataset_primer,
     )
 
@@ -132,13 +130,13 @@ def play_chord_arpeggiate(pm, chord_sequence):
 
 
 def get_timed_chord_sequence(
-    full_bass_sequence, predicted_bass_sequence, chord_dataset, dataset_primer
+    full_bass_sequence, predicted_bass_sequence, dataset_primer
 ):
     chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(
-        chord_agent, predicted_bass_sequence, chord_dataset, dataset_primer
+        chord_agent, predicted_bass_sequence, dataset_primer
     )
 
     timed_chord_sequence = []
