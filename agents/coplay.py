@@ -199,6 +199,7 @@ def play_agents(
 
     print("  ----playing melody----")
     start = time.time()
+    mid = None
     mid = play_melody(mid, chord_sequence, dataset_primer_start)
     end = time.time()
     print("    ----melody playing time: ", end - start)

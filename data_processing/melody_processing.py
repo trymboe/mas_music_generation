@@ -13,7 +13,7 @@ from config import (
 
 
 def get_melody_dataset(root_dir: str) -> Melody_Dataset:
-    root_dir = root_dir + "/transposed"
+    root_dir = root_dir
     num_files = 0
     all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
     if not os.path.exists(
@@ -86,14 +86,18 @@ def process_melody_and_chord(
     # Tolerance for the duration of an eighth note
     sixteenth_note_tolerance: float = ticks_per_beat / 4
     tempo: int = int(pm.get_tempo_changes()[1][0])
+    placement: list[str, int] = None
 
     current_tick: int = 0
     list_of_events: list[list[int], list[int], list[list[int]], list[bool]] = []
 
     no_chord: bool = False
 
+    file_name = midi_file.split("/")[-1].split(".")[0].split("_")[1]
+
     # Iterate over the notes in the melody track
     for idx, note in enumerate(melody_track.notes):
+        placement = [file_name, note.start]
         # if idx > 20:
         #     print("file", midi_file)
         #     exit()
@@ -181,6 +185,7 @@ def process_melody_and_chord(
                     next_chord_vector_pause,
                     time_left_current_chord_vector_pause,
                     accumulated_time_vector_pause,
+                    placement,
                 ]
             )
 
@@ -200,6 +205,7 @@ def process_melody_and_chord(
                 next_chord_vector,
                 time_left_current_chord_vector,
                 accumulated_time_vector,
+                placement,
             ]
         )
 
@@ -229,9 +235,6 @@ def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
     for j, (timing, chord) in enumerate(chord_list):
         chord_start_time = seconds_to_ticks(timing[0], tempo, ticks_per_beat)
         chord_end_time = seconds_to_ticks(timing[1], tempo, ticks_per_beat)
-        total_chord_length = calculate_chord_beats(
-            chord_start_time, chord_end_time, tempo
-        )
         if chord_start_time <= start_tick and chord_end_time >= start_tick:
             # Only save chord if there is a chord, and not the last chord
             if "N" not in chord:
@@ -254,11 +257,11 @@ def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
             # If there is no chord played, or last chord
             else:
                 return None, None, None
+
     return (
         current_chord_vector,
         next_chord_vector,
         time_left_current_chord,
-        total_chord_length,
     )
 
 

@@ -14,7 +14,7 @@ def play_chord(
     predicted_bass_sequence,
     chord_dataset,
     dataset_primer,
-) -> MidiFile:
+) -> tuple[MidiFile, list]:
     timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence,
         predicted_bass_sequence,

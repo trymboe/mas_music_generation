@@ -33,7 +33,7 @@ def get_datasets() -> tuple[Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Da
     """
 
     print("----Creating datasets----")
-    root_directory: str = "data/POP909"
+    root_directory: str = "data/POP909/transposed"
 
     melody_dataset: Melody_Dataset = get_melody_dataset(root_directory)
     drum_dataset: Drum_Dataset = get_drum_dataset()
