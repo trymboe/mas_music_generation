@@ -252,6 +252,6 @@ def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
 
     chord_primer = chord_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD][0]
     bass_primer = bass_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD]
-    melody_primer = melody_dataset[primer_start]
+    melody_primer = melody_dataset[primer_start][0]
 
     return chord_primer, bass_primer, melody_primer
