@@ -64,9 +64,6 @@ def train_melody(
             accumulated_time = batch[2]
             time_left_on_chord = batch[3]
 
-            print(pitches.shape)
-            exit()
-
             # Zero the parameter gradients
             optimizer.zero_grad()
 
