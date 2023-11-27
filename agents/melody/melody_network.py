@@ -34,7 +34,7 @@ class Melody_Network(nn.Module):
                 bidirectional=True,
                 batch_first=True,
             )
-
+            self.device = DEVICE
             self.downscale = nn.Linear(in_features=512, out_features=197)
 
         def forward(self, input_sequence, previous_cell_output=None):
@@ -47,6 +47,7 @@ class Melody_Network(nn.Module):
                     new_input = input_sequence + previous_cell_output.unsqueeze(1)
             else:
                 new_input = input_sequence
+            new_input.to(self.device)
             x = self.lstm(new_input)[0][:, -1, :]
             x = self.downscale(x)
             return x
@@ -62,7 +63,7 @@ class Melody_Network(nn.Module):
                 bidirectional=True,
                 batch_first=True,
             )
-
+            self.device = DEVICE
             self.downscale = nn.Linear(in_features=512, out_features=197)
 
         def forward(self, inputs_sequence, tier3_output, tier2_output=None):
@@ -89,7 +90,7 @@ class Melody_Network(nn.Module):
                     )
                 else:
                     new_input = inputs_sequence + tier3_output.unsqueeze(1)
-
+            new_input.to(self.device)
             x = self.lstm(new_input)[0][:, -1, :]
             x = self.downscale(x)
             return x
@@ -107,8 +108,10 @@ class Melody_Network(nn.Module):
                 bidirectional=True,
                 batch_first=True,
             )
+            self.device = DEVICE
 
         def forward(self, input):
+            input.to(self.device)
             x = self.conv1d(input)
             x = self.relu(x)
             x = x.permute(0, 2, 1)
@@ -117,6 +120,8 @@ class Melody_Network(nn.Module):
 
     class PredictiveNetwork(nn.Module):
         def __init__(self):
+            self.device = DEVICE
+            
             in_features2 = 197 + 4 if not CONCAT else 197 * 4 + 4
             in_features1 = 197 + 4 if not CONCAT else 197 * 3 + 4
 
@@ -146,6 +151,7 @@ class Melody_Network(nn.Module):
             # print(time_left_on_chord.shape)
             # print(previous_pitch_tier1.shape)
 
+            inputs_conv.to(self.device)
             x_conv = self.conv1d(inputs_conv.unsqueeze(1))
             x_conv = self.relu(x_conv)
             x_conv = torch.mean(x_conv, dim=2)  # Shape: [64, 256]
@@ -177,8 +183,11 @@ class Melody_Network(nn.Module):
                 else:
                     new_input = x_conv + inputs_lstm_tier2 + inputs_lstm_tier3
 
-            new_input = torch.cat((new_input, accumulated_time), dim=1)
+            
+            new_input.to(self.device)
 
+            
+            new_input = torch.cat((new_input, accumulated_time), dim=1)
             if not CONCAT:
                 x = self.FC(new_input)
                 return x
@@ -254,6 +263,9 @@ class Melody_Network(nn.Module):
             .detach()
             .to(device=self.device, dtype=self.conv_networks[0].conv1d.weight.dtype)
         )
+        accumulated_time.to(self.device)
+        time_left_on_chord.to(self.device)
+        
         event_1_to_8 = inputs[:, :8, :]
         event_9_to_16 = inputs[:, -8:, :]
 
@@ -305,7 +317,7 @@ class Melody_Network(nn.Module):
                         inputs[:, idx, :],
                         tier_2_outputs[math.floor(idx / 2)],
                         tier_3_outputs[math.floor(idx / 8)],
-                        accumulated_time_chunk[idx],
+                        accumulated_time_chunk[idx].to(self.device),
                         time_left_on_chord_chunk[idx],
                     )
                 )
@@ -315,7 +327,7 @@ class Melody_Network(nn.Module):
                         inputs[:, idx, :],
                         tier_2_outputs[math.floor(idx / 2)],
                         tier_3_outputs[math.floor(idx / 8)],
-                        accumulated_time_chunk[idx],
+                        accumulated_time_chunk[idx].to(self.device),
                         time_left_on_chord_chunk[idx],
                         predictive_outputs[idx - 1],
                     )

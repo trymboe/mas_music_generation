@@ -88,9 +88,9 @@ def create_agents(
     else:
         print("  ----Creating bass agent----")
         bass_agent: Bass_Network = create_bass_agent()
+        bass_agent.to(DEVICE)
         train_bass(bass_agent, bass_dataset)
         bass_agent.eval()
-        bass_agent.to(DEVICE)
 
     # --- Creating chord agent ---
     if not train_chord_agent:
@@ -100,9 +100,9 @@ def create_agents(
     else:
         print("  ----Creating chord agent----")
         chord_agent: Chord_Network = create_chord_agent()
+        chord_agent.to(DEVICE)
         train_chord(chord_agent, chord_dataset)
         chord_agent.eval()
-        chord_agent.to(DEVICE)
 
     # --- Creating drum agent ---
     if not train_drum_agent:
@@ -124,10 +124,10 @@ def create_agents(
         melody_agent.eval()
     else:
         print("  ----Creating melody agent----")
-        melody_agent: Drum_Network = create_melody_agent()
+        melody_agent: Melody_Network = create_melody_agent()
+        melody_agent.to(DEVICE)
         train_melody(melody_agent, melody_dataset)
         melody_agent.eval()
-        melody_agent.to(DEVICE)
 
     return bass_agent, chord_agent, drum_agent, melody_agent
 

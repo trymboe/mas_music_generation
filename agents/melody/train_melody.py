@@ -64,6 +64,8 @@ def train_melody(
             accumulated_time = batch[2]
             time_left_on_chord = batch[3]
 
+            gt_pitches.to(DEVICE)
+            gt_durations.to(DEVICE)
             # Zero the parameter gradients
             optimizer.zero_grad()
 
@@ -81,8 +83,8 @@ def train_melody(
                 x, accumulated_time, time_left_on_chord
             )
 
-            pitch_loss = criterion(pitch_logits, get_gt(gt_pitches.squeeze(1)))
-            duration_loss = criterion(duration_logits, get_gt(gt_durations.squeeze(1)))
+            pitch_loss = criterion(pitch_logits, get_gt(gt_pitches.squeeze(1)).to(DEVICE))
+            duration_loss = criterion(duration_logits, get_gt(gt_durations.squeeze(1)).to(DEVICE))
 
             loss = pitch_loss * ALPHA1 + duration_loss * ALPHA2
 

@@ -41,7 +41,7 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
 
             if num_files == 10 and DATASET_SIZE_MELODY == "small":
                 break
-            if num_files == 33 and DATASET_SIZE_MELODY == "medium":
+            if num_files == 20 and DATASET_SIZE_MELODY == "medium":
                 break
         melody_dataset: Melody_Dataset = Melody_Dataset(
             all_events, SEQUENCE_LENGHT_MELODY
