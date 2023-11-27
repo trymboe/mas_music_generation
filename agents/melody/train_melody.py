@@ -78,13 +78,20 @@ def train_melody(
                 ),
                 dim=2,
             )
+            x.to(DEVICE)
+            accumulated_time.to(DEVICE)
+            time_left_on_chord.to(DEVICE)
 
             pitch_logits, duration_logits = model(
                 x, accumulated_time, time_left_on_chord
             )
 
-            pitch_loss = criterion(pitch_logits, get_gt(gt_pitches.squeeze(1)).to(DEVICE))
-            duration_loss = criterion(duration_logits, get_gt(gt_durations.squeeze(1)).to(DEVICE))
+            pitch_loss = criterion(
+                pitch_logits, get_gt(gt_pitches.squeeze(1)).to(DEVICE)
+            )
+            duration_loss = criterion(
+                duration_logits, get_gt(gt_durations.squeeze(1)).to(DEVICE)
+            )
 
             loss = pitch_loss * ALPHA1 + duration_loss * ALPHA2
 

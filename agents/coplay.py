@@ -145,8 +145,8 @@ def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
             break
 
     if not primer_end_chord:
-        if attempt > 10:
-            print("Tried 10 times, giving up")
+        if attempt > 30:
+            print("Tried 30 times, giving up")
             exit()
         print("Could not find primer end chord, trying again")
         return get_primer_sequences(attempt + 1)
