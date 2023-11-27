@@ -12,7 +12,7 @@ HIDDEN_SIZE_CHORD = 64
 
 MODEL_PATH_CHORD = "models/chord/chord_model.pt"
 
-ARP_STYLE = 0  # Style of the arpegiator 0 for 8 notes, 1 for 6 note, 2 for 4 notes
+ARP_STYLE = 2  # Style of the arpegiator 0 for 8 notes, 1 for 6 note, 2 for 4 notes
 
 # Mappings
 CHORD_TO_INT = {

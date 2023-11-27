@@ -149,6 +149,7 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 is_end_of_bar: bool = False
 
             bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
+
             (
                 pitches,
                 durations,
@@ -223,7 +224,7 @@ def update_input_tensors(
     next_chords = torch.cat((next_chords, next_next_chord.unsqueeze(0)), dim=0)
 
     accumulated_times = torch.cat(
-        (accumulated_times.squeeze(0), next_accumulated_time), dim=0
+        (accumulated_times.squeeze(0), next_accumulated_time.unsqueeze(0)), dim=0
     )
 
     pitches = pitches[1:]
@@ -239,6 +240,21 @@ def update_input_tensors(
         next_chords,
         accumulated_times,
     )
+
+
+def get_one_hot_index(one_hot_list: list[int]) -> int:
+    """
+    Gets the index of the one hot encoded list. For debugging.
+
+    Args:
+    ----------
+        one_hot_list (list[int]): one hot encoded list
+
+    Returns:
+    ----------
+        int: index of the one hot encoded list
+    """
+    return next((i for i, value in enumerate(one_hot_list) if value == 1), None)
 
 
 def get_time_left_on_chord_tensor(
@@ -262,7 +278,7 @@ def get_accumulated_time_tensor(
 
     accumulated_list = [0, 0, 0, 0]
     accumulated_list[index] = 1
-    return torch.tensor([accumulated_list])
+    return torch.tensor(accumulated_list)
 
 
 def apply_temperature(logits, temperature):
@@ -351,5 +367,4 @@ def generate_scale_preferences() -> list[int]:
     # for pause
     full_range.append(PITCH_VECTOR_SIZE)
 
-    print(full_range)
     return full_range

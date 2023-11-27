@@ -65,7 +65,7 @@ def play_drum(
         )
 
         pm = ns.note_sequence_to_pretty_midi(note_sequence)
-        pm.write("results/drum/loop_gen.midi")
+        # pm.write("results/drum/loop_gen.midi")
 
         note_sequence_to_midi_file(note_sequence, f"results/drum/full_gen.midi")
 
@@ -164,7 +164,7 @@ def play_drum_from_style(measures, loops, drum_dataset, style):
     pm = ns.note_sequence_to_pretty_midi(note_sequence)
 
     pm = loop_drum(pm, measures, loops)
-    pm.write("results/drum/loop_continue.midi")
+    # pm.write("results/drum/loop_continue.midi")
 
     note_sequence_to_midi_file(note_sequence, f"results/drum/full_continue.midi")
 

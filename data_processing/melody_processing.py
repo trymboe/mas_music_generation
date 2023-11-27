@@ -39,7 +39,7 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
                 num_files += 1
                 print(midi_file)
 
-            if num_files == 1 and DATASET_SIZE_MELODY == "small":
+            if num_files == 10 and DATASET_SIZE_MELODY == "small":
                 break
             if num_files == 33 and DATASET_SIZE_MELODY == "medium":
                 break
