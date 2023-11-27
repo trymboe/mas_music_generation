@@ -75,41 +75,51 @@ def extract_chords_from_files(root_dir, limit, only_triads):
         for file_name in file_list:
             if file_name == ".DS_Store":
                 continue
-            key: str = get_key(dir_name, "key_audio.txt")
+            # key: str = get_key(dir_name, "key_audio.txt")
             beat_list: list = get_beat_info(dir_name, "beat_audio.txt")
             if file_name == "chord_audio.txt":
-                # If there is a keychange in the song, skip it
-                if len(key) > 1:
-                    continue
+                # # If there is a keychange in the song, skip it
+                # if len(key) > 1:
+                #     continue
                 chords: list[tuple(str, str)] = []
                 num_beats_list: list[int] = []
+
+                placement: list[str, int] = []
+
+                for fn in file_list:
+                    if fn[0] == "C":
+                        song_name = fn.split("_")[1].split(".")[0]
+                print(dir_name)
                 with open(os.path.join(dir_name, file_name), "r") as file:
                     for line in file:
                         # Split the line into components
                         components = line.split()
                         if components[2] == "N":
                             continue
-
                         # Split the chord by ':' and save as a tuple
                         chord_start = float(components[0])
                         chord_end = float(components[1])
+
+                        placement = [song_name, chord_start]
 
                         num_beats = find_chord_length(chord_start, chord_end, beat_list)
 
                         root, version = components[2].split(":")
                         if only_triads:
                             version = remove_non_triad(version)
-
-                        chords.append((root, version))
+                        chords.append((root, version, placement))
                         num_beats_list.append(num_beats)
 
                     chords = flat_to_sharp(chords)
-                    key = flat_to_sharp_key(key[0])
+                    # key = flat_to_sharp_key(key[0])
 
-                    if key[-1] == "j" and key != "C:maj":
-                        chords = transpose_chord(chords, key)
-                        all_chords.append(chords)
-                        all_beats.append(num_beats_list)
+                    # if key[-1] == "j" and key != "C:maj":
+                    # chords = transpose_chord(chords, key)
+                    # all_chords.append(chords)
+                    # all_beats.append(num_beats_list)
+
+                    all_chords.append(chords)
+                    all_beats.append(num_beats_list)
 
                     if not endless and total_length(all_chords) >= limit:
                         all_notes = get_notes_from_chords(all_chords)
@@ -117,6 +127,7 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                         return all_chords, all_notes, all_beats
 
     all_notes = get_notes_from_chords(all_chords)
+
     return all_chords, all_notes, all_beats
 
 
@@ -169,7 +180,7 @@ def total_length(chords):
 def flat_to_sharp(chords):
     new_chords = []
     for chord in chords:
-        root, version = chord
+        root, version, _ = chord
         if root == "Db":
             chord = ("C#", version)
         elif root == "Eb":
@@ -255,8 +266,9 @@ def get_notes_from_chords(chords):
     all_notes = []
     for song in chords:
         song_notes = []
-        for note, version in song:
-            song_notes.append(note)
+
+        for note in song[0]:
+            song_notes.append(note[0])
 
         all_notes.append(song_notes)
 

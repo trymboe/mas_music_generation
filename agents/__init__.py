@@ -13,7 +13,12 @@ from .chord import (
     predict_next_k_notes_chords,
 )
 
-from .melody import train_melody, Melody_Network
+from .melody import (
+    train_melody,
+    Melody_Network,
+    generate_scale_preferences,
+    select_with_preference,
+)
 
 from .drum import train_drum
 

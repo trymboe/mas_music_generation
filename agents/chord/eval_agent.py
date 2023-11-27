@@ -4,13 +4,9 @@ import torch.nn.functional as F
 from config import SEQUENCE_LENGTH_CHORD
 
 
-def predict_next_k_notes_chords(
-    model, predicted_bass_sequence, chord_dataset, dataset_primer
-):
+def predict_next_k_notes_chords(model, predicted_bass_sequence, dataset_primer):
     #
-    chord_primer = get_input_sequence_chords(
-        predicted_bass_sequence, chord_dataset, dataset_primer
-    )
+    chord_primer = get_input_sequence_chords(predicted_bass_sequence, dataset_primer)
 
     predicted_chord_types = []
 
@@ -46,9 +42,10 @@ def predict_next_k_notes_chords(
     return predicted_chord_types
 
 
-def get_input_sequence_chords(full_bass_sequence, Chord_Dataset, dataset_primer):
+def get_input_sequence_chords(full_bass_sequence, dataset_primer):
     # Extract the corresponding chord sequence from the dataset
-    actual_chord_sequence = Chord_Dataset[dataset_primer][0]
+    actual_chord_sequence = dataset_primer[:, :2]
+
     # Extract only the root notes from the full_bass_sequence
     bass_notes = [pair[0] for pair in full_bass_sequence]
 

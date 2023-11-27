@@ -9,12 +9,12 @@ from config import *
 
 
 def play_melody(
-    mid: pretty_midi.PrettyMIDI, chord_sequence: list[tuple], dataset_primer_start: int
+    mid: pretty_midi.PrettyMIDI, chord_sequence: list[tuple], melody_primer: int
 ):
     melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
     melody_agent.eval()
 
-    note_sequence = predict_next_notes(chord_sequence, melody_agent)
+    note_sequence = predict_next_notes(chord_sequence, melody_agent, melody_primer)
     mid = play_melody_notes(note_sequence, mid)
     return mid
 

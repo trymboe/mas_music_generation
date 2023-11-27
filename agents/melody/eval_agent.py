@@ -11,10 +11,11 @@ from config import (
     TEMPO,
     NOTE_TEMPERATURE_MELODY,
     DURATION_TEMPERATURE_MELODY,
+    PITCH_VECTOR_SIZE,
 )
 
 
-def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
+def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list[int]]:
     with torch.no_grad():
         all_notes: list[list[int]] = []
 
@@ -25,40 +26,48 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
         running_time_total_beats: float = 0
         running_time_on_chord_beats: float = 0
 
-        chord_num: int = 0
-        current_chord_duration_beats: int = chord_sequence[0][1]
-        current_chord: torch.Tensor = get_chord_tensor(chord_sequence[0][0])
-        next_chord: torch.Tensor = get_chord_tensor(chord_sequence[0][0])
-        pitches, durations = get_pitch_duration_tensor(chord_sequence[0][0][0] + 59, 7)
-        time_left_on_chord: torch.Tensor = None
+        current_chord_duration_beats = chord_sequence[0][1]
+        next_current_chord = get_chord_tensor(chord_sequence[0][0])
+        next_next_chord = get_chord_tensor(chord_sequence[1][0])
 
+        (
+            pitches,
+            durations,
+            current_chords,
+            next_chords,
+            current_chord_time_lefts,
+            accumulated_times,
+        ) = get_tensors(melody_primer)
+
+        chord_num: int = 0
         accumulated_time: int = 0
 
         sum_duration: float = 0.0
         while True:
-            accumulated_time_tensor = get_accumulated_time_tensor(accumulated_time)
-
-            time_left_on_chord = get_time_left_on_chord_tensor(
-                current_chord_duration_beats, running_time_on_chord_beats
-            )
-
             x = torch.cat(
-                (pitches, durations, current_chord, next_chord),
-                dim=0,
+                (
+                    pitches,
+                    durations,
+                    current_chords,
+                    next_chords,
+                ),
+                dim=1,
             )
+
             # add batch dimension
             x = x.unsqueeze(0)
+            accumulated_times = accumulated_times.unsqueeze(0)
 
-            note_output, duration_output = melody_agent(
-                x, accumulated_time_tensor, time_left_on_chord
+            pitch_logits, duration_logits = melody_agent(
+                x, accumulated_times, current_chord_time_lefts
             )
 
             note_logits_temperature = apply_temperature(
-                note_output[0, :], NOTE_TEMPERATURE_MELODY
+                pitch_logits[0, :], NOTE_TEMPERATURE_MELODY
             )
 
             duration_logits_temperature = apply_temperature(
-                duration_output[0, :], DURATION_TEMPERATURE_MELODY
+                duration_logits[0, :], DURATION_TEMPERATURE_MELODY
             )
 
             note_probabilities = F.softmax(note_logits_temperature, dim=0).view(-1)
@@ -86,7 +95,9 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
 
             accumulated_time += duration_in_beats
 
-            all_notes.append([next_note.item() + 1, duration_in_beats])
+            all_notes.append([next_note.item() + 61, duration_in_beats])
+
+            next_accumulated_time = get_accumulated_time_tensor(accumulated_time)
 
             running_time_on_chord_beats += duration_in_beats
             # We are done
@@ -98,6 +109,8 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
 
             while running_time_on_chord_beats > current_chord_duration_beats:
                 chord_num += 1
+                if chord_num >= len(chord_sequence):
+                    break
 
                 running_time_on_chord_beats -= current_chord_duration_beats
                 try:
@@ -107,17 +120,21 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
                     current_chord_duration_beats = 1
 
                 try:
-                    current_chord: torch.Tensor = get_chord_tensor(
+                    next_current_chord: torch.Tensor = get_chord_tensor(
                         chord_sequence[chord_num][0]
                     )
-                    next_chord: torch.Tensor = get_chord_tensor(
+                    next_next_chord: torch.Tensor = get_chord_tensor(
                         chord_sequence[chord_num + 1][0]
                     )
                 # If there are no more chords, current chord is set as next chord
                 except:
-                    next_chord: torch.Tensor = current_chord
+                    next_current_chord: torch.Tensor = get_chord_tensor(
+                        chord_sequence[chord_num][0]
+                    )
 
-            pitches, durations = get_pitch_duration_tensor(
+                    next_next_chord: torch.Tensor = next_current_chord
+
+            next_pitch_vector, next_duration_vector = get_pitch_duration_tensor(
                 next_note.item(), (next_duration.item())
             )
 
@@ -133,7 +150,111 @@ def predict_next_notes(chord_sequence, melody_agent) -> list[list[int]]:
 
             bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
 
+            (
+                pitches,
+                durations,
+                current_chords,
+                next_chords,
+                accumulated_times,
+            ) = update_input_tensors(
+                pitches,
+                durations,
+                current_chords,
+                next_chords,
+                accumulated_times,
+                next_pitch_vector,
+                next_duration_vector,
+                next_current_chord,
+                next_next_chord,
+                next_accumulated_time,
+            )
+
     return all_notes
+
+
+def get_tensors(melody_primer):
+    pitches = []
+    durations = []
+    current_chords = []
+    next_chords = []
+    current_chord_time_lefts = []
+    accumulated_times = []
+
+    for note in melody_primer:
+        # Convert each item to a tensor before appending
+        pitches.append(torch.tensor(note[0]))
+        durations.append(torch.tensor(note[1]))
+        current_chords.append(torch.tensor(note[2]))
+        next_chords.append(torch.tensor(note[3]))
+        current_chord_time_lefts.append(torch.tensor(note[4]))
+        accumulated_times.append(torch.tensor(note[5]))
+
+    pitches = torch.stack(pitches)
+    durations = torch.stack(durations)
+    current_chords = torch.stack(current_chords)
+    next_chords = torch.stack(next_chords)
+    current_chord_time_lefts = torch.stack(current_chord_time_lefts)
+    accumulated_times = torch.stack(accumulated_times)
+
+    return (
+        pitches,
+        durations,
+        current_chords,
+        next_chords,
+        current_chord_time_lefts,
+        accumulated_times,
+    )
+
+
+def update_input_tensors(
+    pitches,
+    durations,
+    current_chords,
+    next_chords,
+    accumulated_times,
+    next_pitch_vector,
+    next_duration_vector,
+    next_current_chord,
+    next_next_chord,
+    next_accumulated_time,
+):
+    pitches = torch.cat((pitches, next_pitch_vector.unsqueeze(0)), dim=0)
+    durations = torch.cat((durations, next_duration_vector.unsqueeze(0)), dim=0)
+    current_chords = torch.cat((current_chords, next_current_chord.unsqueeze(0)), dim=0)
+    next_chords = torch.cat((next_chords, next_next_chord.unsqueeze(0)), dim=0)
+
+    accumulated_times = torch.cat(
+        (accumulated_times.squeeze(0), next_accumulated_time.unsqueeze(0)), dim=0
+    )
+
+    pitches = pitches[1:]
+    durations = durations[1:]
+    current_chords = current_chords[1:]
+    next_chords = next_chords[1:]
+    accumulated_times = accumulated_times[1:]
+
+    return (
+        pitches,
+        durations,
+        current_chords,
+        next_chords,
+        accumulated_times,
+    )
+
+
+def get_one_hot_index(one_hot_list: list[int]) -> int:
+    """
+    Gets the index of the one hot encoded list. For debugging.
+
+    Args:
+    ----------
+        one_hot_list (list[int]): one hot encoded list
+
+    Returns:
+    ----------
+        int: index of the one hot encoded list
+    """
+    return next((i for i, value in enumerate(one_hot_list) if value == 1), None)
 
 
 def get_time_left_on_chord_tensor(
@@ -150,12 +271,14 @@ def get_time_left_on_chord_tensor(
     return torch.tensor([time_left_vector])
 
 
-def get_accumulated_time_tensor(accumulated_bars: int) -> torch.Tensor:
+def get_accumulated_time_tensor(
+    accumulated_bars: int,
+) -> torch.Tensor:
     index: int = int(accumulated_bars % 4)
 
     accumulated_list = [0, 0, 0, 0]
     accumulated_list[index] = 1
-    return torch.tensor([accumulated_list])
+    return torch.tensor(accumulated_list)
 
 
 def apply_temperature(logits, temperature):
@@ -235,13 +358,13 @@ def generate_scale_preferences() -> list[int]:
     full_range = []
 
     # Iterate through all MIDI notes
-    for midi_note in range(128):  # MIDI notes range from 0 to 127
+    for midi_note in range(PITCH_VECTOR_SIZE):  # MIDI notes range from 0 to 127
         # Check if the note is in the correct scale
         if midi_note % 12 in intervals:
             note_index = midi_note - 1
             if note_index > 0:
                 full_range.append(note_index)
     # for pause
-    full_range.append(128)
+    full_range.append(PITCH_VECTOR_SIZE)
 
     return full_range
