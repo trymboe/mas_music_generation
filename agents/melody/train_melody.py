@@ -78,9 +78,6 @@ def train_melody(
                 ),
                 dim=2,
             )
-            x.to(DEVICE)
-            accumulated_time.to(DEVICE)
-            time_left_on_chord.to(DEVICE)
 
             pitch_logits, duration_logits = model(
                 x, accumulated_time, time_left_on_chord

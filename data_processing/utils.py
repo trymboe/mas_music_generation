@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import yaml
+import shutil
 
 
 def get_timed_notes(
@@ -144,3 +145,16 @@ def load_yaml(fname):
         conf = yaml.load(f, Loader=yaml.Loader)
 
     return conf
+
+
+def remove_file_from_dataset(directory: str):
+    """
+    Removes a file from the dataset.
+    """
+    try:
+        shutil.rmtree(directory)
+        print(
+            f"Directory {directory} and all its contents have been successfully removed."
+        )
+    except OSError as e:
+        print(f"Error: {e.strerror}. Could not remove directory {directory}.")

@@ -11,6 +11,8 @@ from config import (
     SEQUENCE_LENGHT_MELODY,
 )
 
+from .utils import remove_file_from_dataset
+
 
 def get_melody_dataset(root_dir: str) -> Melody_Dataset:
     root_dir = root_dir
@@ -38,10 +40,15 @@ def get_melody_dataset(root_dir: str) -> Melody_Dataset:
                 all_events.append(list_of_events)
                 num_files += 1
                 print(midi_file)
+            else:
+                remove_file_from_dataset(os.path.join(root_dir, directory))
+                print(midi_file, "no melody track found")
 
             if num_files == 10 and DATASET_SIZE_MELODY == "small":
                 break
             if num_files == 20 and DATASET_SIZE_MELODY == "medium":
+                break
+            if num_files == 100 and DATASET_SIZE_MELODY == "large":
                 break
         melody_dataset: Melody_Dataset = Melody_Dataset(
             all_events, SEQUENCE_LENGHT_MELODY
@@ -63,7 +70,7 @@ def process_melody_and_chord(
 ) -> list[list[int], list[int], list[list[int]], list[bool]]:
     pm = pretty_midi.PrettyMIDI(midi_file)
 
-    # Only work for time signature 4/4
+    # Only work with time signature 4/4
     for time_signature in pm.time_signature_changes:
         if time_signature.numerator != 4 or time_signature.denominator != 4:
             return None

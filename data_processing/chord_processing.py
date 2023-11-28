@@ -57,7 +57,6 @@ def get_chord_dataset(root_directory: str) -> Chord_Dataset:
         torch.save(chord_dataset, "data/dataset/chord_dataset.pt")
     else:
         chord_dataset: Chord_Dataset = torch.load("data/dataset/chord_dataset.pt")
-
     return chord_dataset
 
 

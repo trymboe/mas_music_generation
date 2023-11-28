@@ -2,7 +2,7 @@ import os
 import shutil
 
 
-def transpose(directory):
+def transpose_chord(directory):
     for file in os.listdir(directory):
         chords: list[tuple(str, str)] = []
         all_chords: list[list[tuple(str, str)]] = []
@@ -39,18 +39,11 @@ def transpose(directory):
 
                 key = flat_to_sharp_key(key[0])
 
-                # Only songs in major
                 if key[-1] == "j" and key != "C:maj":
                     chords = transpose_chord_major(chords, key)
 
-                if key[-1] != "j":
-                    root_dir = "/".join(directory.split("/")[:2])
-                    song_name = directory.split("/")[-1]
-                    dir_path = os.path.join(root_dir, "transposed", song_name)
-                    try:
-                        shutil.rmtree(dir_path)
-                    except OSError as e:
-                        print(e)
+                if key[-1] == "n" and key != "A:min":
+                    chords = transpose_chord_minor(chords, key)
 
                 all_notes = [
                     [start, end, f"{chord[0]}:{chord[1]}"]
@@ -66,7 +59,6 @@ def transpose(directory):
                 filename = os.path.join(
                     root_dir, "transposed", song_name, "chord_audio.txt"
                 )
-
                 if os.path.exists(os.path.join(root_dir, "transposed", song_name)):
                     # Write to a file
                     with open(filename, "w") as file:
@@ -111,6 +103,26 @@ def transpose_chord_major(chords, key):
     return transposed_chords
 
 
+def transpose_chord_minor(chords, key):
+    # Define the musical notes in order
+    notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+    root = key.split(":")[0]
+
+    # Find the interval between the original key and A minor
+    # Since A minor is the relative minor of C major, its root note is A
+    interval = notes.index("A") - notes.index(root)
+
+    # Transpose each chord in the progression by the interval
+    transposed_chords = []
+    for chord in chords:
+        root, version = chord
+        new_root_index = (notes.index(root) + interval) % len(notes)
+        new_root = notes[new_root_index]
+        transposed_chords.append((new_root, version))
+
+    return transposed_chords
+
+
 def flat_to_sharp_key(key):
     # Mapping of flat notes to their sharp equivalents
     flat_to_sharp_map = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#"}
@@ -136,10 +148,10 @@ def get_key(dir_name, file_name):
     return key
 
 
-for idx, directory in enumerate(os.listdir("data/POP909/")):
-    if ".DS_Store" in directory:
-        continue
-    for file in os.listdir(os.path.join("data/POP909/", directory)):
-        if ".mid" in file:
-            transpose(os.path.join("data/POP909/", directory))
-            # print("Working.. " + str(idx / 909 * 100) + "%", end="\r")
+# for idx, directory in enumerate(os.listdir("data/POP909/")):
+#     if ".DS_Store" in directory:
+#         continue
+#     for file in os.listdir(os.path.join("data/POP909/", directory)):
+#         if ".mid" in file:
+#             transpose_chord(os.path.join("data/POP909/", directory))
+#             # print("Working.. " + str(idx / 909 * 100) + "%", end="\r")
