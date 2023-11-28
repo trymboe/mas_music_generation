@@ -25,9 +25,9 @@ def get_bass_dataset(root_directory: str) -> Bass_Dataset:
         _, notes, beats = extract_chords_from_files(
             root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
         )
-
         timed_notes: list[list[tuple[str, int]]] = get_timed_notes(notes, beats)
         bass_dataset: Bass_Dataset = Bass_Dataset(timed_notes)
+
         torch.save(bass_dataset, "data/dataset/bass_dataset.pt")
     else:
         bass_dataset: Bass_Dataset = torch.load("data/dataset/bass_dataset.pt")
@@ -88,7 +88,6 @@ def extract_chords_from_files(root_dir, limit, only_triads):
                 for fn in file_list:
                     if fn[0] == "C":
                         song_name = fn.split("_")[1].split(".")[0]
-                print(dir_name)
                 with open(os.path.join(dir_name, file_name), "r") as file:
                     for line in file:
                         # Split the line into components
@@ -266,7 +265,7 @@ def get_notes_from_chords(chords):
     for song in chords:
         song_notes = []
 
-        for note in song[0]:
+        for note in song:
             song_notes.append(note[0])
 
         all_notes.append(song_notes)
