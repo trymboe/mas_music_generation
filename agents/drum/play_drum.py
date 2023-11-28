@@ -6,7 +6,7 @@ from .utils import (
     continue_sequence,
 )
 
-from data_processing import Drum_Dataset, load_yaml
+from data_processing import Drum_Dataset, load_yaml, get_drum_dataset
 
 from config import DRUM_STYLES, TEMPO, MODEL_PATH_DRUM, DEVICE
 
@@ -19,8 +19,9 @@ import note_seq as ns
 
 
 def play_drum(
-    measures: int, loops: int, drum_dataset: Drum_Dataset, style: str = "highlife"
+    measures: int, loops: int, style: str = "highlife"
 ) -> pretty_midi.PrettyMIDI:
+    drum_dataset: Drum_Dataset = get_drum_dataset()
     if style:
         return play_drum_from_style(measures, loops, drum_dataset, style)
 

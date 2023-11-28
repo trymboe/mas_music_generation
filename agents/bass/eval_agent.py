@@ -5,9 +5,7 @@ from config import TEMPO, LENGTH_BARS
 from data_processing import Bass_Dataset
 
 
-def predict_next_k_notes_bass(
-    model, bass_dataset_start, dataset_primer
-) -> list[int, int]:
+def predict_next_k_notes_bass(model, dataset_primer) -> list[int, int]:
     predicted_notes_durations: list[tuple[int, int]] = []
 
     note_sequence, duration_sequence = get_primer_sequence(dataset_primer)

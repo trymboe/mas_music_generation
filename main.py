@@ -90,14 +90,10 @@ if __name__ == "__main__":
     arpeggiate: bool = parser.parse_args().arpeggiate
 
     # Process the datasets
-    bass_dataset, chord_dataset, drum_dataset, melody_dataset = get_datasets()
+    get_datasets()
 
     # Create and train the agents
     bass_agent, chord_agent, drum_agent, melody = create_agents(
-        bass_dataset,
-        chord_dataset,
-        drum_dataset,
-        melody_dataset,
         train_bass,
         train_chord,
         train_drum,
@@ -105,12 +101,6 @@ if __name__ == "__main__":
     )
 
     # Play the agents
-    play_agents(
-        bass_dataset,
-        chord_dataset,
-        drum_dataset,
-        arpeggiate,
-        SAVE_RESULT_PATH,
-    )
+    play_agents(arpeggiate)
 
     plt.show()

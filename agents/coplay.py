@@ -28,17 +28,14 @@ from config import (
     MODEL_PATH_CHORD,
     MODEL_PATH_MELODY,
     DEVICE,
-    DATASET_SIZE_MELODY,
+    SAVE_RESULT_PATH,
+    TEST_DATASET_PATH_MELODY,
+    TEST_DATASET_PATH_BASS,
+    TEST_DATASET_PATH_CHORD,
 )
 
 
-def play_agents(
-    bass_dataset: Bass_Dataset,
-    chord_dataset: Chord_Dataset,
-    drum_dataset: Drum_Dataset,
-    arpeggiate: bool,
-    filename: str,
-) -> None:
+def play_agents(arpeggiate: bool) -> None:
     """
     Orchestrates the playing of bass, chord, and drum agents to generate a music piece.
 
@@ -48,16 +45,8 @@ def play_agents(
 
     Parameters
     ----------
-    bass_dataset : Bass_Dataset
-        The bass dataset used for generating bass sequences.
-    chord_dataset : Chord_Dataset
-        The chord dataset used for generating chord sequences.
-    drum_dataset : Drum_Dataset
-        The drum dataset used for generating drum patterns.
     arpeggiate : bool
         Flag indicating whether to arpeggiate the chord sequences.
-    filename : str
-        The name of the file where the generated MIDI music will be saved.
 
     Returns
     -------
@@ -73,7 +62,6 @@ def play_agents(
     mid: pretty_midi.PrettyMIDI = play_drum(
         measures=LOOP_MEASURES,
         loops=int(LENGTH / LOOP_MEASURES),
-        drum_dataset=drum_dataset,
         style=STYLE,
     )
     end = time.time()
@@ -81,9 +69,7 @@ def play_agents(
 
     print("  ----playing bass----")
     start = time.time()
-    mid, predicted_bass_sequence = play_bass(
-        mid, bass_dataset, bass_primer, playstyle="bass_drum"
-    )
+    mid, predicted_bass_sequence = play_bass(mid, bass_primer, playstyle="bass_drum")
     end = time.time()
     print("    ----bass playing time: ", end - start)
 
@@ -101,12 +87,12 @@ def play_agents(
     end = time.time()
     print("    ----melody playing time: ", end - start)
 
-    mid.write(filename)
+    mid.write(SAVE_RESULT_PATH)
 
 
 def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
     """
-    Gets random primer sequences for bass, chord and melody, from the dataset.
+    Gets random primer sequences for bass, chord and melody, from the test dataset.
 
     Parameters
     ----------
@@ -116,9 +102,9 @@ def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
     -------
 
     """
-    chord_dataset: Chord_Dataset = torch.load("data/dataset/chord_dataset.pt")
-    melody_dataset: Melody_Dataset = torch.load("data/dataset/melody_dataset_small.pt")
-    bass_dataset: Bass_Dataset = torch.load("data/dataset/bass_dataset.pt")
+    chord_dataset: Chord_Dataset = torch.load(TEST_DATASET_PATH_CHORD)
+    melody_dataset: Melody_Dataset = torch.load(TEST_DATASET_PATH_MELODY)
+    bass_dataset: Bass_Dataset = torch.load(TEST_DATASET_PATH_BASS)
 
     primer_start = random.randint(0, len(melody_dataset) - 1)
     song_name_melody = melody_dataset[primer_start][0][0][6][0]

@@ -12,7 +12,7 @@ from data_processing import (
 )
 
 
-def get_datasets() -> tuple[Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset]:
+def get_datasets() -> None:
     """
     Processes music data to create datasets for notes, chords, and drums.
 
@@ -22,22 +22,13 @@ def get_datasets() -> tuple[Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Da
 
     Returns
     -------
-    Bass_Dataset
-        A dataset object containing timed note sequences.
-    Chord_Dataset
-        A dataset object containing chord progressions.
-    Drum_Dataset
-        A dataset object containing drum patterns.
-    Melody_Dataset
-        A dataset object containing melody related to chords.
+    None
     """
 
     print("----Creating datasets----")
     root_directory: str = "data/POP909/transposed"
 
-    melody_dataset: Melody_Dataset = get_melody_dataset(root_directory)
-    drum_dataset: Drum_Dataset = get_drum_dataset()
-    bass_dataset: Bass_Dataset = get_bass_dataset(root_directory)
-    chord_dataset: Chord_Dataset = get_chord_dataset(root_directory)
-
-    return bass_dataset, chord_dataset, drum_dataset, melody_dataset
+    get_melody_dataset(root_directory)
+    get_drum_dataset()
+    get_bass_dataset(root_directory)
+    get_chord_dataset(root_directory)

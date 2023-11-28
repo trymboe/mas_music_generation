@@ -15,6 +15,7 @@ from config import (
     NOTE_TO_INT,
     SEQUENCE_LENGTH_CHORD,
     CHORD_TO_INT,
+    SEQUENCE_LENGHT_MELODY,
 )
 
 
@@ -425,10 +426,9 @@ class Drum_Dataset:
 
 
 class Melody_Dataset(Dataset):
-    def __init__(self, data, sequence_length):
+    def __init__(self, data):
         self.data = data
-        self.sequence_length = sequence_length
-        self.num_songs = len(data)
+        self.sequence_length = SEQUENCE_LENGHT_MELODY
         self._get_indices()
 
     def _get_indices(self):

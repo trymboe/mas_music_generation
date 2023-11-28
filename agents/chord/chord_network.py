@@ -27,6 +27,7 @@ class Chord_Network(nn.Module):
 
     def forward(self, src):
         # Split the input tensor into root notes and chord types
+        src = src.long()
         roots, chords = src[:, :, 0], src[:, :, 1]
 
         # Embed root notes and chord types

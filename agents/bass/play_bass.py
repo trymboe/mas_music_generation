@@ -9,7 +9,6 @@ from .bass_network import Bass_Network
 
 def play_bass(
     mid: pretty_midi.PrettyMIDI,
-    bass_dataset: Bass_Dataset,
     primer: list,
     playstyle: str = "bass_drum",
 ) -> tuple[pretty_midi.PrettyMIDI, list[int, int]]:
@@ -17,7 +16,7 @@ def play_bass(
     bass_agent.eval()
 
     predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(
-        bass_agent, bass_dataset, primer
+        bass_agent, primer
     )
 
     if playstyle == "bass_drum":

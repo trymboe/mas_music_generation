@@ -20,16 +20,15 @@ from config import (
     DEVICE,
     PITCH_SIZE_MELODY,
     DURATION_SIZE_MELODY,
-    ALPHA1,
-    ALPHA2,
-    DATASET_SIZE_MELODY,
+    ALPHA1_MELODY,
+    ALPHA2_MELODY,
+    TRAIN_DATASET_PATH_MELODY,
+    VAL_DATASET_PATH_MELODY,
+    MAX_BATCHES_MELODY,
 )
 
 
-def train_melody(
-    model: Melody_Network,
-    dataset: Melody_Dataset,
-) -> None:
+def train_melody(model: Melody_Network) -> None:
     """
     Trains the MelodyGenerator model on the provided dataset.
 
@@ -42,18 +41,36 @@ def train_melody(
         list: A list of average epoch losses for each epoch.
     """
 
-    dataloader = DataLoader(
-        dataset, batch_size=BATCH_SIZE_MELODY, shuffle=True, collate_fn=process_data
+    melody_dataset_train = torch.load(TRAIN_DATASET_PATH_MELODY)
+    melody_dataset_val = torch.load(VAL_DATASET_PATH_MELODY)
+
+    # Create DataLoader
+    dataloader_train = DataLoader(
+        melody_dataset_train,
+        batch_size=BATCH_SIZE_MELODY,
+        shuffle=True,
+        collate_fn=process_data,
     )
+    dataloader_val = DataLoader(
+        melody_dataset_val,
+        batch_size=BATCH_SIZE_MELODY,
+        shuffle=True,
+        collate_fn=process_data,
+    )
+
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE_MELODY)
 
-    all_loss = []
+    loss_list = []
+    val_loss_list = []
 
     # Training loop
     for epoch in range(NUM_EPOCHS_MELODY):
-        for idx, batch in enumerate(dataloader):
+        batch_loss = []
+        for idx, batch in enumerate(dataloader_train):
+            if idx > MAX_BATCHES_MELODY:
+                break
             (
                 pitches,
                 durations,
@@ -90,25 +107,76 @@ def train_melody(
                 duration_logits, get_gt(gt_durations.squeeze(1)).to(DEVICE)
             )
 
-            loss = pitch_loss * ALPHA1 + duration_loss * ALPHA2
+            loss = pitch_loss * ALPHA1_MELODY + duration_loss * ALPHA2_MELODY
 
-            all_loss.append(loss.item())
+            batch_loss.append(loss.item())
 
             # Backward pass and optimize
             loss.backward()
             optimizer.step()
-            print(f"batch {idx}, Loss: {loss.item()}")
-        print(f"Epoch {epoch+1}, Loss: {loss.item()}")
+
+        val_loss = get_validation_loss(model, dataloader_val, criterion)
+
+        loss_list.append(np.mean(batch_loss))
+        val_loss_list.append(val_loss)
+
+        print(
+            f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 2)} Validation loss: {round(val_loss_list[-1],2)}"
+        )
 
     # Save the model
+    plot_loss(loss_list, val_loss_list)
     torch.save(model, MODEL_PATH_MELODY)
-    plot_loss(all_loss)
 
-    with open(
-        "results/data/" + DATASET_SIZE_MELODY + str(NUM_EPOCHS_MELODY) + ".json", "w"
-    ) as file:
-        json.dump(all_loss, file)
+    # with open(
+    #     "results/data/" + DATASET_SIZE_MELODY + str(NUM_EPOCHS_MELODY) + ".json", "w"
+    # ) as file:
+    #     json.dump(all_loss, file)
     plt.show()
+
+
+def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:
+    model.eval()
+    batch_loss = []
+    for idx, batch in enumerate(dataloader):
+        if idx > MAX_BATCHES_MELODY / 10:
+            break
+        (
+            pitches,
+            durations,
+            current_chord,
+            next_chord,
+        ) = batch[0]
+        gt_pitches, gt_durations = batch[1]
+        accumulated_time = batch[2]
+        time_left_on_chord = batch[3]
+
+        gt_pitches.to(DEVICE)
+        gt_durations.to(DEVICE)
+
+        x = torch.cat(
+            (
+                pitches,
+                durations,
+                current_chord,
+                next_chord,
+            ),
+            dim=2,
+        )
+
+        pitch_logits, duration_logits = model(x, accumulated_time, time_left_on_chord)
+
+        pitch_loss = criterion(pitch_logits, get_gt(gt_pitches.squeeze(1)).to(DEVICE))
+        duration_loss = criterion(
+            duration_logits, get_gt(gt_durations.squeeze(1)).to(DEVICE)
+        )
+
+        loss = pitch_loss * ALPHA1_MELODY + duration_loss * ALPHA2_MELODY
+
+        batch_loss.append(loss.item())
+
+    model.train()
+    return np.mean(batch_loss)
 
 
 def get_gt(gt):
@@ -116,26 +184,44 @@ def get_gt(gt):
         return torch.argmax(gt, dim=1)
 
 
-def plot_loss(loss_values: list[float]) -> None:
+def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
     """
-    Plots the training loss over batches.
+    Plots the training and validation loss over batches.
 
     Parameters
     ----------
-    loss_values : List[float]
-        A list of loss values to be plotted.
+    loss_values : list[float]
+        A list of training loss values to be plotted.
+    val_loss_values : list[float]
+        A list of validation loss values to be plotted.
 
     Returns
     -------
     None
     """
 
-    plt.figure()
-    plt.plot(loss_values)
-    plt.title("Training Loss melody")
+    # Plot training loss
+    plt.plot(loss_values, color="blue", label="Training Loss")
+
+    # Plot validation loss
+    plt.plot(val_loss_values, color="red", label="Validation Loss")
+
+    # Add title and labels
+    plt.title("Training and Validation Loss")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
-    plt.savefig("figures/melody_training_loss.png")
+
+    # Add legend
+    plt.legend()
+
+    # Optional: Add grid for better readability
+    plt.grid(True)
+
+    # Save the plot
+    plt.savefig("figures/bass_training_loss.png")
+
+    # Optional: Show the plot
+    plt.show()
 
 
 def process_data(batch):

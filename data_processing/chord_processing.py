@@ -5,10 +5,18 @@ import torch
 from .datasets import Bass_Dataset, Chord_Dataset
 from .utils import get_timed_notes
 
-from config import NUMBER_OF_NOTES_FOR_TRAINING
+from config import (
+    NUMBER_OF_NOTES_FOR_TRAINING,
+    TRAIN_DATASET_PATH_BASS,
+    TEST_DATASET_PATH_BASS,
+    VAL_DATASET_PATH_BASS,
+    TRAIN_DATASET_PATH_CHORD,
+    TEST_DATASET_PATH_CHORD,
+    VAL_DATASET_PATH_CHORD,
+)
 
 
-def get_bass_dataset(root_directory: str) -> Bass_Dataset:
+def get_bass_dataset(root_directory: str) -> None:
     """
     Creates a dataset object containing timed note sequences for the training
     and evaluation of the bass agent.
@@ -21,18 +29,21 @@ def get_bass_dataset(root_directory: str) -> Bass_Dataset:
     ----------
         Bass_Dataset: A dataset object containing timed note sequences.
     """
-    if not os.path.exists("data/dataset/bass_dataset.pt"):
-        _, notes, beats = extract_chords_from_files(
-            root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
-        )
-        timed_notes: list[list[tuple[str, int]]] = get_timed_notes(notes, beats)
-        bass_dataset: Bass_Dataset = Bass_Dataset(timed_notes)
+    if not os.path.exists(TRAIN_DATASET_PATH_BASS):
+        timed_notes_list: list[list[list[tuple[str, int]]]] = []
+        for split in ["train", "test", "val"]:
+            _, notes, beats = extract_chords_from_files(
+                root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True, split
+            )
+            timed_notes_list.append(get_timed_notes(notes, beats))
 
-        torch.save(bass_dataset, "data/dataset/bass_dataset.pt")
-    else:
-        bass_dataset: Bass_Dataset = torch.load("data/dataset/bass_dataset.pt")
+        bass_dataset_train: Bass_Dataset = Bass_Dataset(timed_notes_list[0])
+        bass_dataset_test: Bass_Dataset = Bass_Dataset(timed_notes_list[1])
+        bass_dataset_val: Bass_Dataset = Bass_Dataset(timed_notes_list[2])
 
-    return bass_dataset
+        torch.save(bass_dataset_train, TRAIN_DATASET_PATH_BASS)
+        torch.save(bass_dataset_test, TEST_DATASET_PATH_BASS)
+        torch.save(bass_dataset_val, VAL_DATASET_PATH_BASS)
 
 
 def get_chord_dataset(root_directory: str) -> Chord_Dataset:
@@ -48,26 +59,35 @@ def get_chord_dataset(root_directory: str) -> Chord_Dataset:
     ----------
         Chord_Dataset: A dataset object containing chord progressions.
     """
-    if not os.path.exists("data/dataset/chord_dataset.pt"):
-        chords, _, _ = extract_chords_from_files(
-            root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True
-        )
+    if not os.path.exists(TRAIN_DATASET_PATH_CHORD):
+        chords_list: list[list[tuple[str, str]]] = []
+        for split in ["train", "test", "val"]:
+            chords, _, _ = extract_chords_from_files(
+                root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True, split
+            )
+            chords_list.append(chords)
 
-        chord_dataset: Chord_Dataset = Chord_Dataset(chords)
-        torch.save(chord_dataset, "data/dataset/chord_dataset.pt")
+        chord_dataset_train: Chord_Dataset = Chord_Dataset(chords_list[0])
+        chord_dataset_test: Chord_Dataset = Chord_Dataset(chords_list[1])
+        chord_dataset_val: Chord_Dataset = Chord_Dataset(chords_list[2])
+
+        torch.save(chord_dataset_train, TRAIN_DATASET_PATH_CHORD)
+        torch.save(chord_dataset_test, TEST_DATASET_PATH_CHORD)
+        torch.save(chord_dataset_val, VAL_DATASET_PATH_CHORD)
     else:
-        chord_dataset: Chord_Dataset = torch.load("data/dataset/chord_dataset.pt")
-    return chord_dataset
+        chord_dataset_train: Chord_Dataset = torch.load(TRAIN_DATASET_PATH_CHORD)
+    return chord_dataset_train
 
 
-def extract_chords_from_files(root_dir, limit, only_triads):
+def extract_chords_from_files(root_dir, limit, only_triads, split):
+    print(root_dir, split)
     all_chords: list[list[tuple(str, str)]] = []
     all_beats: list[list[int]] = []
 
     endless = True if limit == 0 else False
 
     # Traverse through the directory structure
-    for dir_name, subdirs, file_list in os.walk(root_dir):
+    for dir_name, subdirs, file_list in os.walk(os.path.join(root_dir, split)):
         if "versions" in subdirs:
             subdirs.remove("versions")
         chords = []

@@ -7,62 +7,63 @@ import re
 from config import (
     PITCH_VECTOR_SIZE,
     FULL_CHORD_TO_INT,
-    DATASET_SIZE_MELODY,
     SEQUENCE_LENGHT_MELODY,
+    TRAIN_DATASET_PATH_MELODY,
+    TEST_DATASET_PATH_MELODY,
+    VAL_DATASET_PATH_MELODY,
 )
 
 from .utils import remove_file_from_dataset
 
 
-def get_melody_dataset(root_dir: str) -> Melody_Dataset:
-    root_dir = root_dir
+def get_melody_dataset(root_dir: str) -> None:
+    if not os.path.exists(TRAIN_DATASET_PATH_MELODY):
+        all_events_list = []
+        for split in ["train", "test", "val"]:
+            all_events = process_melody(root_dir, split)
+            all_events_list.append(all_events)
+
+        melody_dataset_train: Melody_Dataset = Melody_Dataset(all_events_list[0])
+        melody_dataset_test: Melody_Dataset = Melody_Dataset(all_events_list[1])
+        melody_dataset_val: Melody_Dataset = Melody_Dataset(all_events_list[2])
+
+        torch.save(melody_dataset_train, TRAIN_DATASET_PATH_MELODY)
+        torch.save(melody_dataset_test, TEST_DATASET_PATH_MELODY)
+        torch.save(melody_dataset_val, VAL_DATASET_PATH_MELODY)
+
+
+def process_melody(root_dir: str, split) -> Melody_Dataset:
+    root_dir = os.path.join(root_dir, split)
     num_files = 0
     all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
-    if not os.path.exists(
-        ("data/dataset/melody_dataset_" + DATASET_SIZE_MELODY + ".pt")
-    ):
-        for directory in os.listdir(root_dir):
-            if ".DS_Store" in directory:
-                continue
-            for file in os.listdir(os.path.join(root_dir, directory)):
-                if ".mid" in file:
-                    midi_file: str = os.path.join(root_dir, directory, file)
-                if "chord_audio" in file:
-                    chord_file: str = os.path.join(root_dir, directory, file)
-                else:
-                    continue
 
-            list_of_events: list[
-                list[list[int], list[int], list[list[int]], list[bool]]
-            ] = process_melody_and_chord(midi_file, chord_file)
-
-            if list_of_events is not None:
-                all_events.append(list_of_events)
-                num_files += 1
-                print(midi_file)
+    for directory in os.listdir(root_dir):
+        if ".DS_Store" in directory:
+            continue
+        for file in os.listdir(os.path.join(root_dir, directory)):
+            if ".mid" in file:
+                midi_file: str = os.path.join(root_dir, directory, file)
+            if "chord_audio" in file:
+                chord_file: str = os.path.join(root_dir, directory, file)
             else:
-                remove_file_from_dataset(os.path.join(root_dir, directory))
-                print(midi_file, "no melody track found")
+                continue
 
-            if num_files == 10 and DATASET_SIZE_MELODY == "small":
-                break
-            if num_files == 20 and DATASET_SIZE_MELODY == "medium":
-                break
-            if num_files == 100 and DATASET_SIZE_MELODY == "large":
-                break
-        melody_dataset: Melody_Dataset = Melody_Dataset(
-            all_events, SEQUENCE_LENGHT_MELODY
-        )
-        torch.save(
-            melody_dataset,
-            ("data/dataset/melody_dataset_" + DATASET_SIZE_MELODY + ".pt"),
-        )
-    else:
-        melody_dataset = torch.load(
-            ("data/dataset/melody_dataset_" + DATASET_SIZE_MELODY + ".pt")
-        )
+        list_of_events: list[
+            list[list[int], list[int], list[list[int]], list[bool]]
+        ] = process_melody_and_chord(midi_file, chord_file)
 
-    return melody_dataset
+        if list_of_events is not None:
+            all_events.append(list_of_events)
+            num_files += 1
+
+        # if num_files == 10 and DATASET_SIZE_MELODY == "small":
+        #     break
+        # if num_files == 20 and DATASET_SIZE_MELODY == "medium":
+        #     break
+        # if num_files == 100 and DATASET_SIZE_MELODY == "large":
+        #     break
+
+    return all_events
 
 
 def process_melody_and_chord(
@@ -224,12 +225,14 @@ def add_note(pitch: int):
     assert PITCH_VECTOR_SIZE % 12 == 0
     octaves = pitch // 12
     octaves = max(octaves, 5)
-    octaves = min(octaves, 8)
+
+    octaves = min(octaves, 7)
     octaves -= 5
 
     note = pitch % 12
 
     index = 12 * octaves + note
+
     pitch_vector[index - 1] = 1
     return pitch_vector
 

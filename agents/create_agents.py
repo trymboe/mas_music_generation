@@ -3,7 +3,13 @@ from .chord import Chord_Network, Chord_LSTM_Network
 from .drum import Drum_Network
 from .melody import Melody_Network
 
-from data_processing import Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset
+from data_processing import (
+    Bass_Dataset,
+    Chord_Dataset,
+    Drum_Dataset,
+    Melody_Dataset,
+    get_drum_dataset,
+)
 
 import torch
 
@@ -42,10 +48,6 @@ from config import (
 
 
 def create_agents(
-    bass_dataset: Bass_Dataset,
-    chord_dataset: Chord_Dataset,
-    drum_dataset: Drum_Dataset,
-    melody_dataset: Melody_Dataset,
     train_bass_agent: bool,
     train_chord_agent: bool,
     train_drum_agent: bool,
@@ -54,18 +56,12 @@ def create_agents(
     """
     Creates and optionally trains the bass, chord, and drum agents.
 
-    This function handles the creation and training of the bass, chord, and drum agents based on the provided datasets
-    and training flags. If a training flag for an agent is set to False, the function attempts to load a pre-trained
+    This function handles the creation and training of the bass, chord, and drum agents.
+    If a training flag for an agent is set to False, the function attempts to load a pre-trained
     model from the disk. If the training flag is set to True, it creates and trains a new agent.
 
     Parameters
     ----------
-    bass_dataset : Bass_Dataset
-        The dataset to be used for training the bass agent.
-    chord_dataset : Chord_Dataset
-        The dataset to be used for training the chord agent.
-    drum_dataset : Drum_Dataset
-        The dataset to be used for training the drum agent.
     train_bass_agent : bool
         Flag indicating whether to train the bass agent.
     train_chord_agent : bool
@@ -89,7 +85,7 @@ def create_agents(
         print("  ----Creating bass agent----")
         bass_agent: Bass_Network = create_bass_agent()
         bass_agent.to(DEVICE)
-        train_bass(bass_agent, bass_dataset)
+        train_bass(bass_agent)
         bass_agent.eval()
 
     # --- Creating chord agent ---
@@ -101,7 +97,7 @@ def create_agents(
         print("  ----Creating chord agent----")
         chord_agent: Chord_Network = create_chord_agent()
         chord_agent.to(DEVICE)
-        train_chord(chord_agent, chord_dataset)
+        train_chord(chord_agent)
         chord_agent.eval()
 
     # --- Creating drum agent ---
@@ -111,11 +107,9 @@ def create_agents(
         drum_agent.eval()
     else:
         print("  ----Creating drum agent----")
-        drum_agent: Drum_Network = create_drum_agent(drum_dataset)
+        drum_agent: Drum_Network = create_drum_agent()
         drum_agent.eval()
         drum_agent.to(DEVICE)
-
-    melody_agent = None
 
     # --- Creating melody agent ---
     if not train_melody_agent:
@@ -126,13 +120,14 @@ def create_agents(
         print("  ----Creating melody agent----")
         melody_agent: Melody_Network = create_melody_agent()
         melody_agent.to(DEVICE)
-        train_melody(melody_agent, melody_dataset)
+        train_melody(melody_agent)
         melody_agent.eval()
 
     return bass_agent, chord_agent, drum_agent, melody_agent
 
 
-def create_drum_agent(drum_dataset):
+def create_drum_agent():
+    drum_dataset = get_drum_dataset()
     conf = load_yaml("config/bumblebeat/params.yaml")
     model = drum_network_pipeline(conf, drum_dataset)
 

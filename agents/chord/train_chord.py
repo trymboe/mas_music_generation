@@ -3,16 +3,20 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
+import numpy as np
 
 from config import (
     BATCH_SIZE_CHORD,
     LEARNING_RATE_CHORD,
     NUM_EPOCHS_CHORD,
     MODEL_PATH_CHORD,
+    TRAIN_DATASET_PATH_CHORD,
+    VAL_DATASET_PATH_CHORD,
+    MAX_BATCHES_CHORD,
 )
 
 
-def train_chord(model: nn.Module, dataset: Dataset) -> None:
+def train_chord(model: nn.Module) -> None:
     """
     Trains the chord agent using the provided dataset.
 
@@ -28,17 +32,29 @@ def train_chord(model: nn.Module, dataset: Dataset) -> None:
     None
     """
 
+    chord_dataset_train = torch.load(TRAIN_DATASET_PATH_CHORD)
+    chord_dataset_val = torch.load(VAL_DATASET_PATH_CHORD)
+
     # Create DataLoader
-    dataloader = DataLoader(dataset, batch_size=BATCH_SIZE_CHORD, shuffle=True)
+    dataloader_train = DataLoader(
+        chord_dataset_train, batch_size=BATCH_SIZE_CHORD, shuffle=True
+    )
+    dataloader_val = DataLoader(
+        chord_dataset_val, batch_size=BATCH_SIZE_CHORD, shuffle=True
+    )
 
     # Initialize model, loss function, and optimizer
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE_CHORD)
     loss_list = []
+    val_loss_list = []
 
     # Training loop
     for epoch in range(NUM_EPOCHS_CHORD):
-        for batch_idx, (data, targets) in enumerate(dataloader):
+        batch_loss = []
+        for batch_idx, (data, targets) in enumerate(dataloader_train):
+            if batch_idx > MAX_BATCHES_CHORD:
+                break
             # Zero gradients
             optimizer.zero_grad()
 
@@ -52,34 +68,76 @@ def train_chord(model: nn.Module, dataset: Dataset) -> None:
             loss.backward()
             optimizer.step()
 
-            loss_list.append(loss.item())
+            batch_loss.append(loss.item())
 
-            if batch_idx % 10 == 0:
-                print(
-                    f"Epoch [{epoch+1}/{NUM_EPOCHS_CHORD}], Batch [{batch_idx+1}/{len(dataloader)}], Loss: {loss.item():.4f}"
-                )
+        val_loss = get_validation_loss(model, dataloader_val, criterion)
 
-    plot_loss(loss_list)
+        loss_list.append(np.mean(batch_loss))
+        val_loss_list.append(val_loss)
+
+        print(
+            f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 2)} Validation loss: {round(val_loss_list[-1],2)}"
+        )
+
+    plot_loss(loss_list, val_loss_list)
     torch.save(model, MODEL_PATH_CHORD)
 
 
-def plot_loss(loss_values: list[float]) -> None:
+def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:
+    model.eval()
+    batch_loss = []
+    for batch_idx, (data, targets) in enumerate(dataloader):
+        if batch_idx > MAX_BATCHES_CHORD / 10:
+            break
+        # Separate note and duration targets
+        output = model(data)
+
+        # Compute loss
+        loss = criterion(output, targets)
+
+        # Backward pass and optimize
+        loss.backward()
+        batch_loss.append(loss.item())
+
+    model.train()
+    return np.mean(batch_loss)
+
+
+def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
     """
-    Plots the training loss over batches.
+    Plots the training and validation loss over batches.
 
     Parameters
     ----------
-    loss_values : List[float]
-        A list of loss values to be plotted.
+    loss_values : list[float]
+        A list of training loss values to be plotted.
+    val_loss_values : list[float]
+        A list of validation loss values to be plotted.
 
     Returns
     -------
     None
     """
 
-    plt.figure()
-    plt.plot(loss_values)
-    plt.title("Training Loss Chord")
+    # Plot training loss
+    plt.plot(loss_values, color="blue", label="Training Loss")
+
+    # Plot validation loss
+    plt.plot(val_loss_values, color="red", label="Validation Loss")
+
+    # Add title and labels
+    plt.title("Training and Validation Loss")
     plt.xlabel("Batch")
     plt.ylabel("Loss")
-    plt.savefig("figures/chord_training_loss.png")
+
+    # Add legend
+    plt.legend()
+
+    # Optional: Add grid for better readability
+    plt.grid(True)
+
+    # Save the plot
+    plt.savefig("figures/bass_training_loss.png")
+
+    # Optional: Show the plot
+    plt.show()
