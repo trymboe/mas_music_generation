@@ -4,6 +4,7 @@ import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
+import json
 
 from config import (
     BATCH_SIZE_CHORD,
@@ -78,6 +79,12 @@ def train_chord(model: nn.Module) -> None:
         print(
             f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 2)} Validation loss: {round(val_loss_list[-1],2)}"
         )
+
+    with open(
+        "results/data/chord/training_data" + str(NUM_EPOCHS_CHORD) + ".json", "w"
+    ) as file:
+        json.dump(loss_list, file)
+        json.dump(val_loss_list, file)
 
     plot_loss(loss_list, val_loss_list)
     torch.save(model, MODEL_PATH_CHORD)

@@ -128,10 +128,11 @@ def train_melody(model: Melody_Network) -> None:
     plot_loss(loss_list, val_loss_list)
     torch.save(model, MODEL_PATH_MELODY)
 
-    # with open(
-    #     "results/data/" + DATASET_SIZE_MELODY + str(NUM_EPOCHS_MELODY) + ".json", "w"
-    # ) as file:
-    #     json.dump(all_loss, file)
+    with open(
+        "results/data/melody/training_data" + str(NUM_EPOCHS_MELODY) + ".json", "w"
+    ) as file:
+        json.dump(loss_list, file)
+        json.dump(val_loss_list, file)
     plt.show()
 
 
