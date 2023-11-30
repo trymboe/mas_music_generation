@@ -144,7 +144,7 @@ def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
     plt.grid(True)
 
     # Save the plot
-    plt.savefig("figures/bass_training_loss.png")
+    plt.savefig("figures/chord_training_loss.png")
 
     # Optional: Show the plot
     plt.show()

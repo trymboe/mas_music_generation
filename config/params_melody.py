@@ -19,11 +19,11 @@ TOTAL_INPUT_SIZE_MELODY = (
 )  # sum of the sizes of all inputs
 
 
-NUM_EPOCHS_MELODY = 5
+NUM_EPOCHS_MELODY = 200
 LEARNING_RATE_MELODY = 0.0001
 BATCH_SIZE_MELODY = 64
 MAX_BATCHES_MELODY = (
-    10  # Max number of batches to train on per Epoch, for shorter training
+    float('inf')  # Max number of batches to train on per Epoch, for shorter training
 )
 
 MODEL_PATH_MELODY = "models/melody/melody_model_" + str(NUM_EPOCHS_MELODY) + ".pt"

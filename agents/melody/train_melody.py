@@ -69,7 +69,12 @@ def train_melody(model: Melody_Network) -> None:
     for epoch in range(NUM_EPOCHS_MELODY):
         batch_loss = []
         for idx, batch in enumerate(dataloader_train):
+            print(idx)
+            print(MAX_BATCHES_MELODY)
+            print(idx > MAX_BATCHES_MELODY)
+            print()
             if idx > MAX_BATCHES_MELODY:
+
                 break
             (
                 pitches,
@@ -219,7 +224,7 @@ def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
     plt.grid(True)
 
     # Save the plot
-    plt.savefig("figures/bass_training_loss.png")
+    plt.savefig("figures/melody_training_loss.png")
 
     # Optional: Show the plot
     plt.show()
