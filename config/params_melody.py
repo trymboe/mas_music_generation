@@ -1,30 +1,32 @@
 PITCH_VECTOR_SIZE = 36  # Number of pitches that can be represented
 
-SCALE_MELODY = "major pentatonic"  # "major pentatonic",
 
-HIDDEN_SIZE_MELODY = 256
-NUM_LAYERS_MELODY = 5
-PITCH_SIZE_MELODY = PITCH_VECTOR_SIZE + 1
-DURATION_SIZE_MELODY = 16
-CHORD_SIZE_MELODY = 72
+# Dataset parameters
 SEQUENCE_LENGHT_MELODY = 16
+CHORD_SIZE_MELODY = 72
+DURATION_SIZE_MELODY = 16
+PITCH_SIZE_MELODY = PITCH_VECTOR_SIZE + 1
 
+# Training parameters
+NUM_EPOCHS_MELODY = 200
+HIDDEN_SIZE_LSTM_MELODY = 64
 ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
+LEARNING_RATE_MELODY = 0.0001
+BATCH_SIZE_MELODY = 64
+MAX_BATCHES_MELODY = float(
+    "inf"
+)  # Max number of batches to train on per Epoch, for shorter training
+
+# Generation parameters
 NOTE_TEMPERATURE_MELODY = 1
 DURATION_TEMPERATURE_MELODY = 0.8
+SCALE_MELODY = "major pentatonic"  # "major pentatonic",
 
 TOTAL_INPUT_SIZE_MELODY = (
     PITCH_VECTOR_SIZE + 1 + DURATION_SIZE_MELODY + CHORD_SIZE_MELODY * 2 + 2
 )  # sum of the sizes of all inputs
 
-
-NUM_EPOCHS_MELODY = 200
-LEARNING_RATE_MELODY = 0.0001
-BATCH_SIZE_MELODY = 64
-MAX_BATCHES_MELODY = (
-    float('inf')  # Max number of batches to train on per Epoch, for shorter training
-)
 
 MODEL_PATH_MELODY = "models/melody/melody_model_" + str(NUM_EPOCHS_MELODY) + ".pt"
 TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"

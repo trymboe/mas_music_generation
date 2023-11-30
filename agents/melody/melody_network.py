@@ -9,8 +9,7 @@ from config import (
     PITCH_SIZE_MELODY,
     DURATION_SIZE_MELODY,
     CHORD_SIZE_MELODY,
-    HIDDEN_SIZE_MELODY,
-    NUM_LAYERS_MELODY,
+    HIDDEN_SIZE_LSTM_MELODY,
     DEVICE,
 )
 
@@ -28,13 +27,15 @@ class Melody_Network(nn.Module):
             super(Melody_Network.Tier3LSTM, self).__init__()
             self.lstm = nn.LSTM(
                 input_size=197,
-                hidden_size=256,
+                hidden_size=HIDDEN_SIZE_LSTM_MELODY,
                 dropout=0.3,
                 num_layers=2,
                 bidirectional=True,
                 batch_first=True,
             )
-            self.downscale = nn.Linear(in_features=512, out_features=197)
+            self.downscale = nn.Linear(
+                in_features=HIDDEN_SIZE_LSTM_MELODY * 2, out_features=197
+            )
 
         def forward(self, input_sequence, previous_cell_output=None):
             if previous_cell_output is not None:
@@ -56,13 +57,15 @@ class Melody_Network(nn.Module):
             super(Melody_Network.Tier2LSTM, self).__init__()
             self.lstm = nn.LSTM(
                 input_size=197,
-                hidden_size=256,
+                hidden_size=HIDDEN_SIZE_LSTM_MELODY,
                 dropout=0.3,
                 num_layers=2,
                 bidirectional=True,
                 batch_first=True,
             )
-            self.downscale = nn.Linear(in_features=512, out_features=197)
+            self.downscale = nn.Linear(
+                in_features=HIDDEN_SIZE_LSTM_MELODY * 2, out_features=197
+            )
 
         def forward(self, inputs_sequence, tier3_output, tier2_output=None):
             if tier2_output is not None:
@@ -100,7 +103,7 @@ class Melody_Network(nn.Module):
             self.relu = nn.ReLU()
             self.lstm = nn.LSTM(
                 input_size=256,
-                hidden_size=256,
+                hidden_size=HIDDEN_SIZE_LSTM_MELODY,
                 num_layers=2,
                 dropout=0.3,
                 bidirectional=True,
@@ -196,15 +199,9 @@ class Melody_Network(nn.Module):
         self._create_tier2_lstms()
         self._create_tier3_lstms()
         self._create_predictive_networks()
-        self._create_conv_networks()
 
         self.FC_pitch = nn.Linear(in_features=197, out_features=PITCH_SIZE_MELODY)
         self.FC_duration = nn.Linear(in_features=197, out_features=DURATION_SIZE_MELODY)
-
-    def _create_conv_networks(self):
-        self.conv_networks = nn.ModuleList()
-        for i in range(4):
-            self.conv_networks.append(self.ConvNetwork())
 
     def _create_predictive_networks(self):
         self.predictive_networks = nn.ModuleList()
@@ -243,17 +240,11 @@ class Melody_Network(nn.Module):
             events.append(inputs[:, i : i + 2, :])
         return events
 
-    def _get_conv_events(self, inputs):
-        paired_events = []
-        for i in range(0, 15, 4):
-            paired_events.append(inputs[:, i : i + 4, :])
-        return paired_events
-
     def forward(self, inputs, accumulated_time, time_left_on_chord):
         inputs = (
             inputs.clone()
             .detach()
-            .to(device=DEVICE, dtype=self.conv_networks[0].conv1d.weight.dtype)
+            .to(device=DEVICE, dtype=self.predictive_networks[0].conv1d.weight.dtype)
         )
         accumulated_time.to(DEVICE)
         time_left_on_chord.to(DEVICE)
@@ -270,7 +261,6 @@ class Melody_Network(nn.Module):
         ]
 
         events = self._get_paired_events(inputs)
-        conv_events = self._get_conv_events(inputs)
 
         # Pass data through tier 3
         tier_3_outputs = []
@@ -293,12 +283,6 @@ class Melody_Network(nn.Module):
                 tier_2_outputs.append(
                     cell(events[idx], tier_3_outputs[1], tier_2_outputs[idx - 1])
                 )
-
-        # Pass data through tier 1
-
-        # conv_outputs = []
-        # for idx, cell in enumerate(self.conv_networks):
-        #     conv_outputs.append(cell.forward(conv_events[idx]))
 
         # Pass data through predictive network
         predictive_outputs = []

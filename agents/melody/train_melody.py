@@ -44,6 +44,10 @@ def train_melody(model: Melody_Network) -> None:
     melody_dataset_train = torch.load(TRAIN_DATASET_PATH_MELODY)
     melody_dataset_val = torch.load(VAL_DATASET_PATH_MELODY)
 
+    print(len(melody_dataset_train))
+
+    print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+
     # Create DataLoader
     dataloader_train = DataLoader(
         melody_dataset_train,
@@ -60,7 +64,9 @@ def train_melody(model: Melody_Network) -> None:
 
     # Define loss function and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE_MELODY)
+    optimizer = optim.Adam(
+        model.parameters(), lr=LEARNING_RATE_MELODY, weight_decay=0.001
+    )
 
     loss_list = []
     val_loss_list = []
@@ -69,12 +75,9 @@ def train_melody(model: Melody_Network) -> None:
     for epoch in range(NUM_EPOCHS_MELODY):
         batch_loss = []
         for idx, batch in enumerate(dataloader_train):
-            print(idx)
-            print(MAX_BATCHES_MELODY)
-            print(idx > MAX_BATCHES_MELODY)
-            print()
+            if idx % 100 == 0:
+                print(idx)
             if idx > MAX_BATCHES_MELODY:
-
                 break
             (
                 pitches,
