@@ -120,8 +120,8 @@ class Melody_Network(nn.Module):
 
     class PredictiveNetwork(nn.Module):
         def __init__(self):
-            in_features2 = 197 + 4 if not CONCAT else 197 * 4 + 4
-            in_features1 = 197 + 4 if not CONCAT else 197 * 3 + 4
+            in_features2 = 197 + 20 if not CONCAT else 197 * 4 + 20
+            in_features1 = 197 + 20 if not CONCAT else 197 * 3 + 20
 
             super(Melody_Network.PredictiveNetwork, self).__init__()
             self.conv1d = nn.Conv1d(in_channels=1, out_channels=256, kernel_size=4)
@@ -149,7 +149,6 @@ class Melody_Network(nn.Module):
             # print(time_left_on_chord.shape)
             # print(previous_pitch_tier1.shape)
 
-            inputs_conv.to(DEVICE)
             x_conv = self.conv1d(inputs_conv.unsqueeze(1))
             x_conv = self.relu(x_conv)
             x_conv = torch.mean(x_conv, dim=2)  # Shape: [64, 256]
@@ -181,9 +180,10 @@ class Melody_Network(nn.Module):
                 else:
                     new_input = x_conv + inputs_lstm_tier2 + inputs_lstm_tier3
 
-            new_input.to(DEVICE)
+            new_input = torch.cat(
+                (new_input, time_left_on_chord, accumulated_time), dim=1
+            )
 
-            new_input = torch.cat((new_input, accumulated_time), dim=1)
             if not CONCAT:
                 x = self.FC(new_input)
                 return x
@@ -246,8 +246,6 @@ class Melody_Network(nn.Module):
             .detach()
             .to(device=DEVICE, dtype=self.predictive_networks[0].conv1d.weight.dtype)
         )
-        accumulated_time.to(DEVICE)
-        time_left_on_chord.to(DEVICE)
 
         event_1_to_8 = inputs[:, :8, :]
         event_9_to_16 = inputs[:, -8:, :]
@@ -294,7 +292,7 @@ class Melody_Network(nn.Module):
                         tier_2_outputs[math.floor(idx / 2)],
                         tier_3_outputs[math.floor(idx / 8)],
                         accumulated_time_chunk[idx].to(DEVICE),
-                        time_left_on_chord_chunk[idx],
+                        time_left_on_chord_chunk[idx].to(DEVICE),
                     )
                 )
             else:
@@ -304,7 +302,7 @@ class Melody_Network(nn.Module):
                         tier_2_outputs[math.floor(idx / 2)],
                         tier_3_outputs[math.floor(idx / 8)],
                         accumulated_time_chunk[idx].to(DEVICE),
-                        time_left_on_chord_chunk[idx],
+                        time_left_on_chord_chunk[idx].to(DEVICE),
                         predictive_outputs[idx - 1],
                     )
                 )

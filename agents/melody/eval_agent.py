@@ -138,6 +138,10 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 next_note.item(), (next_duration.item())
             )
 
+            next_current_chord_time_lefts = (
+                current_chord_duration_beats - running_time_on_chord_beats
+            )
+
             # Check if the current note is end or start of bar (With 1/8 note threshold)
             if (running_time_total_beats / 4) % 4 < 0.125:
                 is_start_of_bar: bool = True
@@ -162,11 +166,13 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 current_chords,
                 next_chords,
                 accumulated_times,
+                current_chord_time_lefts,
                 next_pitch_vector,
                 next_duration_vector,
                 next_current_chord,
                 next_next_chord,
                 next_accumulated_time,
+                next_current_chord_time_lefts,
             )
 
     return all_notes
@@ -212,16 +218,21 @@ def update_input_tensors(
     current_chords,
     next_chords,
     accumulated_times,
+    current_chord_time_lefts,
     next_pitch_vector,
     next_duration_vector,
     next_current_chord,
     next_next_chord,
     next_accumulated_time,
+    next_current_chord_time_lefts,
 ):
     pitches = torch.cat((pitches, next_pitch_vector.unsqueeze(0)), dim=0)
     durations = torch.cat((durations, next_duration_vector.unsqueeze(0)), dim=0)
     current_chords = torch.cat((current_chords, next_current_chord.unsqueeze(0)), dim=0)
     next_chords = torch.cat((next_chords, next_next_chord.unsqueeze(0)), dim=0)
+    current_chord_time_lefts = torch.cat(
+        (current_chord_time_lefts, next_current_chord_time_lefts.unsqueeze(0)), dim=0
+    )
 
     accumulated_times = torch.cat(
         (accumulated_times.squeeze(0), next_accumulated_time.unsqueeze(0)), dim=0
@@ -232,6 +243,7 @@ def update_input_tensors(
     current_chords = current_chords[1:]
     next_chords = next_chords[1:]
     accumulated_times = accumulated_times[1:]
+    current_chord_time_lefts = current_chord_time_lefts[1:]
 
     return (
         pitches,
@@ -239,6 +251,7 @@ def update_input_tensors(
         current_chords,
         next_chords,
         accumulated_times,
+        current_chord_time_lefts,
     )
 
 
