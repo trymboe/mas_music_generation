@@ -20,6 +20,7 @@ def get_melody_dataset(root_dir: str) -> None:
     if not os.path.exists(TRAIN_DATASET_PATH_MELODY):
         all_events_list = []
         for split in ["train", "test", "val"]:
+            print("Processing", split, "-split")
             all_events = process_melody(root_dir, split)
             all_events_list.append(all_events)
 
@@ -55,6 +56,7 @@ def process_melody(root_dir: str, split) -> Melody_Dataset:
         if list_of_events is not None:
             all_events.append(list_of_events)
             num_files += 1
+            print("Processed", num_files, "files")
 
         # if num_files == 10 and DATASET_SIZE_MELODY == "small":
         #     break
@@ -70,11 +72,6 @@ def process_melody_and_chord(
     midi_file: str, chord_file: str
 ) -> list[list[int], list[int], list[list[int]], list[bool]]:
     pm = pretty_midi.PrettyMIDI(midi_file)
-
-    # Only work with time signature 4/4
-    for time_signature in pm.time_signature_changes:
-        if time_signature.numerator != 4 or time_signature.denominator != 4:
-            return None
 
     # Iterate over the instruments in the MIDI data
     melody_track: pretty_midi.instrument = None
