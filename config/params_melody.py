@@ -12,7 +12,7 @@ ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
 LEARNING_RATE_MELODY = 0.0001
 BATCH_SIZE_MELODY = 64
-MAX_BATCHES_MELODY = 20 #float("inf")  # Max batches per epoch
+MAX_BATCHES_MELODY = 20  # float("inf")  # Max batches per epoch
 WEIGHT_DECAY_MELODY = 0.0001
 
 # Generation parameters
@@ -25,7 +25,13 @@ TOTAL_INPUT_SIZE_MELODY = (
 )  # sum of the sizes of all inputs
 
 COMMENT_MELODY = "test"
-MODEL_PATH_MELODY = "models/melody/melody_model_" + str(NUM_EPOCHS_MELODY) + "_" + COMMENT_MELODY + ".pt"
+MODEL_PATH_MELODY = (
+    "models/melody/melody_model_"
+    + str(NUM_EPOCHS_MELODY)
+    + "_"
+    + COMMENT_MELODY
+    + ".pt"
+)
 TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"
 TEST_DATASET_PATH_MELODY = "data/dataset/melody_dataset_test.pt"
 VAL_DATASET_PATH_MELODY = "data/dataset/melody_dataset_val.pt"

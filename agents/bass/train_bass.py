@@ -15,6 +15,7 @@ from config import (
     ALPHA1_BASS,
     ALPHA2_BASS,
     MAX_BATCHES_BASS,
+    DEVICE,
 )
 
 
@@ -50,6 +51,10 @@ def train_bass(model: nn.Module) -> None:
         for batch_idx, (notes, durations, targets) in enumerate(dataloader_train):
             if batch_idx > MAX_BATCHES_BASS:
                 break
+            notes = notes.to(DEVICE)
+            durations = durations.to(DEVICE)
+            targets = targets.to(DEVICE)
+
             # Separate note and duration targets
             note_targets, duration_targets = targets[:, 0], targets[:, 1]
 

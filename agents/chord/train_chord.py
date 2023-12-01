@@ -14,6 +14,7 @@ from config import (
     TRAIN_DATASET_PATH_CHORD,
     VAL_DATASET_PATH_CHORD,
     MAX_BATCHES_CHORD,
+    DEVICE,
 )
 
 
@@ -49,6 +50,7 @@ def train_chord(model: nn.Module) -> None:
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE_CHORD)
     loss_list = []
     val_loss_list = []
+    model.to(DEVICE)
 
     # Training loop
     for epoch in range(NUM_EPOCHS_CHORD):
@@ -58,6 +60,8 @@ def train_chord(model: nn.Module) -> None:
                 break
             # Zero gradients
             optimizer.zero_grad()
+            data = data.to(DEVICE)
+            targets = targets.to(DEVICE)
 
             # Forward pass
             output = model(data)

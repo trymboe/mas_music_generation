@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 
+from config import DEVICE
+
 
 class Bass_Network(nn.Module):
     def __init__(
@@ -26,6 +28,9 @@ class Bass_Network(nn.Module):
 
     def forward(self, notes, durations):
         # Embed notes and durations
+        notes = notes.to(DEVICE)
+        durations = durations.to(DEVICE)
+
         note_embed = self.note_embedding(notes)
         duration_embed = self.duration_embedding(durations)
 

@@ -50,7 +50,7 @@ def create_agents(
     train_chord_agent: bool,
     train_drum_agent: bool,
     train_melody_agent: bool,
-) -> tuple[Bass_Network, Chord_Network, Drum_Network, Melody_Network]:
+) -> None:
     """
     Creates and optionally trains the bass, chord, and drum agents.
 
@@ -69,8 +69,7 @@ def create_agents(
 
     Returns
     -------
-    tuple[Bass_Network, Chord_Network, Drum_Network, Melody_Network]
-        A tuple containing the bass, chord, drum and melody agents.
+    None
     """
 
     print("----Creating agents----")
@@ -120,8 +119,6 @@ def create_agents(
         melody_agent.to(DEVICE)
         train_melody(melody_agent)
         melody_agent.eval()
-
-    return bass_agent, chord_agent, drum_agent, melody_agent
 
 
 def create_drum_agent():

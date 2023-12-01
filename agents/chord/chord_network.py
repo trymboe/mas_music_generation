@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch
 
+from config import DEVICE
+
 
 class Chord_Network(nn.Module):
     def __init__(
@@ -29,6 +31,9 @@ class Chord_Network(nn.Module):
         # Split the input tensor into root notes and chord types
         src = src.long()
         roots, chords = src[:, :, 0], src[:, :, 1]
+
+        roots = roots.to(DEVICE)
+        chords = chords.to(DEVICE)
 
         # Embed root notes and chord types
         root_embed = self.root_embedding(roots)

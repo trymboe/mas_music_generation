@@ -11,7 +11,7 @@ HIDDEN_SIZE_CHORD = 64
 
 NUM_EPOCHS_CHORD = 5  # Number of epochs
 MAX_BATCHES_CHORD = (
-    50 # Max number of batches to train on per Epoch, for shorter training
+    10  # Max number of batches to train on per Epoch, for shorter training
 )
 
 MODEL_PATH_CHORD = "models/chord/chord_model.pt"
