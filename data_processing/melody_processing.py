@@ -13,28 +13,30 @@ from config import (
     VAL_DATASET_PATH_MELODY,
 )
 
-from .utils import remove_file_from_dataset
+from .utils import remove_file_from_dataset, get_indices, split_indices
 
 
 def get_melody_dataset(root_dir: str) -> None:
     if not os.path.exists(TRAIN_DATASET_PATH_MELODY):
         all_events_list = []
-        for split in ["train", "test", "val"]:
-            print("Processing", split, "-split")
-            all_events = process_melody(root_dir, split)
-            all_events_list.append(all_events)
 
-        melody_dataset_train: Melody_Dataset = Melody_Dataset(all_events_list[0])
-        melody_dataset_test: Melody_Dataset = Melody_Dataset(all_events_list[1])
-        melody_dataset_val: Melody_Dataset = Melody_Dataset(all_events_list[2])
+        all_events = process_melody(root_dir)
+
+        all_indices = get_indices(all_events, SEQUENCE_LENGHT_MELODY)
+        train_indices, val_indices, test_indices = split_indices(all_indices)
+
+        # Create dataset instances
+        melody_dataset_train = Melody_Dataset(all_events, train_indices)
+        melody_dataset_val = Melody_Dataset(all_events, val_indices)
+        melody_dataset_test = Melody_Dataset(all_events, test_indices)
 
         torch.save(melody_dataset_train, TRAIN_DATASET_PATH_MELODY)
-        torch.save(melody_dataset_test, TEST_DATASET_PATH_MELODY)
         torch.save(melody_dataset_val, VAL_DATASET_PATH_MELODY)
+        torch.save(melody_dataset_test, TEST_DATASET_PATH_MELODY)
 
 
-def process_melody(root_dir: str, split) -> Melody_Dataset:
-    root_dir = os.path.join(root_dir, split)
+def process_melody(root_dir: str) -> Melody_Dataset:
+    root_dir = os.path.join(root_dir)
     num_files = 0
     all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
 

@@ -30,7 +30,7 @@ from config import (
     PITCH_VECTOR_SIZE,
     SEQUENCE_LENGHT_MELODY,
     CHORD_SIZE_MELODY,
-    HIDDEN_SIZE_LSTM_MELODY
+    HIDDEN_SIZE_LSTM_MELODY,
 )
 
 
@@ -75,7 +75,7 @@ def train_melody(model: Melody_Network) -> None:
     )
 
     loss_list = []
-    val_loss_list = []  
+    val_loss_list = []
 
     # Training loop
     for epoch in range(NUM_EPOCHS_MELODY):
@@ -139,12 +139,11 @@ def train_melody(model: Melody_Network) -> None:
     # Save the model
     plot_loss(loss_list, val_loss_list)
     torch.save(model, MODEL_PATH_MELODY)
-    
+
     save_to_json(loss_list, val_loss_list)
 
-    
-
     plt.show()
+
 
 def save_to_json(loss_list, val_loss_list):
     hyperparameters = {
@@ -159,22 +158,21 @@ def save_to_json(loss_list, val_loss_list):
         "LEARNING_RATE_MELODY": LEARNING_RATE_MELODY,
         "BATCH_SIZE_MELODY": BATCH_SIZE_MELODY,
         "MAX_BATCHES_MELODY": MAX_BATCHES_MELODY,
-        "WEIGHT_DECAY_MELODY": WEIGHT_DECAY_MELODY
+        "WEIGHT_DECAY_MELODY": WEIGHT_DECAY_MELODY,
     }
-    
+
     # Combine hyperparameters and training data into a single dictionary
     data_to_save = {
         "hyperparameters": hyperparameters,
         "loss_list": loss_list,
-        "val_loss_list": val_loss_list
+        "val_loss_list": val_loss_list,
     }
 
     # Save the combined data as a JSON file
     file_name = f"results/data/melody/training_data{hyperparameters['NUM_EPOCHS_MELODY']}_{COMMENT_MELODY}.json"
     with open(file_name, "w") as file:
         json.dump(data_to_save, file, indent=4)  # 'indent=4' for pretty printing
-        
-    
+
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:
     model.eval()
@@ -259,7 +257,13 @@ def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
     plt.grid(True)
 
     # Save the plot
-    plt.savefig("figures/melody_training_loss" + str(NUM_EPOCHS_MELODY) + "_" + COMMENT_MELODY + ".png")
+    plt.savefig(
+        "figures/melody_training_loss"
+        + str(NUM_EPOCHS_MELODY)
+        + "_"
+        + COMMENT_MELODY
+        + ".png"
+    )
 
     # Optional: Show the plot
     plt.show()
