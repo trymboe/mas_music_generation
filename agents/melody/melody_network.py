@@ -10,10 +10,12 @@ from config import (
     DURATION_SIZE_MELODY,
     CHORD_SIZE_MELODY,
     HIDDEN_SIZE_LSTM_MELODY,
+    INPUT_SIZE,
     DEVICE,
 )
 
 CONCAT = True
+
 
 import torch
 import torch.nn as nn
@@ -26,7 +28,7 @@ class Melody_Network(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier3LSTM, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=197,
+                input_size=INPUT_SIZE,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
                 dropout=0.3,
                 num_layers=2,
@@ -34,7 +36,8 @@ class Melody_Network(nn.Module):
                 batch_first=True,
             )
             self.downscale = nn.Linear(
-                in_features=HIDDEN_SIZE_LSTM_MELODY * 2, out_features=197
+                in_features=HIDDEN_SIZE_LSTM_MELODY * 2,
+                out_features=INPUT_SIZE,
             )
 
         def forward(self, input_sequence, previous_cell_output=None):
@@ -56,7 +59,7 @@ class Melody_Network(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier2LSTM, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=197,
+                input_size=INPUT_SIZE,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
                 dropout=0.3,
                 num_layers=2,
@@ -64,7 +67,8 @@ class Melody_Network(nn.Module):
                 batch_first=True,
             )
             self.downscale = nn.Linear(
-                in_features=HIDDEN_SIZE_LSTM_MELODY * 2, out_features=197
+                in_features=HIDDEN_SIZE_LSTM_MELODY * 2,
+                out_features=INPUT_SIZE,
             )
 
         def forward(self, inputs_sequence, tier3_output, tier2_output=None):
@@ -120,16 +124,16 @@ class Melody_Network(nn.Module):
 
     class PredictiveNetwork(nn.Module):
         def __init__(self):
-            in_features2 = 197 + 20 if not CONCAT else 197 * 4 + 20
-            in_features1 = 197 + 20 if not CONCAT else 197 * 3 + 20
+            in_features2 = INPUT_SIZE + 16 if not CONCAT else INPUT_SIZE * 4 + 16
+            in_features1 = INPUT_SIZE + 16 if not CONCAT else INPUT_SIZE * 3 + 16
 
             super(Melody_Network.PredictiveNetwork, self).__init__()
             self.conv1d = nn.Conv1d(in_channels=1, out_channels=256, kernel_size=4)
             self.relu = nn.ReLU()
-            self.downsample_conv = nn.Linear(in_features=256, out_features=197)
+            self.downsample_conv = nn.Linear(in_features=256, out_features=INPUT_SIZE)
 
-            self.FC1 = nn.Linear(in_features=in_features1, out_features=197)
-            self.FC2 = nn.Linear(in_features=in_features2, out_features=197)
+            self.FC1 = nn.Linear(in_features=in_features1, out_features=INPUT_SIZE)
+            self.FC2 = nn.Linear(in_features=in_features2, out_features=INPUT_SIZE)
 
         def forward(
             self,
@@ -152,7 +156,7 @@ class Melody_Network(nn.Module):
             x_conv = self.conv1d(inputs_conv.unsqueeze(1))
             x_conv = self.relu(x_conv)
             x_conv = torch.mean(x_conv, dim=2)  # Shape: [64, 256]
-            x_conv = self.downsample_conv(x_conv)  # Shape: [64, 197]
+            x_conv = self.downsample_conv(x_conv)  # Shape: [64, INPUT_SIZE]
 
             if CONCAT:
                 if previous_pitch_tier1 is not None:
@@ -180,9 +184,7 @@ class Melody_Network(nn.Module):
                 else:
                     new_input = x_conv + inputs_lstm_tier2 + inputs_lstm_tier3
 
-            new_input = torch.cat(
-                (new_input, time_left_on_chord, accumulated_time), dim=1
-            )
+            new_input = torch.cat((new_input, time_left_on_chord), dim=1)
 
             if not CONCAT:
                 x = self.FC(new_input)
@@ -200,8 +202,13 @@ class Melody_Network(nn.Module):
         self._create_tier3_lstms()
         self._create_predictive_networks()
 
-        self.FC_pitch = nn.Linear(in_features=197, out_features=PITCH_SIZE_MELODY)
-        self.FC_duration = nn.Linear(in_features=197, out_features=DURATION_SIZE_MELODY)
+        self.FC_pitch = nn.Linear(
+            in_features=INPUT_SIZE, out_features=PITCH_SIZE_MELODY
+        )
+        self.FC_duration = nn.Linear(
+            in_features=INPUT_SIZE,
+            out_features=DURATION_SIZE_MELODY,
+        )
 
     def _create_predictive_networks(self):
         self.predictive_networks = nn.ModuleList()

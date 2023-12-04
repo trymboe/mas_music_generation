@@ -57,6 +57,7 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
             # add batch dimension
             x = x.unsqueeze(0)
             accumulated_times = accumulated_times.unsqueeze(0)
+            current_chord_time_lefts = current_chord_time_lefts.unsqueeze(0)
 
             pitch_logits, duration_logits = melody_agent(
                 x, accumulated_times, current_chord_time_lefts
@@ -75,14 +76,11 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 -1
             )
 
-            # Apply softmax to get probabilities for notes and durations
-            # note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
             if SCALE_MELODY:
                 note_probabilities = select_with_preference(
                     note_probabilities, pitch_preferences
                 )
 
-            # duration_probabilities = F.softmax(duration_output[0, :], dim=0)
             duration_probabilities = select_with_preference(
                 duration_probabilities, duration_preferences
             )
@@ -138,8 +136,8 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 next_note.item(), (next_duration.item())
             )
 
-            next_current_chord_time_lefts = (
-                current_chord_duration_beats - running_time_on_chord_beats
+            next_current_chord_time_lefts = get_time_left_on_chord_tensor(
+                current_chord_duration_beats, running_time_on_chord_beats
             )
 
             # Check if the current note is end or start of bar (With 1/8 note threshold)
@@ -160,6 +158,7 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 current_chords,
                 next_chords,
                 accumulated_times,
+                current_chord_time_lefts,
             ) = update_input_tensors(
                 pitches,
                 durations,
@@ -230,8 +229,13 @@ def update_input_tensors(
     durations = torch.cat((durations, next_duration_vector.unsqueeze(0)), dim=0)
     current_chords = torch.cat((current_chords, next_current_chord.unsqueeze(0)), dim=0)
     next_chords = torch.cat((next_chords, next_next_chord.unsqueeze(0)), dim=0)
+
     current_chord_time_lefts = torch.cat(
-        (current_chord_time_lefts, next_current_chord_time_lefts.unsqueeze(0)), dim=0
+        (
+            current_chord_time_lefts.squeeze(0),
+            next_current_chord_time_lefts.unsqueeze(0),
+        ),
+        dim=0,
     )
 
     accumulated_times = torch.cat(
@@ -244,6 +248,15 @@ def update_input_tensors(
     next_chords = next_chords[1:]
     accumulated_times = accumulated_times[1:]
     current_chord_time_lefts = current_chord_time_lefts[1:]
+
+    print("pitch", get_one_hot_index(pitches[-1]))
+    print("duration", get_one_hot_index(durations[-1]))
+    print("current_chord", get_one_hot_index(current_chords[-1]))
+    print("next_chord", get_one_hot_index(next_chords[-1]))
+    print("accumulated_times", get_one_hot_index(accumulated_times[-1]))
+    print("current_chord_time_lefts", get_one_hot_index(current_chord_time_lefts[-1]))
+
+    print("")
 
     return (
         pitches,
@@ -279,9 +292,9 @@ def get_time_left_on_chord_tensor(
     time_left_vector: list[int] = [0] * 16
 
     time_left_on_chord = min(time_left_on_chord, 15)
-    time_left_vector[round(time_left_on_chord)] = 1
+    time_left_vector[round(time_left_on_chord * 2)] = 1
 
-    return torch.tensor([time_left_vector])
+    return torch.tensor(time_left_vector)
 
 
 def get_accumulated_time_tensor(
@@ -367,7 +380,8 @@ def select_with_preference(probs, preferred_indices):
 def generate_scale_preferences() -> list[int]:
     if SCALE_MELODY == "major pentatonic":
         intervals = [0, 2, 4, 7, 9]
-
+    if SCALE_MELODY == "major scale":
+        intervals = [0, 2, 4, 5, 7, 9, 11]
     full_range = []
 
     # Iterate through all MIDI notes

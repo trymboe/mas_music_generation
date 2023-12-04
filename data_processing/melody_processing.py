@@ -11,6 +11,7 @@ from config import (
     TRAIN_DATASET_PATH_MELODY,
     TEST_DATASET_PATH_MELODY,
     VAL_DATASET_PATH_MELODY,
+    TIME_LEFT_ON_CHORD_SIZE_MELODY,
 )
 
 from .utils import remove_file_from_dataset
@@ -87,7 +88,6 @@ def process_melody_and_chord(
     chord_list: list[list[list[int], int]] = process_chord(chord_file)
 
     ticks_per_beat: int = pm.resolution
-    ticks_per_bar: int = ticks_per_beat * 4  # Since it's 4/4 time signature
     # Tolerance for the duration of an eighth note
     sixteenth_note_tolerance: float = ticks_per_beat / 4
     tempo: int = int(pm.get_tempo_changes()[1][0])
@@ -102,22 +102,35 @@ def process_melody_and_chord(
 
     # Iterate over the notes in the melody track
     for idx, note in enumerate(melody_track.notes):
+        if idx == 0:
+            current_tick = pm.time_to_tick(note.start)
         placement = [file_name, note.start]
-        # if idx > 20:
-        #     print("file", midi_file)
-        #     exit()
+
+        # If the notes overlap, end the current note where the next starts
+        try:
+            next_note_start: float = melody_track.notes[idx + 1].start
+        except:
+            next_note_start: float = float("inf")
+        if note.end > next_note_start:
+            end_tick: float = pm.time_to_tick(melody_track.notes[idx + 1].start)
+            note_end_seconds: float = melody_track.notes[idx + 1].start
+        else:
+            end_tick: float = pm.time_to_tick(note.end)
+            note_end_seconds: float = note.end
+
         start_tick: float = pm.time_to_tick(note.start)
-        end_tick: float = pm.time_to_tick(note.end)
-        note_start_seconds: float = note.start
+
         duration_ticks: float = end_tick - start_tick
 
         current_chord_vector = None
         next_chord_vector = None
 
-        duration_vector: list[int] = get_duration_list(duration_ticks, ticks_per_bar)
+        duration_vector: list[int] = get_duration_list(
+            duration_ticks, ticks_per_beat, pm
+        )
 
         current_chord_vector, next_chord_vector, time_left_current_chord = find_chord(
-            chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
+            chord_list, tempo, ticks_per_beat, start_tick, note_end_seconds, pm
         )
         # Break if there is no corresponding chord
         if not current_chord_vector:
@@ -139,62 +152,49 @@ def process_melody_and_chord(
 
         accumulated_time_vector = get_accumulated_time(note.start, tempo)
 
-        # current_chord_num = next(
-        #     (i for i, value in enumerate(current_chord) if value == 1), None
-        # )
-        # print(
-        #     "pitch",
-        #     note.pitch,
-        #     "note start",
-        #     note.start,
-        #     "note_end",
-        #     note.end,
-        #     "current chord",
-        #     current_chord_num,
-        # )
-        # print("accumulated time", accumulated_time_vector)
-        # print()
-
-        if note.start > current_tick:
+        if start_tick > current_tick:
             # Add a rest if there is a gap between notes
-            rest_duration: float = note.start - current_tick
+            rest_duration: float = start_tick - current_tick
             pitch_vector_pause: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
             pitch_vector_pause[-1] = 1
-            duration_vector: list[int] = get_duration_list(rest_duration, ticks_per_bar)
-            (
-                current_chord_vector_pause,
-                next_chord_vector_pause,
-                time_left_current_chord_pause,
-            ) = find_chord(
-                chord_list,
-                tempo,
-                ticks_per_beat,
-                start_tick - rest_duration,
-                note_start_seconds,
+            duration_vector_pause: list[int] = get_duration_list(
+                rest_duration, ticks_per_beat, pm, True
             )
-
-            if not current_chord_vector_pause:
-                continue
-            accumulated_time_vector_pause = get_accumulated_time(
-                note.start - rest_duration, tempo
-            )
-
-            time_left_current_chord_vector_pause: list[int] = one_hote_time_left(
-                time_left_current_chord_pause
-            )
-            list_of_events.append(
-                [
-                    pitch_vector_pause,
-                    duration_vector,
+            # If the pause is smaller than an 16th note, skip it
+            if duration_vector_pause is not None:
+                (
                     current_chord_vector_pause,
                     next_chord_vector_pause,
-                    time_left_current_chord_vector_pause,
-                    accumulated_time_vector_pause,
-                    placement,
-                ]
-            )
+                    time_left_current_chord_pause,
+                ) = find_chord(
+                    chord_list,
+                    tempo,
+                    ticks_per_beat,
+                    start_tick - rest_duration,
+                    note.start,
+                    pm,
+                )
 
-        # Add the note
+                if current_chord_vector_pause:
+                    accumulated_time_vector_pause = get_accumulated_time(
+                        note.start - rest_duration, tempo
+                    )
+
+                    time_left_current_chord_vector_pause: list[
+                        int
+                    ] = one_hote_time_left(time_left_current_chord_pause)
+
+                    list_of_events.append(
+                        [
+                            pitch_vector_pause,
+                            duration_vector_pause,
+                            current_chord_vector_pause,
+                            next_chord_vector_pause,
+                            time_left_current_chord_vector_pause,
+                            accumulated_time_vector_pause,
+                            placement,
+                        ]
+                    )
 
         pitch_vector = add_note(note.pitch)
 
@@ -217,6 +217,10 @@ def process_melody_and_chord(
     return list_of_events
 
 
+def get_one_hot_index(one_hot_vector: list[int]) -> int:
+    return next((i for i, value in enumerate(one_hot_vector) if value == 1), None)
+
+
 def add_note(pitch: int):
     pitch_vector: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
     assert PITCH_VECTOR_SIZE % 12 == 0
@@ -234,7 +238,7 @@ def add_note(pitch: int):
     return pitch_vector
 
 
-def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds):
+def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_end_seconds, pm):
     # Find the corresponding chord
     current_chord_vector = None
     next_chord_vector = None
@@ -247,9 +251,9 @@ def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_start_seconds
             if "N" not in chord:
                 current_chord: str = chord
                 chord_end = float(chord_list[j][0][1])
-                time_left_current_chord: float = calculate_chord_beats(
-                    note_start_seconds, chord_end, tempo
-                )  # In beats
+                time_left_current_chord: float = calculate_chord_quarters(
+                    note_end_seconds, chord_end, tempo, pm
+                )  # In half beats
 
                 try:
                     current_chord_vector: list[int] = get_chord_list(chord_list[j][1])
@@ -289,20 +293,22 @@ def get_key(val, dic):
 
 
 def one_hote_time_left(time_left_current_chord: float) -> list[int]:
-    list_oh: list[int] = [0] * 16
-    time_left_current_chord *= 2
-    index = round(time_left_current_chord) - 1
+    list_oh: list[int] = [0] * TIME_LEFT_ON_CHORD_SIZE_MELODY
+    index = round(time_left_current_chord)
     index = max(index, 0)
     index = min(index, 15)
     list_oh[index] = 1
     return list_oh
 
 
-def calculate_chord_beats(start_time: float, end_time: float, tempo: int) -> float:
+def calculate_chord_quarters(
+    start_time: float, end_time: float, tempo: int, pm: pretty_midi.PrettyMIDI
+) -> float:
     duration_seconds = end_time - start_time
     beats_per_second = tempo / 60
-    number_of_beats = duration_seconds * beats_per_second
-    return round(number_of_beats, 1)
+    number_of_quarters = duration_seconds * beats_per_second * 4
+
+    return round(number_of_quarters)
 
 
 def process_chord(chord_file: str) -> list[list[list[int], int]]:
@@ -328,30 +334,42 @@ def process_chord(chord_file: str) -> list[list[list[int], int]]:
     return chord_timing
 
 
-def get_duration_list(note_duration_ticks: int, ticks_per_bar: int) -> list[int]:
+def get_duration_list(
+    note_duration_ticks: int,
+    ticks_per_beat: int,
+    pm: pretty_midi.PrettyMIDI,
+    pause=False,
+) -> list[int]:
     """
-    Converts a note duration in ticks to a list of 16 values representing the duration of the note.
+    Converts a note duration in ticks to a one-hot encoded list representing the duration in terms of half beats.
 
-    Args:
-        note_duration_ticks (int): Note duration in ticks
-        ticks_per_bar (int): Ticks per bar
+    This function calculates the number of half beats (8th notes) a given note duration spans and returns a one-hot
+    encoded list where each element represents one half beat. The length of the list is fixed at 16, which corresponds
+    to a maximum of 8 full beats (or 4/4 measure in 8th notes).
 
-    Returns:
-        list[int]: List of 16 values representing the duration of the note
+    Args
+    ----------
+        note_duration_ticks (int): Duration of the note in MIDI ticks.
+        ticks_per_bar (int): Number of MIDI ticks per bar (assumes 4/4 time signature).
+
+    Returns
+    ----------
+        list[int]: A one-hot encoded list of length 16 representing the note duration in half beats.
     """
 
-    # Calculate the duration of the note in whole notes
-    duration_in_whole_notes: float = (note_duration_ticks / ticks_per_bar) * 4
+    ticks_per_quarter_note = ticks_per_beat / 4
 
-    # Calculate the note type
-    note_type: int = round(4 / duration_in_whole_notes)
-    # Make sure the note type is within the range 1 to 16
-    note_type = max(1, min(16, note_type))
+    if pause and (note_duration_ticks / ticks_per_quarter_note < 0.5):
+        return None
+    # Calculate the number of half beats for the note duration
+    num_half_beats = round(note_duration_ticks / ticks_per_quarter_note)
 
-    duration_vector: list[int] = [0] * 16
-    duration_vector[note_type - 1] = 1
+    num_half_beats = min(num_half_beats, 16)
+    num_half_beats = max(num_half_beats, 1)
 
-    return duration_vector
+    duration_list = [1 if i == num_half_beats - 1 else 0 for i in range(16)]
+
+    return duration_list
 
 
 def seconds_to_ticks(seconds: float, tempo: int, resolution: int) -> int:
