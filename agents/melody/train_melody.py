@@ -31,6 +31,9 @@ from config import (
     SEQUENCE_LENGHT_MELODY,
     CHORD_SIZE_MELODY,
     HIDDEN_SIZE_LSTM_MELODY,
+    COMBINED,
+    TRAIN_DATASET_COMBINED_PATH_MELODY,
+    VAL_DATASET_COMBINED_PATH_MELODY
 )
 
 
@@ -47,8 +50,12 @@ def train_melody(model: Melody_Network) -> None:
         list: A list of average epoch losses for each epoch.
     """
 
-    melody_dataset_train = torch.load(TRAIN_DATASET_PATH_MELODY)
-    melody_dataset_val = torch.load(VAL_DATASET_PATH_MELODY)
+    if COMBINED:
+        melody_dataset_train = torch.load(TRAIN_DATASET_COMBINED_PATH_MELODY)
+        melody_dataset_val = torch.load(VAL_DATASET_COMBINED_PATH_MELODY)
+    else:    
+        melody_dataset_train = torch.load(TRAIN_DATASET_PATH_MELODY)
+        melody_dataset_val = torch.load(VAL_DATASET_PATH_MELODY)
 
     print(len(melody_dataset_train))
 

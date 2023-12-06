@@ -2,7 +2,7 @@ import numpy as np
 import os
 import yaml
 import shutil
-
+import random
 
 def get_timed_notes(
     notes: list[list[str]], beats: list[list[int]]
@@ -158,3 +158,22 @@ def remove_file_from_dataset(directory: str):
         )
     except OSError as e:
         print(f"Error: {e.strerror}. Could not remove directory {directory}.")
+
+
+def get_indices(data, sequence_length):
+    indices = []
+    for song in data:
+        for i in range(len(song) - (sequence_length * 2) + 1):
+            indices.append((song, i))
+    return indices
+
+
+def split_indices(indices, train_ratio=0.9, val_ratio=0.1):
+    random.shuffle(indices)
+    total_indices = len(indices)
+    train_end = int(total_indices * train_ratio)
+    val_end = train_end + int(total_indices * val_ratio)
+
+    train_indices = indices[:train_end]
+    val_indices = indices[train_end:val_end]
+    return train_indices, val_indices

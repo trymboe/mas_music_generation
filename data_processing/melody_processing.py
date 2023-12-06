@@ -1,6 +1,6 @@
 import os
 import pretty_midi
-from .datasets import Melody_Dataset
+from .datasets import Melody_Dataset, Melody_Dataset_Combined
 import torch
 import re
 
@@ -12,9 +12,11 @@ from config import (
     TEST_DATASET_PATH_MELODY,
     VAL_DATASET_PATH_MELODY,
     TIME_LEFT_ON_CHORD_SIZE_MELODY,
+    TRAIN_DATASET_COMBINED_PATH_MELODY,
+    VAL_DATASET_COMBINED_PATH_MELODY,
 )
 
-from .utils import remove_file_from_dataset
+from .utils import remove_file_from_dataset, get_indices, split_indices
 
 
 def get_melody_dataset(root_dir: str) -> None:
@@ -32,39 +34,55 @@ def get_melody_dataset(root_dir: str) -> None:
         torch.save(melody_dataset_train, TRAIN_DATASET_PATH_MELODY)
         torch.save(melody_dataset_test, TEST_DATASET_PATH_MELODY)
         torch.save(melody_dataset_val, VAL_DATASET_PATH_MELODY)
+    get_combined_melody_dataset(root_dir)
+        
+def get_combined_melody_dataset(root_dir: str) -> None:
+    if not os.path.exists(TRAIN_DATASET_COMBINED_PATH_MELODY):
+        all_events_list = []
+
+        all_events = process_melody(root_dir, "combined")
+
+        all_indices = get_indices(all_events, SEQUENCE_LENGHT_MELODY)
+        train_indices, val_indices = split_indices(all_indices)
+
+        # Create dataset instances
+        melody_dataset_train = Melody_Dataset_Combined(all_events, train_indices)
+        melody_dataset_val = Melody_Dataset_Combined(all_events, val_indices)
+
+        torch.save(melody_dataset_train, TRAIN_DATASET_COMBINED_PATH_MELODY)
+        torch.save(melody_dataset_val, VAL_DATASET_COMBINED_PATH_MELODY)
+
 
 
 def process_melody(root_dir: str, split) -> Melody_Dataset:
-    root_dir = os.path.join(root_dir, split)
+    root_dirs = []
+    if split == "combined":
+        root_dirs.append(os.path.join(root_dir, "train"))
+        root_dirs.append(os.path.join(root_dir, "val"))
+    else:
+        root_dirs.append(os.path.join(root_dir, split))
     num_files = 0
     all_events: list[list[list[int], list[int], list[list[int]], list[bool]]] = []
-
-    for directory in os.listdir(root_dir):
-        if ".DS_Store" in directory:
-            continue
-        for file in os.listdir(os.path.join(root_dir, directory)):
-            if ".mid" in file:
-                midi_file: str = os.path.join(root_dir, directory, file)
-            if "chord_audio" in file:
-                chord_file: str = os.path.join(root_dir, directory, file)
-            else:
+    for root_dir in root_dirs:
+        for directory in os.listdir(root_dir):
+            if ".DS_Store" in directory:
                 continue
+            for file in os.listdir(os.path.join(root_dir, directory)):
+                if ".mid" in file:
+                    midi_file: str = os.path.join(root_dir, directory, file)
+                if "chord_audio" in file:
+                    chord_file: str = os.path.join(root_dir, directory, file)
+                else:
+                    continue
 
-        list_of_events: list[
-            list[list[int], list[int], list[list[int]], list[bool]]
-        ] = process_melody_and_chord(midi_file, chord_file)
+            list_of_events: list[
+                list[list[int], list[int], list[list[int]], list[bool]]
+            ] = process_melody_and_chord(midi_file, chord_file)
 
-        if list_of_events is not None:
-            all_events.append(list_of_events)
-            num_files += 1
-            print("Processed", num_files, "files")
-
-        # if num_files == 10 and DATASET_SIZE_MELODY == "small":
-        #     break
-        # if num_files == 20 and DATASET_SIZE_MELODY == "medium":
-        #     break
-        # if num_files == 100 and DATASET_SIZE_MELODY == "large":
-        #     break
+            if list_of_events is not None:
+                all_events.append(list_of_events)
+                num_files += 1
+                print("Processed", num_files, "files")
 
     return all_events
 
