@@ -33,7 +33,8 @@ from config import (
     HIDDEN_SIZE_LSTM_MELODY,
     COMBINED,
     TRAIN_DATASET_COMBINED_PATH_MELODY,
-    VAL_DATASET_COMBINED_PATH_MELODY
+    VAL_DATASET_COMBINED_PATH_MELODY,
+    CHECKPOINT_FREQUENCY_MELODY,
 )
 
 
@@ -87,6 +88,10 @@ def train_melody(model: Melody_Network) -> None:
     # Training loop
     for epoch in range(NUM_EPOCHS_MELODY):
         batch_loss = []
+        if epoch % CHECKPOINT_FREQUENCY_MELODY == 0:
+            torch.save(model, "models/melody/checkpoints/checkpoint_"+(COMMENT_MELODY)+str(epoch)+".pt")
+            #TODO: save data to json
+            print("saving checkpoint")
         for idx, batch in enumerate(dataloader_train):
             if idx > MAX_BATCHES_MELODY:
                 break
@@ -167,6 +172,7 @@ def save_to_json(loss_list, val_loss_list):
         "BATCH_SIZE_MELODY": BATCH_SIZE_MELODY,
         "MAX_BATCHES_MELODY": MAX_BATCHES_MELODY,
         "WEIGHT_DECAY_MELODY": WEIGHT_DECAY_MELODY,
+        "COMBINED": COMBINED,
     }
 
     # Combine hyperparameters and training data into a single dictionary
@@ -179,7 +185,7 @@ def save_to_json(loss_list, val_loss_list):
     # Save the combined data as a JSON file
     file_name = f"results/data/melody/training_data{hyperparameters['NUM_EPOCHS_MELODY']}_{COMMENT_MELODY}.json"
     with open(file_name, "w") as file:
-        json.dump(data_to_save, file, indent=4)  # 'indent=4' for pretty printing
+        json.dump(data_to_save, file, indent=4) 
 
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:

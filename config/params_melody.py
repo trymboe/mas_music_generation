@@ -13,7 +13,7 @@ INPUT_SIZE_MELODY = (
 )
 
 # Training parameters
-NUM_EPOCHS_MELODY = 100
+NUM_EPOCHS_MELODY = 150
 HIDDEN_SIZE_LSTM_MELODY = 256
 ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
@@ -33,7 +33,7 @@ TOTAL_INPUT_SIZE_MELODY = (
     PITCH_VECTOR_SIZE + 1 + DURATION_SIZE_MELODY + CHORD_SIZE_MELODY * 2 + 2
 )  # sum of the sizes of all inputs
 
-COMMENT_MELODY = "new1"
+COMMENT_MELODY = "new2"
 MODEL_PATH_MELODY = (
     "models/melody/melody_model_"
     + str(NUM_EPOCHS_MELODY)
@@ -47,7 +47,7 @@ TEST_DATASET_PATH_MELODY = "data/dataset/melody_dataset_test.pt"
 VAL_DATASET_PATH_MELODY = "data/dataset/melody_dataset_val.pt"
 
 # Uses a dataset where train and valiadtion data comes from the same songs. There is no leakage
-COMBINED = True
+COMBINED = False
 TRAIN_DATASET_COMBINED_PATH_MELODY = "data/dataset/melody_dataset_combined_train.pt"
 VAL_DATASET_COMBINED_PATH_MELODY = "data/dataset/melody_dataset_combined_val.pt"
 
