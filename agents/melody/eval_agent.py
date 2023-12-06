@@ -42,7 +42,7 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
         chord_num: int = 0
         accumulated_time: int = 0
 
-        sum_duration: float = 0.0
+        sum_duration_in_beats: float = 0.0
         while True:
             x = torch.cat(
                 (
@@ -50,6 +50,7 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                     durations,
                     current_chords,
                     next_chords,
+                    current_chord_time_lefts,
                 ),
                 dim=1,
             )
@@ -88,16 +89,17 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
             # Sample from the distributions
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
-            duration_in_beats: float = round(4 / (next_duration.item() + 1), 2) * 2
-            sum_duration += duration_in_beats
+            duration_in_quarter_notes: float = next_duration.item() + 1
 
-            accumulated_time += duration_in_beats
+            sum_duration_in_beats += duration_in_quarter_notes / 4
+            running_time_on_chord_beats += duration_in_quarter_notes / 4
 
-            all_notes.append([next_note.item() + 61, duration_in_beats])
+            accumulated_time += duration_in_quarter_notes
+
+            all_notes.append([next_note.item() + 61, duration_in_quarter_notes])
 
             next_accumulated_time = get_accumulated_time_tensor(accumulated_time)
 
-            running_time_on_chord_beats += duration_in_beats
             # We are done
             if (
                 running_time_on_chord_beats > current_chord_duration_beats
@@ -141,16 +143,16 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
             )
 
             # Check if the current note is end or start of bar (With 1/8 note threshold)
-            if (running_time_total_beats / 4) % 4 < 0.125:
-                is_start_of_bar: bool = True
-            else:
-                is_start_of_bar: bool = False
-            if (running_time_total_beats / 4) % 4 > 0.875:
-                is_end_of_bar: bool = True
-            else:
-                is_end_of_bar: bool = False
+            # if (running_time_total_beats / 4) % 4 < 0.125:
+            #     is_start_of_bar: bool = True
+            # else:
+            #     is_start_of_bar: bool = False
+            # if (running_time_total_beats / 4) % 4 > 0.875:
+            #     is_end_of_bar: bool = True
+            # else:
+            #     is_end_of_bar: bool = False
 
-            bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
+            # bars: torch.Tensor = torch.tensor([is_start_of_bar, is_end_of_bar])
 
             (
                 pitches,
@@ -249,14 +251,14 @@ def update_input_tensors(
     accumulated_times = accumulated_times[1:]
     current_chord_time_lefts = current_chord_time_lefts[1:]
 
-    print("pitch", get_one_hot_index(pitches[-1]))
-    print("duration", get_one_hot_index(durations[-1]))
-    print("current_chord", get_one_hot_index(current_chords[-1]))
-    print("next_chord", get_one_hot_index(next_chords[-1]))
-    print("accumulated_times", get_one_hot_index(accumulated_times[-1]))
-    print("current_chord_time_lefts", get_one_hot_index(current_chord_time_lefts[-1]))
+    # print("pitch", get_one_hot_index(pitches[-1]))
+    # print("duration", get_one_hot_index(durations[-1]))
+    # print("current_chord", get_one_hot_index(current_chords[-1]))
+    # print("next_chord", get_one_hot_index(next_chords[-1]))
+    # print("accumulated_times", get_one_hot_index(accumulated_times[-1]))
+    # print("current_chord_time_lefts", get_one_hot_index(current_chord_time_lefts[-1]))
 
-    print("")
+    # print("")
 
     return (
         pitches,
@@ -288,11 +290,14 @@ def get_time_left_on_chord_tensor(
 ) -> torch.Tensor:
     time_left_on_chord: float = (
         current_chord_duration_beats - running_time_on_chord_beats
-    )
+    ) * 4
+
     time_left_vector: list[int] = [0] * 16
 
     time_left_on_chord = min(time_left_on_chord, 15)
-    time_left_vector[round(time_left_on_chord * 2)] = 1
+    time_left_on_chord = max(time_left_on_chord, 0)
+
+    time_left_vector[int(time_left_on_chord)] = 1
 
     return torch.tensor(time_left_vector)
 

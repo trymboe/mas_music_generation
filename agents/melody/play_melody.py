@@ -23,6 +23,9 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI):
     melody_instrument = pretty_midi.Instrument(program=81)
     running_time: float = 0.0
     for note, duration in note_sequence:
+        # get duration in beats, orignaly in quarter notes
+        duration = duration * 0.25
+
         if note == 5 * 12 + PITCH_SIZE_MELODY:
             running_time += duration
             continue
