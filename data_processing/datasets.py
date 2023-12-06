@@ -450,47 +450,20 @@ class Melody_Dataset(Dataset):
             ],
         )
 
-
-class Melody_Dataset2(Dataset):
-    def __init__(self, data):
-        self.serialized_data = self._process_data(data)
-
-    def _process_data(self, data):
-        return [
-            element
-            for sublist in data
-            for element in (sublist if isinstance(sublist, list) else [sublist])
-        ]
+class Melody_Dataset_Combined(Dataset):
+    def __init__(self, data, indices):
+        self.data = data
+        self.sequence_length = SEQUENCE_LENGHT_MELODY
+        self.indices = indices
 
     def __len__(self):
-        return len(self.serialized_data)
+        return len(self.indices)
 
     def __getitem__(self, idx):
-        pitch = torch.tensor(self.serialized_data[idx][0])
-        duration = torch.tensor(self.serialized_data[idx][1])
-
-        current_chord = torch.tensor(self.serialized_data[idx][2])
-        next_chord = torch.tensor(self.serialized_data[idx][3])
-
-        time_left_on_chord = torch.tensor(self.serialized_data[idx][4])
-        accumulated_time = torch.tensor(self.serialized_data[idx][5])
-
-        # Extracting ground truth (targets)
-        try:
-            next_pitch = torch.tensor(self.serialized_data[idx + 1][0])
-            next_duration = torch.tensor(self.serialized_data[idx + 1][1])
-        except:
-            next_pitch = pitch
-            next_duration = duration
-
+        song, start_idx = self.indices[idx]
         return (
-            pitch,
-            duration,
-            current_chord,
-            next_chord,
-            time_left_on_chord,
-            accumulated_time,
-        ), (
-            next_pitch,
-            next_duration,
+            song[start_idx : start_idx + self.sequence_length],
+            song[
+                start_idx + self.sequence_length : start_idx + self.sequence_length + 1
+            ],
         )

@@ -17,10 +17,10 @@ NUM_EPOCHS_MELODY = 20
 HIDDEN_SIZE_LSTM_MELODY = 256
 ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
-LEARNING_RATE_MELODY = 0.0001
+LEARNING_RATE_MELODY = 0.0005
 BATCH_SIZE_MELODY = 64
-MAX_BATCHES_MELODY = 5  # float("inf")  # Max batches per epoch
-WEIGHT_DECAY_MELODY = 0.0001
+MAX_BATCHES_MELODY = 5 #float("inf")  # Max batches per epoch
+WEIGHT_DECAY_MELODY = 0.0005
 
 # Generation parameters
 NOTE_TEMPERATURE_MELODY = 1
@@ -42,6 +42,11 @@ MODEL_PATH_MELODY = (
 TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"
 TEST_DATASET_PATH_MELODY = "data/dataset/melody_dataset_test.pt"
 VAL_DATASET_PATH_MELODY = "data/dataset/melody_dataset_val.pt"
+
+#Uses a dataset where train and valiadtion data comes from the same songs. There is no leakage 
+COMBINED = True
+TRAIN_DATASET_COMBINED_PATH_MELODY = "data/dataset/melody_dataset_combined_train.pt"
+VAL_DATASET_COMBINED_PATH_MELODY = "data/dataset/melody_dataset_combined_val.pt"
 
 
 FULL_CHORD_TO_INT = {
