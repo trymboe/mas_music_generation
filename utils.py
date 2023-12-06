@@ -1,11 +1,5 @@
-from config import INT_TO_NOTE, NUMBER_OF_NOTES_FOR_TRAINING
 from data_processing import (
-    extract_chords_from_files,
     get_drum_dataset,
-    Bass_Dataset,
-    Chord_Dataset,
-    Drum_Dataset,
-    Melody_Dataset,
     get_melody_dataset,
     get_bass_dataset,
     get_chord_dataset,

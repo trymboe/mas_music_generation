@@ -10,8 +10,10 @@ from config import (
     DURATION_SIZE_MELODY,
     CHORD_SIZE_MELODY,
     HIDDEN_SIZE_LSTM_MELODY,
-    INPUT_SIZE,
+    INPUT_SIZE_MELODY,
+    NUM_LAYERS_LSTM_MELODY,
     DEVICE,
+    DROPOUT_MELODY,
 )
 
 CONCAT = True
@@ -28,16 +30,16 @@ class Melody_Network(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier3LSTM, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=INPUT_SIZE,
+                input_size=INPUT_SIZE_MELODY,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
-                dropout=0.3,
-                num_layers=2,
+                dropout=DROPOUT_MELODY,
+                num_layers=NUM_LAYERS_LSTM_MELODY,
                 bidirectional=True,
                 batch_first=True,
             )
             self.downscale = nn.Linear(
                 in_features=HIDDEN_SIZE_LSTM_MELODY * 2,
-                out_features=INPUT_SIZE,
+                out_features=INPUT_SIZE_MELODY,
             )
 
         def forward(self, input_sequence, previous_cell_output=None):
@@ -59,16 +61,16 @@ class Melody_Network(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier2LSTM, self).__init__()
             self.lstm = nn.LSTM(
-                input_size=INPUT_SIZE,
+                input_size=INPUT_SIZE_MELODY,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
-                dropout=0.3,
-                num_layers=2,
+                dropout=DROPOUT_MELODY,
+                num_layers=NUM_LAYERS_LSTM_MELODY,
                 bidirectional=True,
                 batch_first=True,
             )
             self.downscale = nn.Linear(
                 in_features=HIDDEN_SIZE_LSTM_MELODY * 2,
-                out_features=INPUT_SIZE,
+                out_features=INPUT_SIZE_MELODY,
             )
 
         def forward(self, inputs_sequence, tier3_output, tier2_output=None):
@@ -103,13 +105,15 @@ class Melody_Network(nn.Module):
     class ConvNetwork(nn.Module):
         def __init__(self):
             super(Melody_Network.ConvNetwork, self).__init__()
-            self.conv1d = nn.Conv1d(in_channels=4, out_channels=256, kernel_size=4)
+            self.conv1d = nn.Conv1d(
+                in_channels=4, out_channels=INPUT_SIZE_MELODY, kernel_size=4
+            )
             self.relu = nn.ReLU()
             self.lstm = nn.LSTM(
-                input_size=256,
+                input_size=INPUT_SIZE_MELODY,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
-                num_layers=2,
-                dropout=0.3,
+                num_layers=NUM_LAYERS_LSTM_MELODY,
+                dropout=DROPOUT_MELODY,
                 bidirectional=True,
                 batch_first=True,
             )
@@ -124,16 +128,28 @@ class Melody_Network(nn.Module):
 
     class PredictiveNetwork(nn.Module):
         def __init__(self):
-            in_features2 = INPUT_SIZE + 16 if not CONCAT else INPUT_SIZE * 4 + 16
-            in_features1 = INPUT_SIZE + 16 if not CONCAT else INPUT_SIZE * 3 + 16
+            in_features2 = (
+                INPUT_SIZE_MELODY + 16 if not CONCAT else INPUT_SIZE_MELODY * 4 + 16
+            )
+            in_features1 = (
+                INPUT_SIZE_MELODY + 16 if not CONCAT else INPUT_SIZE_MELODY * 3 + 16
+            )
 
             super(Melody_Network.PredictiveNetwork, self).__init__()
-            self.conv1d = nn.Conv1d(in_channels=1, out_channels=256, kernel_size=4)
+            self.conv1d = nn.Conv1d(
+                in_channels=1, out_channels=INPUT_SIZE_MELODY, kernel_size=4
+            )
             self.relu = nn.ReLU()
-            self.downsample_conv = nn.Linear(in_features=256, out_features=INPUT_SIZE)
+            self.downsample_conv = nn.Linear(
+                in_features=INPUT_SIZE_MELODY, out_features=INPUT_SIZE_MELODY
+            )
 
-            self.FC1 = nn.Linear(in_features=in_features1, out_features=INPUT_SIZE)
-            self.FC2 = nn.Linear(in_features=in_features2, out_features=INPUT_SIZE)
+            self.FC1 = nn.Linear(
+                in_features=in_features1, out_features=INPUT_SIZE_MELODY
+            )
+            self.FC2 = nn.Linear(
+                in_features=in_features2, out_features=INPUT_SIZE_MELODY
+            )
 
         def forward(
             self,
@@ -203,10 +219,10 @@ class Melody_Network(nn.Module):
         self._create_predictive_networks()
 
         self.FC_pitch = nn.Linear(
-            in_features=INPUT_SIZE, out_features=PITCH_SIZE_MELODY
+            in_features=INPUT_SIZE_MELODY, out_features=PITCH_SIZE_MELODY
         )
         self.FC_duration = nn.Linear(
-            in_features=INPUT_SIZE,
+            in_features=INPUT_SIZE_MELODY,
             out_features=DURATION_SIZE_MELODY,
         )
 

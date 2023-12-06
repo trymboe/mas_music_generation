@@ -6,7 +6,6 @@ from .datasets import Bass_Dataset, Chord_Dataset
 from .utils import get_timed_notes
 
 from config import (
-    NUMBER_OF_NOTES_FOR_TRAINING,
     TRAIN_DATASET_PATH_BASS,
     TEST_DATASET_PATH_BASS,
     VAL_DATASET_PATH_BASS,
@@ -32,9 +31,7 @@ def get_bass_dataset(root_directory: str) -> None:
     if not os.path.exists(TRAIN_DATASET_PATH_BASS):
         timed_notes_list: list[list[list[tuple[str, int]]]] = []
         for split in ["train", "test", "val"]:
-            _, notes, beats = extract_chords_from_files(
-                root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True, split
-            )
+            _, notes, beats = extract_chords_from_files(root_directory, True, split)
             timed_notes_list.append(get_timed_notes(notes, beats))
 
         bass_dataset_train: Bass_Dataset = Bass_Dataset(timed_notes_list[0])
@@ -62,9 +59,7 @@ def get_chord_dataset(root_directory: str) -> Chord_Dataset:
     if not os.path.exists(TRAIN_DATASET_PATH_CHORD):
         chords_list: list[list[tuple[str, str]]] = []
         for split in ["train", "test", "val"]:
-            chords, _, _ = extract_chords_from_files(
-                root_directory, NUMBER_OF_NOTES_FOR_TRAINING, True, split
-            )
+            chords, _, _ = extract_chords_from_files(root_directory, True, split)
             chords_list.append(chords)
 
         chord_dataset_train: Chord_Dataset = Chord_Dataset(chords_list[0])
@@ -74,17 +69,12 @@ def get_chord_dataset(root_directory: str) -> Chord_Dataset:
         torch.save(chord_dataset_train, TRAIN_DATASET_PATH_CHORD)
         torch.save(chord_dataset_test, TEST_DATASET_PATH_CHORD)
         torch.save(chord_dataset_val, VAL_DATASET_PATH_CHORD)
-    else:
-        chord_dataset_train: Chord_Dataset = torch.load(TRAIN_DATASET_PATH_CHORD)
-    return chord_dataset_train
 
 
-def extract_chords_from_files(root_dir, limit, only_triads, split):
+def extract_chords_from_files(root_dir, only_triads, split):
     print(root_dir, split)
     all_chords: list[list[tuple(str, str)]] = []
     all_beats: list[list[int]] = []
-
-    endless = True if limit == 0 else False
 
     # Traverse through the directory structure
     for dir_name, subdirs, file_list in os.walk(os.path.join(root_dir, split)):
@@ -138,11 +128,6 @@ def extract_chords_from_files(root_dir, limit, only_triads, split):
 
                     all_chords.append(chords)
                     all_beats.append(num_beats_list)
-
-                    if not endless and total_length(all_chords) >= limit:
-                        all_notes = get_notes_from_chords(all_chords)
-
-                        return all_chords, all_notes, all_beats
 
     all_notes = get_notes_from_chords(all_chords)
 

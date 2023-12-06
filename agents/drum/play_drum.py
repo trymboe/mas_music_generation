@@ -84,7 +84,7 @@ def play_drum_from_style(measures, loops, drum_dataset, style):
     velocity_vocab: dict[int, int] = {v: k for k, v in drum_dataset.vel_vocab.items()}
 
     primer_length: int = 256
-    gen_len: int = 256
+    gen_len: int = 128
 
     simplified_pitches: list[list[int]] = [
         [36],

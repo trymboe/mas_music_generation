@@ -14,9 +14,10 @@ from config import (
     TIME_LEFT_ON_CHORD_SIZE_MELODY,
     TRAIN_DATASET_COMBINED_PATH_MELODY,
     VAL_DATASET_COMBINED_PATH_MELODY,
+    CHORD_SIZE_MELODY,
 )
 
-from .utils import remove_file_from_dataset, get_indices, split_indices
+from .utils import get_indices, split_indices
 
 
 def get_melody_dataset(root_dir: str) -> None:
@@ -35,7 +36,8 @@ def get_melody_dataset(root_dir: str) -> None:
         torch.save(melody_dataset_test, TEST_DATASET_PATH_MELODY)
         torch.save(melody_dataset_val, VAL_DATASET_PATH_MELODY)
     get_combined_melody_dataset(root_dir)
-        
+
+
 def get_combined_melody_dataset(root_dir: str) -> None:
     if not os.path.exists(TRAIN_DATASET_COMBINED_PATH_MELODY):
         all_events_list = []
@@ -51,7 +53,6 @@ def get_combined_melody_dataset(root_dir: str) -> None:
 
         torch.save(melody_dataset_train, TRAIN_DATASET_COMBINED_PATH_MELODY)
         torch.save(melody_dataset_val, VAL_DATASET_COMBINED_PATH_MELODY)
-
 
 
 def process_melody(root_dir: str, split) -> Melody_Dataset:
@@ -421,9 +422,14 @@ def get_chord_list(input_string: str) -> list[int]:
     ----------
         list[int]: List length 72. One hot encoded to represent the correct chord
     """
-    chord_list: list[int] = [0] * 72
+    chord_list: list[int] = [0] * CHORD_SIZE_MELODY
     pattern: str = r"([A-Ga-g]#?b?:)(maj|min|dim|aug|sus2|sus4).*"
     match: re.Match = re.match(pattern, input_string)
-    chord: str = match.group(1) + match.group(2)
+    # only use major or minor chords. If not major or minor, use major
+    if "min" not in match.group(2):
+        chord: str = match.group(1) + "maj"
+    else:
+        chord: str = match.group(1) + match.group(2)
+
     chord_list[FULL_CHORD_TO_INT[chord]] = 1
     return chord_list
