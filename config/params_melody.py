@@ -13,14 +13,14 @@ INPUT_SIZE = (
 )
 
 # Training parameters
-NUM_EPOCHS_MELODY = 20
+NUM_EPOCHS_MELODY = 100
 HIDDEN_SIZE_LSTM_MELODY = 256
 ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
 LEARNING_RATE_MELODY = 0.0005
 BATCH_SIZE_MELODY = 64
-MAX_BATCHES_MELODY = 5 #float("inf")  # Max batches per epoch
-WEIGHT_DECAY_MELODY = 0.0005
+MAX_BATCHES_MELODY = float("inf")  # Max batches per epoch
+WEIGHT_DECAY_MELODY = 0.001
 
 # Generation parameters
 NOTE_TEMPERATURE_MELODY = 1
@@ -31,7 +31,7 @@ TOTAL_INPUT_SIZE_MELODY = (
     PITCH_VECTOR_SIZE + 1 + DURATION_SIZE_MELODY + CHORD_SIZE_MELODY * 2 + 2
 )  # sum of the sizes of all inputs
 
-COMMENT_MELODY = "test"
+COMMENT_MELODY = "new1"
 MODEL_PATH_MELODY = (
     "models/melody/melody_model_"
     + str(NUM_EPOCHS_MELODY)
@@ -43,7 +43,7 @@ TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"
 TEST_DATASET_PATH_MELODY = "data/dataset/melody_dataset_test.pt"
 VAL_DATASET_PATH_MELODY = "data/dataset/melody_dataset_val.pt"
 
-#Uses a dataset where train and valiadtion data comes from the same songs. There is no leakage 
+# Uses a dataset where train and valiadtion data comes from the same songs. There is no leakage
 COMBINED = True
 TRAIN_DATASET_COMBINED_PATH_MELODY = "data/dataset/melody_dataset_combined_train.pt"
 VAL_DATASET_COMBINED_PATH_MELODY = "data/dataset/melody_dataset_combined_val.pt"

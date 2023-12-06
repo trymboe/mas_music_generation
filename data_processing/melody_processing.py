@@ -359,11 +359,11 @@ def get_duration_list(
     pause=False,
 ) -> list[int]:
     """
-    Converts a note duration in ticks to a one-hot encoded list representing the duration in terms of half beats.
+    Converts a note duration in ticks to a one-hot encoded list representing the duration in terms of quarter notes.
 
-    This function calculates the number of half beats (8th notes) a given note duration spans and returns a one-hot
-    encoded list where each element represents one half beat. The length of the list is fixed at 16, which corresponds
-    to a maximum of 8 full beats (or 4/4 measure in 8th notes).
+    This function calculates the number of quarter beats (16th notes) a given note duration spans and returns a one-hot
+    encoded list where each element represents one quarter note. The length of the list is fixed at 16, which corresponds
+    to a maximum of 4 full beats.
 
     Args
     ----------
@@ -372,7 +372,7 @@ def get_duration_list(
 
     Returns
     ----------
-        list[int]: A one-hot encoded list of length 16 representing the note duration in half beats.
+        list[int]: A one-hot encoded list of length 16 representing the note duration in quarter notes
     """
 
     ticks_per_quarter_note = ticks_per_beat / 4
@@ -380,12 +380,12 @@ def get_duration_list(
     if pause and (note_duration_ticks / ticks_per_quarter_note < 0.5):
         return None
     # Calculate the number of half beats for the note duration
-    num_half_beats = round(note_duration_ticks / ticks_per_quarter_note)
+    num_quarter_notes = round(note_duration_ticks / ticks_per_quarter_note)
 
-    num_half_beats = min(num_half_beats, 16)
-    num_half_beats = max(num_half_beats, 1)
+    num_quarter_notes = min(num_quarter_notes, 16)
+    num_quarter_notes = max(num_quarter_notes, 1)
 
-    duration_list = [1 if i == num_half_beats - 1 else 0 for i in range(16)]
+    duration_list = [1 if i == num_quarter_notes - 1 else 0 for i in range(16)]
 
     return duration_list
 
