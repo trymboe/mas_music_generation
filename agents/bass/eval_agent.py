@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from config import TEMPO, LENGTH_BARS
+from config import TEMPO, LENGTH_BARS, DEVICE
 from data_processing import Bass_Dataset
 
 
@@ -44,9 +44,9 @@ def predict_next_k_notes_bass(model, dataset_primer) -> list[int, int]:
             running_length += next_duration.item()
 
             # Use sliding window method: drop the first note/duration, append the predicted note/duration
-            note_sequence = torch.cat([note_sequence[:, 1:], next_note], dim=1)
+            note_sequence = torch.cat([note_sequence[:, 1:].to(DEVICE), next_note.to(DEVICE)], dim=1)
             duration_sequence = torch.cat(
-                [duration_sequence[:, 1:], next_duration], dim=1
+                [duration_sequence[:, 1:].to(DEVICE), next_duration.to(DEVICE)], dim=1
             )
 
 
