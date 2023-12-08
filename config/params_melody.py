@@ -23,13 +23,7 @@ MAX_BATCHES_MELODY = 20  # float("inf")  # Max batches per epoch
 WEIGHT_DECAY_MELODY = 0.001
 DROPOUT_MELODY = 0.5
 NUM_LAYERS_LSTM_MELODY = 2
-
-# Generation parameters
-NOTE_TEMPERATURE_MELODY = 0.8
-DURATION_TEMPERATURE_MELODY = 0.8
-NO_PAUSE = False
-SCALE_MELODY = "major pentatonic"  # "major pentatonic"  # "major scale"",
-DURATION_PREFERENCES = [1, 3, 5, 7, 9, 11, 13, 15]  # False, [7, 11, 15]
+CHECKPOINT_FREQUENCY_MELODY = 5
 
 
 TOTAL_INPUT_SIZE_MELODY = (

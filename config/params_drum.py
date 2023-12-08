@@ -25,8 +25,6 @@ DRUM_MAPPING = {
 
 TIME_STEPS_VOCAB = {1: 1, 10: 2, 100: 3, 1000: 4, 10000: 5}
 
-LOOP_MEASURES = 4
-
 DRUM_STYLES = {
     "afrobeat": 0,
     "afrocuban": 1,
@@ -47,7 +45,7 @@ DRUM_STYLES = {
     "rock": 16,
     "soul": 17,
 }
-STYLE = "country"
+
 
 # Data processing
 GENRE = "rock"

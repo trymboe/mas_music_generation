@@ -2,25 +2,26 @@ import pretty_midi
 import torch
 
 from .eval_agent import predict_next_k_notes_bass
-from config import MODEL_PATH_BASS, DEVICE, TEMPO
+from config import MODEL_PATH_BASS, DEVICE
 from data_processing import Bass_Dataset
 from .bass_network import Bass_Network
+from ..utils import beats_to_seconds, seconds_to_beat
 
 
 def play_bass(
     mid: pretty_midi.PrettyMIDI,
     primer: list,
-    playstyle: str = "bass_drum",
+    config: dict,
 ) -> tuple[pretty_midi.PrettyMIDI, list[int, int]]:
     bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
     bass_agent.eval()
 
     predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(
-        bass_agent, primer
+        bass_agent, primer, config
     )
 
-    if playstyle == "bass_drum":
-        bass_drum_times = find_bass_drum(mid)
+    if config["PLAYSTYLE"] == "bass_drum":
+        bass_drum_times = find_bass_drum(mid, config["TEMPO"])
 
     # Mapping from sequence numbers to MIDI note numbers
     # Starting from C1 (MIDI note number 24)
@@ -31,7 +32,7 @@ def play_bass(
 
     running_time = start_time = end_time = chord_start_time = 0.0
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
-    if playstyle == "bass_drum":
+    if config["PLAYSTYLE"] == "bass_drum":
         for note, duration in predicted_bass_sequence:
             midi_note = note_mapping[note]
             # Get the start time of the bass note (aligned with the bass drum hit)
@@ -54,6 +55,7 @@ def play_bass(
                             pitch=midi_note,
                             start_time=running_time,
                             end_time=end_time,
+                            tempo=config["TEMPO"],
                         )
 
                     chord_start_time += duration
@@ -74,6 +76,7 @@ def play_bass(
                             pitch=midi_note,
                             start_time=running_time,
                             end_time=end_time,
+                            tempo=config["TEMPO"],
                         )
 
                     start_time = bass_drum_times[idx]
@@ -85,6 +88,7 @@ def play_bass(
                             pitch=midi_note,
                             start_time=start_time,
                             end_time=end_time,
+                            tempo=config["TEMPO"],
                         )
                         break
 
@@ -101,6 +105,7 @@ def play_bass(
                         pitch=midi_note,
                         start_time=start_time,
                         end_time=end_time,
+                        tempo=config["TEMPO"],
                     )
 
                     running_time = end_time
@@ -128,18 +133,19 @@ def play_note(
     pitch: int,
     start_time: float,
     end_time: float,
+    tempo: int,
     velocity: int = 70,
 ):
     bass_note = pretty_midi.Note(
         velocity=velocity,
         pitch=pitch,
-        start=beats_to_seconds(start_time),
-        end=beats_to_seconds(end_time),
+        start=beats_to_seconds(start_time, tempo),
+        end=beats_to_seconds(end_time, tempo),
     )
     bass_instrument.notes.append(bass_note)
 
 
-def find_bass_drum(pm: pretty_midi.PrettyMIDI) -> list[float]:
+def find_bass_drum(pm: pretty_midi.PrettyMIDI, tempo: int) -> list[float]:
     """
     Find every time step where the bass drum is played in a given PrettyMIDI object.
 
@@ -161,14 +167,6 @@ def find_bass_drum(pm: pretty_midi.PrettyMIDI) -> list[float]:
     # Iterate over notes in the drum track
     for note in drum_track.notes:
         if note.pitch == 36:  # 36 is the MIDI number for Acoustic Bass Drum
-            bass_drum_times.append(seconds_to_beat(note.start))
+            bass_drum_times.append(seconds_to_beat(note.start, tempo))
 
     return bass_drum_times
-
-
-def beats_to_seconds(beats: float) -> float:
-    return round(beats * (60 / TEMPO), 2)
-
-
-def seconds_to_beat(seconds: float) -> float:
-    return round(seconds * (TEMPO / 60), 2)

@@ -1,11 +1,12 @@
 import torch
 import torch.nn.functional as F
 
-from config import TEMPO, LENGTH_BARS, DEVICE
+from config import DEVICE
 from data_processing import Bass_Dataset
+from ..utils import select_with_preference
 
 
-def predict_next_k_notes_bass(model, dataset_primer) -> list[int, int]:
+def predict_next_k_notes_bass(model, dataset_primer, config) -> list[int, int]:
     predicted_notes_durations: list[tuple[int, int]] = []
 
     note_sequence, duration_sequence = get_primer_sequence(dataset_primer)
@@ -20,13 +21,14 @@ def predict_next_k_notes_bass(model, dataset_primer) -> list[int, int]:
             note_output, duration_output = model(note_sequence, duration_sequence)
 
             # Apply softmax to get probabilities for notes and durations
-            note_probabilities = F.softmax(note_output[0, :], dim=-1).view(
-                -1
-            )  # reshape to 1D
+            note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
 
-            duration_probabilities = F.softmax(
-                duration_output[0, :], dim=0
-            )  # Only consider the last prediction
+            duration_probabilities = F.softmax(duration_output[0, :], dim=0)
+
+            if config["DURATION_PREFERENCES_BASS"]:
+                duration_probabilities = select_with_preference(
+                    duration_probabilities, config["DURATION_PREFERENCES_BASS"]
+                )
 
             # Sample from the distributions
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
@@ -35,16 +37,20 @@ def predict_next_k_notes_bass(model, dataset_primer) -> list[int, int]:
                 next_duration = torch.tensor([[4]])
 
             # Stop if the sequence length exceeds the specified length
-            if (running_length + next_duration).item() > LENGTH_BARS:
+            if (running_length + next_duration).item() >= config["LENGTH"] * 4:
                 # Add the last note/duration
-                predicted_notes_durations.append((0, LENGTH_BARS - running_length))
+                predicted_notes_durations.append(
+                    (0, config["LENGTH"] * 4 - running_length)
+                )
                 return predicted_notes_durations
 
             predicted_notes_durations.append((next_note.item(), next_duration.item()))
             running_length += next_duration.item()
 
             # Use sliding window method: drop the first note/duration, append the predicted note/duration
-            note_sequence = torch.cat([note_sequence[:, 1:].to(DEVICE), next_note.to(DEVICE)], dim=1)
+            note_sequence = torch.cat(
+                [note_sequence[:, 1:].to(DEVICE), next_note.to(DEVICE)], dim=1
+            )
             duration_sequence = torch.cat(
                 [duration_sequence[:, 1:].to(DEVICE), next_duration.to(DEVICE)], dim=1
             )

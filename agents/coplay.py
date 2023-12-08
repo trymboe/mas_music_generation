@@ -19,19 +19,18 @@ from agents import (
 )
 
 from config import (
-    INT_TO_TRIAD,
-    LENGTH,
-    LOOP_MEASURES,
-    STYLE,
     SEQUENCE_LENGTH_CHORD,
-    MODEL_PATH_BASS,
-    MODEL_PATH_CHORD,
-    MODEL_PATH_MELODY,
-    DEVICE,
+    SEQUENCE_LENGTH_BASS,
     SAVE_RESULT_PATH,
     TEST_DATASET_PATH_MELODY,
     TEST_DATASET_PATH_BASS,
     TEST_DATASET_PATH_CHORD,
+    TIME_LEFT_ON_CHORD_SIZE_MELODY,
+    DURATION_SIZE_MELODY,
+    CHORD_SIZE_MELODY,
+    PITCH_SIZE_MELODY,
+    INT_TO_TRIAD,
+    SEGMENTS,
 )
 
 
@@ -52,40 +51,209 @@ def play_agents() -> None:
     -------
     None
     """
-
     chord_primer, bass_primer, melody_primer = get_primer_sequences()
-
+    mid = None
     print("----playing agents----")
 
-    print("  ----playing drum----")
-    start = time.time()
-    mid: pretty_midi.PrettyMIDI = play_drum(
-        measures=LOOP_MEASURES,
-        loops=int(LENGTH / LOOP_MEASURES),
-        style=STYLE,
-    )
-    end = time.time()
-    print("    ----drum playing time: ", end - start)
+    for idx, config in enumerate(SEGMENTS):
+        print("  ----segment:", idx + 1, "----")
+        print("    ----playing drum----")
+        start = time.time()
+        new_mid: pretty_midi.PrettyMIDI = play_drum(config)
+        end = time.time()
+        print("      ----drum playing time: ", end - start)
 
-    print("  ----playing bass----")
-    start = time.time()
-    mid, predicted_bass_sequence = play_bass(mid, bass_primer, playstyle="bass_drum")
-    end = time.time()
-    print("    ----bass playing time: ", end - start)
+        print("    ----playing bass----")
+        start = time.time()
+        new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
+        print("predicted bass sequence", predicted_bass_sequence)
+        end = time.time()
+        print("      ----bass playing time: ", end - start)
 
-    print("  ----playing chord----")
-    start = time.time()
-    mid, chord_sequence = play_chord(mid, predicted_bass_sequence, chord_primer)
-    end = time.time()
-    print("    ----chord playing time: ", end - start)
+        print("    ----playing chord----")
+        start = time.time()
+        new_mid, predicted_chord_sequence = play_chord(
+            new_mid, predicted_bass_sequence, chord_primer, config
+        )
+        end = time.time()
+        print("      ----chord playing time: ", end - start)
 
-    print("  ----playing melody----")
-    start = time.time()
-    mid = play_melody(mid, chord_sequence, melody_primer)
-    end = time.time()
-    print("    ----melody playing time: ", end - start)
+        print("    ----playing melody----")
+        start = time.time()
+        new_mid, predicted_melody_sequence = play_melody(
+            new_mid, predicted_chord_sequence, melody_primer, config
+        )
+        end = time.time()
+        print("      ----melody playing time: ", end - start)
+        if mid:
+            mid = merge_pretty_midi(mid, new_mid)
+        else:
+            mid = new_mid
+        new_mid.write("results/segment_" + str(idx + 1) + ".mid")
 
+        # bass_primer, chord_primer, melody_primer = get_new_primer_sequences(
+        #     bass_primer,
+        #     predicted_bass_sequence,
+        #     chord_primer,
+        #     predicted_chord_sequence,
+        #     melody_primer,
+        #     predicted_melody_sequence,
+        #     config,
+        # )
     mid.write(SAVE_RESULT_PATH)
+
+
+def get_new_primer_sequences(
+    bass_primer,
+    predicted_bass_sequence,
+    chord_primer,
+    predicted_chord_sequence,
+    melody_primer,
+    predicted_melody_sequence,
+    config,
+) -> tuple[list, list, list]:
+    if len(predicted_bass_sequence) >= SEQUENCE_LENGTH_BASS:
+        bass_primer = predicted_bass_sequence[-SEQUENCE_LENGTH_BASS:]
+        chord_primer = predicted_chord_sequence[-SEQUENCE_LENGTH_BASS:]
+    else:
+        combined_bass_events = []
+        combined_chord_events = []
+        combined_melody_events = []
+        for idx in range(len(bass_primer[0])):
+            combined_bass_events.append(
+                (int(bass_primer[0][idx]), int(bass_primer[1][idx]))
+            )
+            combined_chord_events.append(
+                (int(chord_primer[idx][0]), int(chord_primer[idx][1]))
+            )
+        combined_melody_events = melody_primer
+        for idx in range(len(predicted_bass_sequence)):
+            # Bass
+            combined_bass_events.append((predicted_bass_sequence[idx]))
+
+            # Chord
+            root_note = predicted_chord_sequence[idx][0][0]
+            chord_type = [
+                (chord - root_note) for chord in predicted_chord_sequence[idx][0]
+            ]
+            combined_chord_events.append((root_note, get_key(chord_type, INT_TO_TRIAD)))
+
+        running_time_beats: int = 0
+        for idx in range(len(predicted_melody_sequence)):
+            # Melody
+            print("predicted_chord_sequence", predicted_chord_sequence)
+            print("predicted_melody_sequence", predicted_melody_sequence)
+            print("melody_primer", melody_primer[0])
+            pitch_vector = one_hot(
+                predicted_melody_sequence[idx][0] - 60, PITCH_SIZE_MELODY
+            )
+            duration_vector = one_hot(
+                predicted_melody_sequence[idx][1], DURATION_SIZE_MELODY
+            )
+            running_time_beats += predicted_melody_sequence[idx][1] / 4
+            (
+                (current_root, current_chord),
+                (next_root, next_chord),
+                time_left_on_chord,
+            ) = get_chords(running_time_beats, predicted_chord_sequence)
+
+            print("current_root", current_root)
+            print("current_chord", current_chord)
+            print("next_root", next_root)
+            print("next_chord", next_chord)
+            print("time_left_on_chord", time_left_on_chord)
+            exit()
+            current_chord = max(1, current_chord)
+            current_chord_idx = current_root * 2 + current_chord
+            current_chord_vector = one_hot(current_chord_idx, CHORD_SIZE_MELODY)
+
+            next_chord = max(1, next_chord)
+            next_chord_idx = next_root * 2 + next_chord
+            next_chord_vector = one_hot(next_chord_idx, CHORD_SIZE_MELODY)
+            time_left_on_chord_vector = one_hot(
+                int(time_left_on_chord), TIME_LEFT_ON_CHORD_SIZE_MELODY
+            )
+            # not working
+            accumulated_time_vector = one_hot(1, 4)
+            print(len(melody_primer[0]))
+
+        bass_primer = combined_bass_events[-SEQUENCE_LENGTH_BASS:]
+        chord_primer = combined_chord_events[-SEQUENCE_LENGTH_BASS:]
+
+    return [bass_primer, chord_primer, None]
+
+
+def get_chords(running_time_beats, predicted_chord_sequence):
+    running_duration_on_chord = 0
+    for idx, (chord, duration) in enumerate(predicted_chord_sequence):
+        running_duration_on_chord += duration
+        if running_duration_on_chord > running_time_beats:
+            time_left_on_chord = float(running_duration_on_chord)
+            print()
+            print(duration)
+            print(running_duration_on_chord)
+            print(running_time_beats)
+            print(time_left_on_chord)
+            exit()
+
+            root_note = chord[0]
+            chord_type = [(c - root_note) for c in chord]
+            current_chord = (root_note, get_key(chord_type, INT_TO_TRIAD))
+            if idx + 1 < len(predicted_chord_sequence):
+                root_note = predicted_chord_sequence[idx + 1][0][0]
+                chord = predicted_chord_sequence[idx + 1][0]
+                chord_type = [(c - root_note) for c in chord]
+
+                next_chord = (root_note, get_key(chord_type, INT_TO_TRIAD))
+            else:
+                next_chord = current_chord
+            return current_chord, next_chord, time_left_on_chord
+
+    root_note = predicted_chord_sequence[-1]
+    chord_type = [(c - root_note) for c in predicted_chord_sequence[-1][0]]
+    current_chord = (root_note, get_key(chord_type, INT_TO_TRIAD))
+    next_chord = current_chord
+
+    return current_chord, next_chord, 0
+
+
+def one_hot(idx, length):
+    one_hot = [0] * length
+    one_hot[idx] = 1
+    return one_hot
+
+
+# Function to find key from value
+def get_key(val, dic):  #
+    for key, value in dic.items():
+        if value == val:
+            return key
+    return "Key not found"
+
+
+def merge_pretty_midi(pm1, pm2):
+    # Find the end time of the last note in the first MIDI object
+    end_time_pm1 = max(
+        note.end for instrument in pm1.instruments for note in instrument.notes
+    )
+
+    # Shift the start and end times of all notes in the second MIDI object
+    for instrument in pm2.instruments:
+        for note in instrument.notes:
+            note.start += end_time_pm1
+            note.end += end_time_pm1
+
+    # Merge tracks with the same program (instrument type)
+    for instrument1 in pm1.instruments:
+        for instrument2 in pm2.instruments:
+            if (
+                instrument1.program == instrument2.program
+                and instrument1.is_drum == instrument2.is_drum
+            ):
+                instrument1.notes.extend(instrument2.notes)
+                break
+
+    return pm1
 
 
 def get_primer_sequences(attempt=0) -> tuple[list, list, list]:

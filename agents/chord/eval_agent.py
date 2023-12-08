@@ -10,7 +10,7 @@ def predict_next_k_notes_chords(model, full_bass_sequence, dataset_primer):
     # Add a batch dimension
     input_sequence = chord_primer.unsqueeze(0)
 
-    model.eval()  # Set the model to evaluation mode
+    model.eval()
 
     with torch.no_grad():
         for i in range(len(full_bass_sequence)):
@@ -47,9 +47,6 @@ def update_input_sequence(
 
 
 def get_input_sequence_chords(dataset_primer, full_bass_sequence):
-    # Extract the corresponding chord sequence from the dataset
-    actual_chord_sequence = dataset_primer[:, :2]
-
     input_sequence = []
 
     for i, event in enumerate(dataset_primer):

@@ -5,39 +5,33 @@ import random
 import torch
 
 from .eval_agent import predict_next_k_notes_chords
+from ..utils import beats_to_seconds
+
 from config import (
-    TEMPO,
-    ARP_STYLE,
     MODEL_PATH_CHORD,
     INT_TO_TRIAD,
     DEVICE,
-    ARPEGIATE_CHORD,
-    BOUNCE_CHORD,
 )
 
 
 def play_chord(
-    mid: MidiFile,
-    predicted_bass_sequence,
-    dataset_primer,
+    mid: MidiFile, predicted_bass_sequence, dataset_primer, config: dict
 ) -> tuple[MidiFile, list]:
     timed_chord_sequence = get_timed_chord_sequence(
-        predicted_bass_sequence,
-        predicted_bass_sequence,
-        dataset_primer,
+        predicted_bass_sequence, dataset_primer
     )
 
-    if ARPEGIATE_CHORD:
-        mid = play_chord_arpeggiate(mid, timed_chord_sequence)
-    elif BOUNCE_CHORD:
-        mid = play_chord_bounce(mid, timed_chord_sequence)
+    if config["ARPEGIATE_CHORD"]:
+        mid = play_chord_arpeggiate(mid, timed_chord_sequence, config)
+    elif config["BOUNCE_CHORD"]:
+        mid = play_chord_bounce(mid, timed_chord_sequence, config)
     else:
-        mid = play_chord_hold(mid, timed_chord_sequence)
+        mid = play_chord_hold(mid, timed_chord_sequence, config)
 
     return mid, timed_chord_sequence
 
 
-def play_chord_hold(pretty_midi_obj, chord_sequence):
+def play_chord_hold(pretty_midi_obj, chord_sequence, config):
     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord notes
     note_mapping = {i: 60 + i for i in range(24)}
 
@@ -54,8 +48,10 @@ def play_chord_hold(pretty_midi_obj, chord_sequence):
             piano_note = pretty_midi.Note(
                 velocity=64,  # volume
                 pitch=midi_note,  # MIDI note number
-                start=beats_to_seconds(current_time),  # start time
-                end=beats_to_seconds(current_time + duration),  # end time
+                start=beats_to_seconds(current_time, config["TEMPO"]),  # start time
+                end=beats_to_seconds(
+                    current_time + duration, config["TEMPO"]
+                ),  # end time
             )
             # Add note to the piano_instrument
             piano_instrument.notes.append(piano_note)
@@ -69,7 +65,7 @@ def play_chord_hold(pretty_midi_obj, chord_sequence):
     return pretty_midi_obj
 
 
-def play_chord_arpeggiate(pm, chord_sequence):
+def play_chord_arpeggiate(pm, chord_sequence, config):
     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
     note_mapping = {i: 60 + i for i in range(24)}
 
@@ -78,18 +74,18 @@ def play_chord_arpeggiate(pm, chord_sequence):
     piano = pretty_midi.Instrument(program=piano_program, is_drum=False)
 
     # Define the melodic pattern
-    if ARP_STYLE == 0:
+    if config["ARP_STYLE"] == 0:
         melodic_pattern = [0, 0, 1, 2, 0, 2, 1, 0]
-    elif ARP_STYLE == 1:
+    elif config["ARP_STYLE"] == 1:
         melodic_pattern = [0, 0, 1, 2, 1, 0]
-    elif ARP_STYLE == 2:
+    elif config["ARP_STYLE"] == 2:
         melodic_pattern = [0, 1, 2, 1]
-    elif ARP_STYLE == 3:
+    elif config["ARP_STYLE"] == 3:
         melodic_pattern = [0, 2, 0, 0, 1, 2, 1, 0]
     else:
-        raise ValueError("Invalid ARP_STYLE value.", ARP_STYLE)
+        raise ValueError("Invalid ARP_STYLE value.", config["ARP_STYLE"])
 
-    seconds_per_beat = 60 / TEMPO
+    seconds_per_beat = 60 / config["TEMPO"]
     note_duration = 4 * seconds_per_beat / len(melodic_pattern)
     start_time = 0.0
     # Add chord chords to the instrument
@@ -99,11 +95,11 @@ def play_chord_arpeggiate(pm, chord_sequence):
         for _ in range(int(num_repeats)):
             for idx, pattern_note in enumerate(melodic_pattern):
                 midi_note = note_mapping[chord[pattern_note]]
-                if idx == 0 and ARP_STYLE == 0 or ARP_STYLE == 1:
+                if idx == 0 and config["ARP_STYLE"] == 0 or config["ARP_STYLE"] == 1:
                     midi_note -= 12  # Lower the root note by one octave
-                if idx == 4 and ARP_STYLE == 0:
+                if idx == 4 and config["ARP_STYLE"] == 0:
                     midi_note += 12  # increase the root note by one octave
-                if ARP_STYLE == 3:
+                if config["ARP_STYLE"] == 3:
                     if idx == 0 or idx == 1 or idx == 2:
                         midi_note -= 24
 
@@ -112,8 +108,8 @@ def play_chord_arpeggiate(pm, chord_sequence):
                 note = pretty_midi.Note(
                     velocity=velocity,
                     pitch=midi_note,
-                    start=beats_to_seconds(start_time),
-                    end=beats_to_seconds(start_time + note_duration),
+                    start=beats_to_seconds(start_time, config["TEMPO"]),
+                    end=beats_to_seconds(start_time + note_duration, config["TEMPO"]),
                 )
                 piano.notes.append(note)
                 start_time += note_duration
@@ -124,9 +120,13 @@ def play_chord_arpeggiate(pm, chord_sequence):
                     pattern_slice = melodic_pattern[:num_notes]
                     for idx, pattern_note in enumerate(pattern_slice):
                         midi_note = note_mapping[chord[pattern_note]]
-                        if idx == 0 and ARP_STYLE == 0 or ARP_STYLE == 1:
+                        if (
+                            idx == 0
+                            and config["ARP_STYLE"] == 0
+                            or config["ARP_STYLE"] == 1
+                        ):
                             midi_note -= 12  # Lower the root note by one octave
-                        if idx == 4 and ARP_STYLE == 0:
+                        if idx == 4 and config["ARP_STYLE"] == 0:
                             midi_note += 12  # increase the root note by one octave
 
                         # Add note
@@ -134,8 +134,10 @@ def play_chord_arpeggiate(pm, chord_sequence):
                         note = pretty_midi.Note(
                             velocity=velocity,
                             pitch=midi_note,
-                            start=beats_to_seconds(start_time),
-                            end=beats_to_seconds(start_time + note_duration),
+                            start=beats_to_seconds(start_time, config["TEMPO"]),
+                            end=beats_to_seconds(
+                                start_time + note_duration, config["TEMPO"]
+                            ),
                         )
                         piano.notes.append(note)
                         start_time += note_duration
@@ -145,23 +147,18 @@ def play_chord_arpeggiate(pm, chord_sequence):
     return pm
 
 
-def play_chord_bounce(pm, chord_sequence) -> pretty_midi.PrettyMIDI:
-    # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
-    note_mapping = {i: 60 + i for i in range(24)}
-
-    # Create an instrument instance for Acoustic Grand Piano
-    piano_program = pretty_midi.instrument_name_to_program("Acoustic Grand Piano")
-    piano = pretty_midi.Instrument(program=piano_program, is_drum=False)
+def play_chord_bounce(
+    pm: pretty_midi.PrettyMIDI, chord_sequence, config: dict
+) -> pretty_midi.PrettyMIDI:
+    pass
 
 
-def get_timed_chord_sequence(
-    full_bass_sequence, predicted_bass_sequence, dataset_primer
-):
+def get_timed_chord_sequence(full_bass_sequence, dataset_primer):
     chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(
-        chord_agent, predicted_bass_sequence, dataset_primer
+        chord_agent, full_bass_sequence, dataset_primer
     )
 
     timed_chord_sequence = []
@@ -180,7 +177,3 @@ def get_timed_chord_sequence(
         full_chord_timed.append((full_chord, duration))
 
     return full_chord_timed
-
-
-def beats_to_seconds(beats: float) -> float:
-    return round(beats * (60 / TEMPO), 2)

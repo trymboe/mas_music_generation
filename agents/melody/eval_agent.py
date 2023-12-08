@@ -7,24 +7,20 @@ from config import (
     DURATION_SIZE_MELODY,
     PITCH_SIZE_MELODY,
     INT_TO_TRIAD,
-    SCALE_MELODY,
-    TEMPO,
-    NOTE_TEMPERATURE_MELODY,
-    DURATION_TEMPERATURE_MELODY,
     PITCH_VECTOR_SIZE,
-    DURATION_PREFERENCES,
-    NO_PAUSE,
 )
+from ..utils import select_with_preference
 
 
-def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list[int]]:
+def predict_next_notes(
+    chord_sequence, melody_agent, melody_primer, config
+) -> list[list[int]]:
     with torch.no_grad():
         all_notes: list[list[int]] = []
 
-        if SCALE_MELODY:
-            pitch_preferences: list[int] = generate_scale_preferences()
+        if config["SCALE_MELODY"]:
+            pitch_preferences: list[int] = generate_scale_preferences(config)
 
-        running_time_total_beats: float = 0
         running_time_on_chord_beats: float = 0
 
         current_chord_duration_beats = chord_sequence[0][1]
@@ -66,11 +62,11 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
             )
 
             note_logits_temperature = apply_temperature(
-                pitch_logits[0, :], NOTE_TEMPERATURE_MELODY
+                pitch_logits[0, :], config["NOTE_TEMPERATURE_MELODY"]
             )
 
             duration_logits_temperature = apply_temperature(
-                duration_logits[0, :], DURATION_TEMPERATURE_MELODY
+                duration_logits[0, :], config["DURATION_TEMPERATURE_MELODY"]
             )
 
             note_probabilities = F.softmax(note_logits_temperature, dim=0).view(-1)
@@ -78,14 +74,14 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                 -1
             )
 
-            if SCALE_MELODY:
+            if config["SCALE_MELODY"]:
                 note_probabilities = select_with_preference(
                     note_probabilities, pitch_preferences
                 )
 
-            if DURATION_PREFERENCES:
+            if config["DURATION_PREFERENCES_MELODY"]:
                 duration_probabilities = select_with_preference(
-                    duration_probabilities, DURATION_PREFERENCES
+                    duration_probabilities, config["DURATION_PREFERENCES_MELODY"]
                 )
 
             # Sample from the distributions
@@ -103,10 +99,14 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
             next_accumulated_time = get_accumulated_time_tensor(accumulated_time)
 
             # We are done
-            if (
-                running_time_on_chord_beats > current_chord_duration_beats
-                and chord_num >= len(chord_sequence) - 1
-            ):
+            if sum_duration_in_beats >= config["LENGTH"] * 4:
+                all_notes.pop()
+                all_notes.append(
+                    [
+                        next_note.item() + 61,
+                        int((sum_duration_in_beats - config["LENGTH"] * 4) / 4),
+                    ]
+                )
                 break
 
             while running_time_on_chord_beats > current_chord_duration_beats:
@@ -319,10 +319,6 @@ def apply_temperature(logits, temperature):
     return logits / temperature
 
 
-def seconds_to_beat(seconds: float) -> float:
-    return round(seconds * (TEMPO / 60), 2)
-
-
 def get_chord_tensor(chord: list[int]) -> torch.Tensor:
     """
     One hot encodes a chord into a tensor list.
@@ -362,32 +358,10 @@ def get_pitch_duration_tensor(
     return torch.tensor(pitch_vector), torch.tensor(duration_vector)
 
 
-def select_with_preference(probs, preferred_indices):
-    # Create a mask with zeros at all positions
-    mask = torch.zeros_like(probs)
-
-    # Set the mask to 1 at preferred indices
-    mask[preferred_indices] = 1
-
-    # Apply the mask to the probabilities
-    masked_probs = probs * mask
-
-    # Check if there is at least one preferred index with non-zero probability
-    if torch.sum(masked_probs) > 0:
-        # Normalize the probabilities
-        masked_probs /= torch.sum(masked_probs)
-        # Select using the modified probabilities
-        return masked_probs
-
-    else:
-        # If all preferred indices have zero probability, fall back to the original distribution
-        return probs
-
-
-def generate_scale_preferences() -> list[int]:
-    if SCALE_MELODY == "major pentatonic":
+def generate_scale_preferences(config) -> list[int]:
+    if config["SCALE_MELODY"] == "major pentatonic":
         intervals = [0, 2, 4, 7, 9]
-    if SCALE_MELODY == "major scale":
+    if config["SCALE_MELODY"] == "major scale":
         intervals = [0, 2, 4, 5, 7, 9, 11]
     full_range = []
 
@@ -399,7 +373,7 @@ def generate_scale_preferences() -> list[int]:
             if note_index > 0:
                 full_range.append(note_index)
     # for pause
-    if not NO_PAUSE:
+    if not config["NO_PAUSE"]:
         full_range.append(PITCH_VECTOR_SIZE)
 
     return full_range

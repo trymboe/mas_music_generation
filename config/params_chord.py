@@ -15,8 +15,7 @@ MAX_BATCHES_CHORD = (
 )
 
 # Playing parameters
-ARPEGIATE_CHORD = False
-BOUNCE_CHORD = False
+
 
 MODEL_PATH_CHORD = "models/chord/chord_model.pt"
 TRAIN_DATASET_PATH_CHORD = "data/dataset/chord_dataset_train.pt"

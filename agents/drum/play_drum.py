@@ -8,7 +8,7 @@ from .utils import (
 
 from data_processing import Drum_Dataset, load_yaml, get_drum_dataset
 
-from config import DRUM_STYLES, TEMPO, MODEL_PATH_DRUM, DEVICE
+from config import DRUM_STYLES, MODEL_PATH_DRUM, DEVICE
 
 import random
 import pretty_midi
@@ -18,12 +18,16 @@ from .drum_network import Drum_Network
 import note_seq as ns
 
 
-def play_drum(
-    measures: int, loops: int, style: str = "highlife"
-) -> pretty_midi.PrettyMIDI:
+def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
     drum_dataset: Drum_Dataset = get_drum_dataset()
-    if style:
-        return play_drum_from_style(measures, loops, drum_dataset, style)
+    if config["STYLE"]:
+        return play_drum_from_style(
+            loop_measures=config["LOOP_MEASURES"],
+            loops=int(config["LENGTH"] / config["LOOP_MEASURES"]),
+            drum_dataset=drum_dataset,
+            tempo=config["TEMPO"],
+            style=config["STYLE"],
+        )
 
     conf = load_yaml("config/bumblebeat/params.yaml")
 
@@ -73,7 +77,7 @@ def play_drum(
     return pm
 
 
-def play_drum_from_style(measures, loops, drum_dataset, style):
+def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
     conf: dict = load_yaml("config/bumblebeat/params.yaml")
 
     time_vocab: dict[int, int] = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
@@ -133,7 +137,7 @@ def play_drum_from_style(measures, loops, drum_dataset, style):
         simplified_pitches,
         velocity_vocab,
         time_vocab,
-        TEMPO,
+        tempo,
     )
 
     out_tokens = continue_sequence(
@@ -164,11 +168,10 @@ def play_drum_from_style(measures, loops, drum_dataset, style):
 
     pm = ns.note_sequence_to_pretty_midi(note_sequence)
 
-    pm = loop_drum(pm, measures, loops)
-    # pm.write("results/drum/loop_continue.midi")
+    pm.write("results/drum/start.midi")
 
-    note_sequence_to_midi_file(note_sequence, f"results/drum/full_continue.midi")
-
+    pm = loop_drum(pm, loop_measures, loops)
+    pm.write("results/drum/loop.midi")
     return pm
 
 

@@ -183,6 +183,62 @@ def tokens_to_note_sequence(
     return seq
 
 
+def beats_to_seconds(beats: float, tempo: int) -> float:
+    """
+    Converts beats to seconds based on the given tempo.
+
+    Args
+    -------
+        beats (float): The number of beats to convert.
+        tempo (int): The tempo in beats per minute.
+
+    Returns
+    -------
+        float: The equivalent number of seconds.
+
+    """
+    return round(beats * (60 / tempo), 2)
+
+
+def seconds_to_beat(seconds: float, tempo: int) -> float:
+    """
+    Converts the given duration in seconds to the corresponding duration in beats,
+    based on the provided tempo.
+
+    Args
+    -------
+        seconds (float): The duration in seconds.
+        tempo: The tempo in beats per minute.
+
+    Returns
+    -------
+        float: The duration in beats.
+    """
+    return round(seconds * (tempo / 60), 2)
+
+
+def select_with_preference(probs, preferred_indices):
+    # Create a mask with zeros at all positions
+    mask = torch.zeros_like(probs)
+
+    # Set the mask to 1 at preferred indices
+    mask[preferred_indices] = 1
+
+    # Apply the mask to the probabilities
+    masked_probs = probs * mask
+
+    # Check if there is at least one preferred index with non-zero probability
+    if torch.sum(masked_probs) > 0:
+        # Normalize the probabilities
+        masked_probs /= torch.sum(masked_probs)
+        # Select using the modified probabilities
+        return masked_probs
+
+    else:
+        # If all preferred indices have zero probability, fall back to the original distribution
+        return probs
+
+
 def generate_velocity_in_bucket(bucket, n_buckets):
     """
     Generate a random velocity in <bucket> for range of <n_buckets>
