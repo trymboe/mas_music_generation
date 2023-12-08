@@ -35,7 +35,7 @@ from config import (
 )
 
 
-def play_agents(arpeggiate: bool) -> None:
+def play_agents() -> None:
     """
     Orchestrates the playing of bass, chord, and drum agents to generate a music piece.
 
@@ -75,9 +75,7 @@ def play_agents(arpeggiate: bool) -> None:
 
     print("  ----playing chord----")
     start = time.time()
-    mid, chord_sequence = play_chord(
-        mid, arpeggiate, predicted_bass_sequence, chord_primer
-    )
+    mid, chord_sequence = play_chord(mid, predicted_bass_sequence, chord_primer)
     end = time.time()
     print("    ----chord playing time: ", end - start)
 

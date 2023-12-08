@@ -109,7 +109,7 @@ def play_bass(
         for note, duration in predicted_bass_sequence:
             midi_note = note_mapping[note]
             bass_note = pretty_midi.Note(
-                velocity=64,
+                velocity=70,
                 pitch=midi_note,
                 start=chord_start_time,
                 end=chord_start_time + duration,
@@ -128,7 +128,7 @@ def play_note(
     pitch: int,
     start_time: float,
     end_time: float,
-    velocity: int = 64,
+    velocity: int = 70,
 ):
     bass_note = pretty_midi.Note(
         velocity=velocity,

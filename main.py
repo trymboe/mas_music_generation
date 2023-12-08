@@ -8,20 +8,10 @@ from agents import (
     play_agents,
 )
 
-
 from utils import get_datasets
-
-from config import SAVE_RESULT_PATH
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
-parser.add_argument(
-    "-a",
-    "--arpeggiate",
-    action="store_true",
-    help="Arpeggiate the chords",
-    default=False,
-)
 parser.add_argument(
     "-tb",
     "--train_bass",
@@ -73,7 +63,6 @@ if __name__ == "__main__":
     train_chord: bool = parser.parse_args().train_chord
     train_drum: bool = parser.parse_args().train_drum
     train_melody: bool = parser.parse_args().train_melody
-    arpeggiate: bool = parser.parse_args().arpeggiate
 
     # Process the datasets
     get_datasets()
@@ -82,6 +71,6 @@ if __name__ == "__main__":
     create_agents(train_bass, train_chord, train_drum, train_melody)
 
     # Play the agents
-    play_agents(arpeggiate)
+    play_agents()
 
     plt.show()

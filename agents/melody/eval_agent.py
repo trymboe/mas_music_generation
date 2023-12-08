@@ -12,6 +12,8 @@ from config import (
     NOTE_TEMPERATURE_MELODY,
     DURATION_TEMPERATURE_MELODY,
     PITCH_VECTOR_SIZE,
+    DURATION_PREFERENCES,
+    NO_PAUSE,
 )
 
 
@@ -19,7 +21,6 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
     with torch.no_grad():
         all_notes: list[list[int]] = []
 
-        duration_preferences: list[int] = [0, 1, 3, 7, 15]
         if SCALE_MELODY:
             pitch_preferences: list[int] = generate_scale_preferences()
 
@@ -82,9 +83,10 @@ def predict_next_notes(chord_sequence, melody_agent, melody_primer) -> list[list
                     note_probabilities, pitch_preferences
                 )
 
-            duration_probabilities = select_with_preference(
-                duration_probabilities, duration_preferences
-            )
+            if DURATION_PREFERENCES:
+                duration_probabilities = select_with_preference(
+                    duration_probabilities, DURATION_PREFERENCES
+                )
 
             # Sample from the distributions
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
@@ -334,10 +336,10 @@ def get_chord_tensor(chord: list[int]) -> torch.Tensor:
     chord_type: list[int] = [c - root_note for c in chord]
 
     chord_type: int = get_key(chord_type, INT_TO_TRIAD)
-
-    chord_index: int = root_note * 6 + chord_type
+    chord_index: int = root_note * 2 + chord_type
 
     chord_vector = [0] * CHORD_SIZE_MELODY
+
     chord_vector[chord_index] = 1
     return torch.tensor(chord_vector)
 
@@ -397,6 +399,7 @@ def generate_scale_preferences() -> list[int]:
             if note_index > 0:
                 full_range.append(note_index)
     # for pause
-    full_range.append(PITCH_VECTOR_SIZE)
+    if not NO_PAUSE:
+        full_range.append(PITCH_VECTOR_SIZE)
 
     return full_range

@@ -25,9 +25,12 @@ DROPOUT_MELODY = 0.5
 NUM_LAYERS_LSTM_MELODY = 2
 
 # Generation parameters
-NOTE_TEMPERATURE_MELODY = 1
+NOTE_TEMPERATURE_MELODY = 0.8
 DURATION_TEMPERATURE_MELODY = 0.8
+NO_PAUSE = False
 SCALE_MELODY = "major pentatonic"  # "major pentatonic"  # "major scale"",
+DURATION_PREFERENCES = [1, 3, 5, 7, 9, 11, 13, 15]  # False, [7, 11, 15]
+
 
 TOTAL_INPUT_SIZE_MELODY = (
     PITCH_VECTOR_SIZE + 1 + DURATION_SIZE_MELODY + CHORD_SIZE_MELODY * 2 + 2
@@ -41,7 +44,10 @@ MODEL_PATH_MELODY = (
     + COMMENT_MELODY
     + ".pt"
 )
-MODEL_PATH_MELODY = "models/melody/checkpoint_new115.pt"
+
+# MODEL_PATH_MELODY = "models/melody/checkpoint_no_reg2_15.pt"
+MODEL_PATH_MELODY = "models/melody/melody_model_150_no_reg2.pt"
+
 TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"
 TEST_DATASET_PATH_MELODY = "data/dataset/melody_dataset_test.pt"
 VAL_DATASET_PATH_MELODY = "data/dataset/melody_dataset_val.pt"

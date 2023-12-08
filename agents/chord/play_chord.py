@@ -5,12 +5,19 @@ import random
 import torch
 
 from .eval_agent import predict_next_k_notes_chords
-from config import TEMPO, ARP_STYLE, MODEL_PATH_CHORD, INT_TO_TRIAD, DEVICE
+from config import (
+    TEMPO,
+    ARP_STYLE,
+    MODEL_PATH_CHORD,
+    INT_TO_TRIAD,
+    DEVICE,
+    ARPEGIATE_CHORD,
+    BOUNCE_CHORD,
+)
 
 
 def play_chord(
     mid: MidiFile,
-    arpeggiate,
     predicted_bass_sequence,
     dataset_primer,
 ) -> tuple[MidiFile, list]:
@@ -20,8 +27,10 @@ def play_chord(
         dataset_primer,
     )
 
-    if arpeggiate:
+    if ARPEGIATE_CHORD:
         mid = play_chord_arpeggiate(mid, timed_chord_sequence)
+    elif BOUNCE_CHORD:
+        mid = play_chord_bounce(mid, timed_chord_sequence)
     else:
         mid = play_chord_hold(mid, timed_chord_sequence)
 
@@ -73,8 +82,12 @@ def play_chord_arpeggiate(pm, chord_sequence):
         melodic_pattern = [0, 0, 1, 2, 0, 2, 1, 0]
     elif ARP_STYLE == 1:
         melodic_pattern = [0, 0, 1, 2, 1, 0]
-    else:
+    elif ARP_STYLE == 2:
         melodic_pattern = [0, 1, 2, 1]
+    elif ARP_STYLE == 3:
+        melodic_pattern = [0, 2, 0, 0, 1, 2, 1, 0]
+    else:
+        raise ValueError("Invalid ARP_STYLE value.", ARP_STYLE)
 
     seconds_per_beat = 60 / TEMPO
     note_duration = 4 * seconds_per_beat / len(melodic_pattern)
@@ -90,6 +103,9 @@ def play_chord_arpeggiate(pm, chord_sequence):
                     midi_note -= 12  # Lower the root note by one octave
                 if idx == 4 and ARP_STYLE == 0:
                     midi_note += 12  # increase the root note by one octave
+                if ARP_STYLE == 3:
+                    if idx == 0 or idx == 1 or idx == 2:
+                        midi_note -= 24
 
                 velocity = random.randint(40, 64)
                 # Add note
@@ -114,7 +130,7 @@ def play_chord_arpeggiate(pm, chord_sequence):
                             midi_note += 12  # increase the root note by one octave
 
                         # Add note
-                        velocity = random.randint(40, 64)
+                        velocity = random.randint(55, 70)
                         note = pretty_midi.Note(
                             velocity=velocity,
                             pitch=midi_note,
@@ -127,6 +143,15 @@ def play_chord_arpeggiate(pm, chord_sequence):
     # Append instrument to PrettyMIDI object
     pm.instruments.append(piano)
     return pm
+
+
+def play_chord_bounce(pm, chord_sequence) -> pretty_midi.PrettyMIDI:
+    # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
+    note_mapping = {i: 60 + i for i in range(24)}
+
+    # Create an instrument instance for Acoustic Grand Piano
+    piano_program = pretty_midi.instrument_name_to_program("Acoustic Grand Piano")
+    piano = pretty_midi.Instrument(program=piano_program, is_drum=False)
 
 
 def get_timed_chord_sequence(

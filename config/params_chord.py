@@ -9,17 +9,21 @@ BATCH_SIZE_CHORD = 8
 LEARNING_RATE_CHORD = 0.00001
 HIDDEN_SIZE_CHORD = 64
 
-NUM_EPOCHS_CHORD = 5  # Number of epochs
+NUM_EPOCHS_CHORD = 30  # Number of epochs
 MAX_BATCHES_CHORD = (
-    10  # Max number of batches to train on per Epoch, for shorter training
+    50  # Max number of batches to train on per Epoch, for shorter training
 )
+
+# Playing parameters
+ARPEGIATE_CHORD = False
+BOUNCE_CHORD = False
 
 MODEL_PATH_CHORD = "models/chord/chord_model.pt"
 TRAIN_DATASET_PATH_CHORD = "data/dataset/chord_dataset_train.pt"
 TEST_DATASET_PATH_CHORD = "data/dataset/chord_dataset_test.pt"
 VAL_DATASET_PATH_CHORD = "data/dataset/chord_dataset_val.pt"
 
-ARP_STYLE = 2  # Style of the arpegiator 0 for 8 notes, 1 for 6 note, 2 for 4 notes
+ARP_STYLE = 2  # Style of the arpegiator 0 for 16th notes, 1 for 12th note, 2 for 8th notes, 3 for full range 16th notes
 
 # Mappings
 CHORD_TO_INT = {
