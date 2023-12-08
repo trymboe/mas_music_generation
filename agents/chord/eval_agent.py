@@ -1,14 +1,13 @@
 import torch
 import torch.nn.functional as F
 
-from config import SEQUENCE_LENGTH_CHORD
+from config import 
 
 
-def predict_next_k_notes_chords(model, predicted_bass_sequence, dataset_primer):
-    #
-    chord_primer = get_input_sequence_chords(predicted_bass_sequence, dataset_primer)
+def predict_next_k_notes_chords(model, full_bass_sequence, dataset_primer):
+    chord_primer = get_input_sequence_chords(dataset_primer, full_bass_sequence)
 
-    predicted_chord_types = []
+    predicted_chords = []
 
     # Add a batch dimension
     input_sequence = chord_primer.unsqueeze(0)
@@ -16,12 +15,9 @@ def predict_next_k_notes_chords(model, predicted_bass_sequence, dataset_primer):
     model.eval()  # Set the model to evaluation mode
 
     with torch.no_grad():
-        for i in range(SEQUENCE_LENGTH_CHORD - 1, input_sequence.size(1)):
-            # Get the current sequence up to the position `i`
-            current_sequence = input_sequence[:, : i + 1, :]
-
+        for i in range(len(full_bass_sequence)):
             # Predict chord type
-            output = model(current_sequence)
+            output = model(input_sequence)
 
             # Apply softmax to get probabilities
             chord_probabilities = F.softmax(
@@ -30,38 +26,42 @@ def predict_next_k_notes_chords(model, predicted_bass_sequence, dataset_primer):
 
             # Sample from the distribution
             next_chord_type = torch.multinomial(chord_probabilities, 1).item()
+            predicted_chords.append((input_sequence[0, -1, 0].item(), next_chord_type))
 
-            # Update the placeholder for the next iteration
-            input_sequence[0, i, 1] = next_chord_type
+            if i != len(full_bass_sequence) - 1:
+                input_sequence = update_input_sequence(
+                    input_sequence, next_chord_type, full_bass_sequence[i + 1][0]
+                )
 
-    # Prepare the output list with known chord types and predicted ones
-    for i in range(input_sequence.size(1)):
-        predicted_chord_types.append(
-            (input_sequence[0, i, 0].item(), input_sequence[0, i, 1].item())
-        )
-    return predicted_chord_types
+    return predicted_chords
 
 
-def get_input_sequence_chords(full_bass_sequence, dataset_primer):
+def update_input_sequence(
+    input_sequence: torch.tensor, next_chord_type: int, next_note: int
+) -> torch.tensor:
+    input_sequence_list = input_sequence.squeeze().tolist()
+    input_sequence_list[-1] = [input_sequence_list[-1][0], next_chord_type]
+
+    input_sequence_list = input_sequence_list[1:]
+
+    input_sequence_list.append([next_note, 6])
+    return torch.tensor(input_sequence_list).unsqueeze(0)
+
+
+def get_input_sequence_chords(dataset_primer, full_bass_sequence):
     # Extract the corresponding chord sequence from the dataset
     actual_chord_sequence = dataset_primer[:, :2]
 
-    # Extract only the root notes from the full_bass_sequence
-    bass_notes = [pair[0] for pair in full_bass_sequence]
-
-    # Create the input sequence
     input_sequence = []
 
-    # Iterate over the bass_notes and actual_chord_sequence to create the pairs
-    for i, bass_note in enumerate(bass_notes):
-        if i < len(actual_chord_sequence):  # If we have actual chords, use them
-            input_sequence.append(
-                [bass_note, actual_chord_sequence[i][1].item()]
-            )  # Use .item() to extract scalar from tensor
-        else:  # Otherwise, use the placeholder
-            input_sequence.append([bass_note, 6])
+    for i, event in enumerate(dataset_primer):
+        if i == 0:
+            continue
+        input_sequence.append([int(event[0]), int(event[1])])
+
+    # use placeholder token on last value together with predicted bass note
+    input_sequence.append([int(full_bass_sequence[0][0]), 6])
 
     # Convert the list of lists to a tensor
     input_tensor = torch.tensor(input_sequence, dtype=torch.int64)
-
     return input_tensor
