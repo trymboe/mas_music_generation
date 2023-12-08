@@ -1,8 +1,6 @@
 import torch
 import torch.nn.functional as F
 
-from config import 
-
 
 def predict_next_k_notes_chords(model, full_bass_sequence, dataset_primer):
     chord_primer = get_input_sequence_chords(dataset_primer, full_bass_sequence)
