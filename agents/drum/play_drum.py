@@ -28,6 +28,8 @@ def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
             tempo=config["TEMPO"],
             style=config["STYLE"],
         )
+    else:
+        raise NotImplementedError
 
     conf = load_yaml("config/bumblebeat/params.yaml")
 
@@ -71,8 +73,6 @@ def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
 
         pm = ns.note_sequence_to_pretty_midi(note_sequence)
         # pm.write("results/drum/loop_gen.midi")
-
-        note_sequence_to_midi_file(note_sequence, f"results/drum/full_gen.midi")
 
     return pm
 
@@ -168,10 +168,8 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
 
     pm = ns.note_sequence_to_pretty_midi(note_sequence)
 
-    pm.write("results/drum/start.midi")
-
     pm = loop_drum(pm, loop_measures, loops)
-    pm.write("results/drum/loop.midi")
+
     return pm
 
 

@@ -78,9 +78,6 @@ class Chord_Dataset(Dataset):
                 except KeyError:
                     continue
 
-                # Replace the chord type of the last pair with a placeholder (6)
-                chord[-1] = (chord[-1][0], 6, int(chord[-1][2]), chord[-1][3])
-
                 data.append(chord)
                 labels.append(CHORD_TO_INT[seq[-1][1]])
 
@@ -449,6 +446,7 @@ class Melody_Dataset(Dataset):
                 start_idx + self.sequence_length : start_idx + self.sequence_length + 1
             ],
         )
+
 
 class Melody_Dataset_Combined(Dataset):
     def __init__(self, data, indices):

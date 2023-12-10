@@ -25,7 +25,10 @@ def predict_next_notes(
 
         current_chord_duration_beats = chord_sequence[0][1]
         next_current_chord = get_chord_tensor(chord_sequence[0][0])
-        next_next_chord = get_chord_tensor(chord_sequence[1][0])
+        try:
+            next_next_chord = get_chord_tensor(chord_sequence[1][0])
+        except:
+            next_next_chord = next_current_chord
 
         (
             pitches,

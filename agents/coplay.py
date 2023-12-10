@@ -2,6 +2,7 @@ from .bass import play_bass
 from .chord import play_chord
 from .drum import play_drum
 from .melody import play_melody
+from .harmony import play_harmony
 import random
 import time
 
@@ -10,13 +11,6 @@ import torch
 
 from data_processing import Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset
 
-
-from agents import (
-    predict_next_k_notes_bass,
-    predict_next_k_notes_chords,
-    generate_scale_preferences,
-    select_with_preference,
-)
 
 from config import (
     SEQUENCE_LENGTH_CHORD,
@@ -57,18 +51,27 @@ def play_agents() -> None:
 
     for idx, config in enumerate(SEGMENTS):
         print("  ----segment:", idx + 1, "----")
+        # ------------------------------------------------------
+        #                   playing drum
+        # ------------------------------------------------------
         print("    ----playing drum----")
         start = time.time()
-        new_mid: pretty_midi.PrettyMIDI = play_drum(config)
+        new_mid = play_drum(config)
         end = time.time()
         print("      ----drum playing time: ", end - start)
 
+        # ------------------------------------------------------
+        #                   playing bass
+        # ------------------------------------------------------
         print("    ----playing bass----")
         start = time.time()
         new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
         end = time.time()
         print("      ----bass playing time: ", end - start)
 
+        # ------------------------------------------------------
+        #                   playing chord
+        # ------------------------------------------------------
         print("    ----playing chord----")
         start = time.time()
         new_mid, predicted_chord_sequence = play_chord(
@@ -77,6 +80,9 @@ def play_agents() -> None:
         end = time.time()
         print("      ----chord playing time: ", end - start)
 
+        # ------------------------------------------------------
+        #                   playing melody
+        # ------------------------------------------------------
         print("    ----playing melody----")
         start = time.time()
         new_mid, predicted_melody_sequence = play_melody(
@@ -84,6 +90,16 @@ def play_agents() -> None:
         )
         end = time.time()
         print("      ----melody playing time: ", end - start)
+
+        # ------------------------------------------------------
+        #                   playing harmony
+        # ------------------------------------------------------
+        print("    ----playing harmony----")
+        start = time.time()
+        new_mid = play_harmony(new_mid, predicted_melody_sequence, config)
+        end = time.time()
+        print("      ----harmony playing time: ", end - start)
+
         if mid:
             mid = merge_pretty_midi(mid, new_mid)
         else:

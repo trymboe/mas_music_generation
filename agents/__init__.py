@@ -20,6 +20,8 @@ from .melody import (
     select_with_preference,
 )
 
+from .harmony import play_harmony
+
 from .drum import train_drum
 
 from .coplay import play_agents
