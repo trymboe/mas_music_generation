@@ -43,12 +43,8 @@ def play_bass(
                 if bass_drum_times[idx] >= chord_start_time + duration:
                     # If no note has been played yet, play a note for the entire duration
                     if running_time == chord_start_time:
-                        try:
-                            end_time = chord_start_time + duration
-
                         # If there are no more bass drum hits, play the note for the entire duration
-                        except:
-                            end_time = chord_start_time + duration
+                        end_time = chord_start_time + duration
 
                         play_note(
                             bass_instrument,
@@ -83,6 +79,8 @@ def play_bass(
                     # Song is finished if there are no more bass drum hits
                     if idx + 1 == len(bass_drum_times):
                         end_time = running_time + duration
+                        if end_time > chord_start_time + duration:
+                            end_time = chord_start_time + duration
                         play_note(
                             bass_instrument,
                             pitch=midi_note,
@@ -117,10 +115,10 @@ def play_bass(
                 velocity=70,
                 pitch=midi_note,
                 start=chord_start_time,
-                end=chord_start_time + duration,
+                end=chord_start_time + (duration / 2),
             )
             bass_instrument.notes.append(bass_note)
-            chord_start_time += duration
+            chord_start_time += duration / 2
 
     # Add the bass_instrument to the PrettyMIDI object
     mid.instruments.append(bass_instrument)

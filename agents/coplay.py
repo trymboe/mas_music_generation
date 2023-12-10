@@ -66,7 +66,6 @@ def play_agents() -> None:
         print("    ----playing bass----")
         start = time.time()
         new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
-        print("predicted bass sequence", predicted_bass_sequence)
         end = time.time()
         print("      ----bass playing time: ", end - start)
 
