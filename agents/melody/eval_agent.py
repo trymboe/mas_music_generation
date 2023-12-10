@@ -101,10 +101,20 @@ def predict_next_notes(
             # We are done
             if sum_duration_in_beats >= config["LENGTH"] * 4:
                 all_notes.pop()
+                # Add the last note, with the remaining duration
                 all_notes.append(
                     [
                         next_note.item() + 61,
-                        int((sum_duration_in_beats - config["LENGTH"] * 4) / 4),
+                        int(
+                            (
+                                config["LENGTH"] * 4
+                                - (
+                                    sum_duration_in_beats
+                                    - (duration_in_quarter_notes / 4)
+                                )
+                            )
+                            * 4
+                        ),
                     ]
                 )
                 break

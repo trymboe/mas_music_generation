@@ -32,6 +32,7 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
         # get duration in beats, orignaly in quarter notes
         duration = duration * 0.25
 
+        # If the note is a pause, skip it
         if note == 5 * 12 + PITCH_SIZE_MELODY:
             running_time += duration
             continue
