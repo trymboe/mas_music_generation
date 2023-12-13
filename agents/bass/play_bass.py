@@ -121,6 +121,7 @@ def play_bass(
             chord_start_time += duration / 2
 
     # Add the bass_instrument to the PrettyMIDI object
+    bass_instrument.name = "bass"
     mid.instruments.append(bass_instrument)
 
     return mid, predicted_bass_sequence

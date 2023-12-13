@@ -60,6 +60,7 @@ def play_chord_hold(pretty_midi_obj, chord_sequence, config):
         current_time += duration
 
     # Add the piano_instrument to the PrettyMIDI object
+    piano_instrument.name = "chord"
     pretty_midi_obj.instruments.append(piano_instrument)
 
     return pretty_midi_obj
@@ -143,6 +144,7 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
                         start_time += note_duration
 
     # Append instrument to PrettyMIDI object
+    piano.name = "chord"
     pm.instruments.append(piano)
     return pm
 

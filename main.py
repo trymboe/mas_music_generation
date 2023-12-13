@@ -1,7 +1,8 @@
 print("----loading imports----")
 import matplotlib.pyplot as plt
 import argparse
-import torch
+import requests
+import pretty_midi
 
 from agents import (
     create_agents,
@@ -9,6 +10,13 @@ from agents import (
 )
 
 from utils import get_datasets
+
+import threading
+from flask import Flask
+from script.broadcaster import (
+    start_broadcaster,
+    add_to_queue,
+)  # Import Flask app and loop
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
@@ -42,7 +50,7 @@ parser.add_argument(
 )
 
 
-if __name__ == "__main__":
+def main():
     """
     Executes the main training and playing routine for music agents.
 
@@ -70,7 +78,28 @@ if __name__ == "__main__":
     # Create and train the agents
     create_agents(train_bass, train_chord, train_drum, train_melody)
 
-    # Play the agents
-    play_agents()
+    pm = play_agents()
+    add_to_queue(pm)
 
-    plt.show()
+    start_broadcaster()
+
+    try:
+        while True:
+            pass
+            # print("Generating queue")
+            # pm = play_agents()
+            # add_to_queue(pm)
+            # print("Got queue")
+    except KeyboardInterrupt:
+        print("Exiting...")
+    finally:
+        print("Shutting down Flask server...")
+        try:
+            requests.post("http://localhost:5005/shutdown")
+        except Exception as e:
+            print(f"Error shutting down Flask server: {e}")
+        plt.show()
+
+
+if __name__ == "__main__":
+    main()

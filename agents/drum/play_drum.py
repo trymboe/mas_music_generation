@@ -169,6 +169,7 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
     pm = ns.note_sequence_to_pretty_midi(note_sequence)
 
     pm = loop_drum(pm, loop_measures, loops)
+    pm.instruments[0].name = "drum"
 
     return pm
 

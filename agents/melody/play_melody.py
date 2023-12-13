@@ -44,6 +44,7 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
         melody_instrument.notes.append(melody_note)
         running_time += duration
 
+    melody_instrument.name = "melody"
     mid.instruments.append(melody_instrument)
 
     return mid

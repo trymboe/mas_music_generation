@@ -24,7 +24,7 @@ def play_harmony(
             continue
 
         harmony_note = pretty_midi.Note(
-            velocity=1,
+            velocity=60,
             pitch=harmony_pitch,
             start=start,
             end=end,
@@ -32,6 +32,7 @@ def play_harmony(
 
         harmony_instrument.notes.append(harmony_note)
 
+    harmony_instrument.name = "harmony"
     mid.instruments.append(harmony_instrument)
 
     return mid

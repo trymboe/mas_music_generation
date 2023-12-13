@@ -28,7 +28,7 @@ from config import (
 )
 
 
-def play_agents() -> None:
+def play_agents() -> pretty_midi.PrettyMIDI:
     """
     Orchestrates the playing of bass, chord, and drum agents to generate a music piece.
 
@@ -58,8 +58,8 @@ def play_agents() -> None:
         start = time.time()
         new_mid = play_drum(config)
         end = time.time()
-        print("      ----drum playing time: ", end - start)
 
+        print("      ----drum playing time: ", end - start)
         # ------------------------------------------------------
         #                   playing bass
         # ------------------------------------------------------
@@ -68,7 +68,7 @@ def play_agents() -> None:
         new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
         end = time.time()
         print("      ----bass playing time: ", end - start)
-
+        new_mid.write("results/segment_" + str(idx + 1) + ".mid")
         # ------------------------------------------------------
         #                   playing chord
         # ------------------------------------------------------
@@ -116,6 +116,7 @@ def play_agents() -> None:
         #     config,
         # )
     mid.write(SAVE_RESULT_PATH)
+    return mid
 
 
 def get_new_primer_sequences(
