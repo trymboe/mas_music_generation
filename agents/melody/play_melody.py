@@ -39,7 +39,7 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
         start = beats_to_seconds(running_time, config["TEMPO"])
         end = beats_to_seconds(running_time + (duration), config["TEMPO"])
         melody_note: pretty_midi.Note = pretty_midi.Note(
-            velocity=1, pitch=note, start=start, end=end
+            velocity=72, pitch=note, start=start, end=end
         )
         melody_instrument.notes.append(melody_note)
         running_time += duration

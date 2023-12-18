@@ -1,22 +1,24 @@
 print("----loading imports----")
 import matplotlib.pyplot as plt
 import argparse
-import requests
-import pretty_midi
+
+import os
 
 from agents import (
     create_agents,
     play_agents,
 )
 
+from config import SEGMENTS
+import webbrowser
+
 from utils import get_datasets
 
-import threading
 from flask import Flask
 from script.broadcaster import (
     start_broadcaster,
     add_to_queue,
-)  # Import Flask app and loop
+)
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
@@ -78,26 +80,24 @@ def main():
     # Create and train the agents
     create_agents(train_bass, train_chord, train_drum, train_melody)
 
-    pm = play_agents()
+    pm = play_agents(SEGMENTS[0])
     add_to_queue(pm)
 
-    start_broadcaster()
+    start_broadcaster(SEGMENTS[0])
+    # Open the web browser
+    webbrowser.open("file://" + os.path.realpath("index.html"))
 
     try:
         while True:
             pass
-            # print("Generating queue")
-            # pm = play_agents()
-            # add_to_queue(pm)
-            # print("Got queue")
+        #     print("Generating queue")
+        #     pm = play_agents(SEGMENTS[0])
+        #     add_to_queue(pm)
+        #     print("Got queue")
     except KeyboardInterrupt:
         print("Exiting...")
     finally:
         print("Shutting down Flask server...")
-        try:
-            requests.post("http://localhost:5005/shutdown")
-        except Exception as e:
-            print(f"Error shutting down Flask server: {e}")
         plt.show()
 
 

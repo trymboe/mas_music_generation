@@ -639,14 +639,16 @@ def continue_sequence(model, seq, prime_len, gen_len, temp, topk, mem_len, devic
 
     """
     assert len(seq) >= prime_len + 1, "Insufficient tokens for prime length"
-
+    print(device)
     sampler = TxlSimpleSampler(model, device, mem_len=mem_len)
 
     inp, sampler = prime_sampler(sampler, seq, prime_len)
 
     nll = 0.0
     cont = seq[:]
+
     for i in range(gen_len):
+        print(i)
         gen, probs = sampler.sample_next_token_updating_mem(inp, temp=temp, topk=topk)
         p = probs[gen].cpu().item()
         nll += -np.log(p)

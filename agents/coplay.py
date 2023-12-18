@@ -8,6 +8,7 @@ import time
 
 import pretty_midi
 import torch
+import threading
 
 from data_processing import Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset
 
@@ -28,7 +29,7 @@ from config import (
 )
 
 
-def play_agents() -> pretty_midi.PrettyMIDI:
+def play_agents(config) -> pretty_midi.PrettyMIDI:
     """
     Orchestrates the playing of bass, chord, and drum agents to generate a music piece.
 
@@ -45,76 +46,76 @@ def play_agents() -> pretty_midi.PrettyMIDI:
     -------
     None
     """
+    print("Thread:", threading.current_thread())
     chord_primer, bass_primer, melody_primer = get_primer_sequences()
     mid = None
     print("----playing agents----")
 
-    for idx, config in enumerate(SEGMENTS):
-        print("  ----segment:", idx + 1, "----")
-        # ------------------------------------------------------
-        #                   playing drum
-        # ------------------------------------------------------
-        print("    ----playing drum----")
-        start = time.time()
-        new_mid = play_drum(config)
-        end = time.time()
+    # ------------------------------------------------------
+    #                   playing drum
+    # ------------------------------------------------------
+    print("    ----playing drum----")
+    start = time.time()
+    new_mid = play_drum(config)
+    end = time.time()
 
-        print("      ----drum playing time: ", end - start)
-        # ------------------------------------------------------
-        #                   playing bass
-        # ------------------------------------------------------
-        print("    ----playing bass----")
-        start = time.time()
-        new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
-        end = time.time()
-        print("      ----bass playing time: ", end - start)
-        new_mid.write("results/segment_" + str(idx + 1) + ".mid")
-        # ------------------------------------------------------
-        #                   playing chord
-        # ------------------------------------------------------
-        print("    ----playing chord----")
-        start = time.time()
-        new_mid, predicted_chord_sequence = play_chord(
-            new_mid, predicted_bass_sequence, chord_primer, config
-        )
-        end = time.time()
-        print("      ----chord playing time: ", end - start)
+    print("      ----drum playing time: ", end - start)
+    # ------------------------------------------------------
+    #                   playing bass
+    # ------------------------------------------------------
+    print("    ----playing bass----")
+    start = time.time()
+    new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
+    end = time.time()
+    print("      ----bass playing time: ", end - start)
 
-        # ------------------------------------------------------
-        #                   playing melody
-        # ------------------------------------------------------
-        print("    ----playing melody----")
-        start = time.time()
-        new_mid, predicted_melody_sequence = play_melody(
-            new_mid, predicted_chord_sequence, melody_primer, config
-        )
-        end = time.time()
-        print("      ----melody playing time: ", end - start)
+    # ------------------------------------------------------
+    #                   playing chord
+    # ------------------------------------------------------
+    print("    ----playing chord----")
+    start = time.time()
+    new_mid, predicted_chord_sequence = play_chord(
+        new_mid, predicted_bass_sequence, chord_primer, config
+    )
+    end = time.time()
+    print("      ----chord playing time: ", end - start)
 
-        # ------------------------------------------------------
-        #                   playing harmony
-        # ------------------------------------------------------
-        print("    ----playing harmony----")
-        start = time.time()
-        new_mid = play_harmony(new_mid, predicted_melody_sequence, config)
-        end = time.time()
-        print("      ----harmony playing time: ", end - start)
+    # ------------------------------------------------------
+    #                   playing melody
+    # ------------------------------------------------------
+    print("    ----playing melody----")
+    start = time.time()
+    new_mid, predicted_melody_sequence = play_melody(
+        new_mid, predicted_chord_sequence, melody_primer, config
+    )
+    end = time.time()
+    print("      ----melody playing time: ", end - start)
 
-        if mid:
-            mid = merge_pretty_midi(mid, new_mid)
-        else:
-            mid = new_mid
-        new_mid.write("results/segment_" + str(idx + 1) + ".mid")
+    # ------------------------------------------------------
+    #                   playing harmony
+    # ------------------------------------------------------
+    print("    ----playing harmony----")
+    start = time.time()
+    new_mid = play_harmony(new_mid, predicted_melody_sequence, config)
+    end = time.time()
+    print("      ----harmony playing time: ", end - start)
 
-        # bass_primer, chord_primer, melody_primer = get_new_primer_sequences(
-        #     bass_primer,
-        #     predicted_bass_sequence,
-        #     chord_primer,
-        #     predicted_chord_sequence,
-        #     melody_primer,
-        #     predicted_melody_sequence,
-        #     config,
-        # )
+    if mid:
+        mid = merge_pretty_midi(mid, new_mid)
+    else:
+        mid = new_mid
+    new_mid.write("results/segment.mid")
+
+    # bass_primer, chord_primer, melody_primer = get_new_primer_sequences(
+    #     bass_primer,
+    #     predicted_bass_sequence,
+    #     chord_primer,
+    #     predicted_chord_sequence,
+    #     melody_primer,
+    #     predicted_melody_sequence,
+    #     config,
+    # )
+
     mid.write(SAVE_RESULT_PATH)
     return mid
 

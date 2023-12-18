@@ -14,6 +14,8 @@ import os
 import signal
 import threading
 
+from agents import play_agents
+
 ####################
 ## MIDI BROADCAST ##
 ####################
@@ -23,7 +25,11 @@ generation_queue = queue.Queue(maxsize=10)
 pause_event = threading.Event()
 stop_event = threading.Event()
 change_groove_event = threading.Event()
-current_bpm = 110
+
+config_update_event = threading.Event()
+
+global_config = {}
+current_bpm = 120
 current_loop_count = 1
 
 
@@ -102,9 +108,33 @@ def generate_midi_message(event_type, pitch, velocity, channel1, channel2):
     return [event_map.get(event_type, event_type), pitch, velocity]
 
 
+def set_new_channels(config):
+    if config["PLAY_DRUM"]:
+        CHANNELS["drum"] = [0x90, 0x80]
+    else:
+        CHANNELS["drum"] = [0x80, 0x80]
+    if config["PLAY_BASS"]:
+        CHANNELS["bass"] = [0x91, 0x81]
+    else:
+        CHANNELS["bass"] = [0x81, 0x81]
+    if config["PLAY_CHORD"]:
+        CHANNELS["chord"] = [0x92, 0x82]
+    else:
+        CHANNELS["chord"] = [0x82, 0x82]
+    if config["PLAY_MELODY"]:
+        CHANNELS["melody"] = [0x93, 0x83]
+    else:
+        CHANNELS["melody"] = [0x83, 0x83]
+    if config["PLAY_HARMONY"]:
+        CHANNELS["harmony"] = [0x94, 0x84]
+    else:
+        CHANNELS["harmony"] = [0x84, 0x84]
+
+
 def broadcasting_loop(
     generation_queue,
     stop_event,
+    config,
     virtual_port=True,
     introduce_delay=False,
     verbose=False,
@@ -113,20 +143,20 @@ def broadcasting_loop(
     It uses the clockblocks clock to synchronize the groove loops."""
     global desired_loops, current_bpm
 
-    # MIDI initialization
-    print("Initializing MIDI...")
+    set_new_channels(config)
+
     midiout = rtmidi.MidiOut()
     available_ports = midiout.get_ports()
-    print(f"Available MIDI ports: {available_ports}")
     if virtual_port:
         midiout.open_virtual_port("dB virtual output")
-        print("Using dB virtual MIDI output")
+        if verbose:
+            print("Using dB virtual MIDI output")
     else:
         midiport = input("Enter the MIDI port")
         midiout.open_port(midiport)
-        print(f"Using {midiport} as the MIDI port")
+        if verbose:
+            print(f"Using {midiport} as the MIDI port")
     current_midi_events = []
-    print("Starting broadcasting loop...")
 
     def compute_groove_duration(current_tempo, ticks_per_beat, total_ticks):
         """Computes the total duration of the groove in seconds."""
@@ -173,6 +203,8 @@ def broadcasting_loop(
                 current_midi_events, current_tempo, ticks_per_beat = pretty_midi2events(
                     midi_obj
                 )
+
+                set_new_channels(config)
                 tempo_in_seconds_per_tick = current_tempo / MS_PER_SEC / ticks_per_beat
                 print("Switched to the new groove")
                 new_groove_queued = False  # Reset the flag
@@ -200,6 +232,7 @@ def broadcasting_loop(
             previous_timestamp = 0
             wait_time_in_seconds = 0
             supposed_clock_time = 0
+
             for idx, event in enumerate(current_midi_events):
                 if stop_event.is_set():
                     break
@@ -216,7 +249,7 @@ def broadcasting_loop(
                 )
 
                 midiout.send_message(message)
-                # print(event)
+
                 if idx == len(current_midi_events) - 1:
                     continue
                 duration = current_midi_events[idx + 1][0] - previous_timestamp
@@ -237,11 +270,18 @@ def broadcasting_loop(
         del midiout
 
 
-def shutdown_server():
-    func = request.environ.get("werkzeug.server.shutdown")
-    if func is None:
-        raise RuntimeError("Not running with the Werkzeug Server")
-    func()
+def music_generation_thread():
+    global global_config
+    while True:
+        config_update_event.wait()  # Wait for a signal to generate new music
+        config_update_event.clear()  # Reset the event
+        print("Generating music...")
+        # Generate music with the latest configuration
+        print(global_config)
+        pm = play_agents(global_config)
+        add_to_queue(pm)
+        generation_queue.put(pm)
+        change_groove_event.set()
 
 
 # Initialization of global events and queues
@@ -250,18 +290,46 @@ CORS(midi_app)
 
 
 @midi_app.route("/set_params", methods=["POST"])
-def receive_tapped_rhythms():
-    global current_bpm, current_temp, current_loop_count, hitTolerance
+def set_params():
+    global current_loop_count, global_config
 
     data = request.json
-    current_bpm = data.get("bpm", 110)
-    desired_loops = data.get("loops", 1)  # Default to 2 loop if not provided
-    print(f"\nTempo: {current_bpm} BPM")
-    print(f"Loop {desired_loops} times")
 
-    generation_queue.put(midi_obj)
-    change_groove_event.set()  # Trigger the broadcasting loop to switch to the new groove
-    current_loop_count = 0  # Reset the loop count here
+    global_config = {
+        "TEMPO": int(data.get("tempo", 120)),
+        "LENGTH": int(data.get("length", 12)),
+        "PLAY_DRUM": data.get("play_drum", True),
+        "LOOP_MEASURES": int(data.get("loop_measures", 4)),
+        "STYLE": data.get("style", "country"),
+        "PLAY_BASS": data.get("play_bass", True),
+        "DURATION_PREFERENCES_BASS": data.get("duration_preferences_bass", False),
+        "PLAYSTYLE": data.get("playstyle", "bass_drum"),
+        "PLAY_CHORD": data.get("play_chord", True),
+        "ARPEGIATE_CHORD": data.get("arpegiate_chord", False),
+        "BOUNCE_CHORD": data.get("bounce_chord", False),
+        "ARP_STYLE": int(data.get("arp_style", 2)),
+        "PLAY_MELODY": data.get("play_melody", True),
+        "NOTE_TEMPERATURE_MELODY": float(data.get("note_temperature_melody", 0.8)),
+        "DURATION_TEMPERATURE_MELODY": float(
+            data.get("duration_temperature_melody", 0.8)
+        ),
+        "NO_PAUSE": data.get("no_pause", False),
+        "SCALE_MELODY": data.get("scale_melody", "major pentatonic"),
+        "DURATION_PREFERENCES_MELODY": data.get(
+            "duration_preferences_melody", [1, 3, 5, 7, 9, 11, 13, 15]
+        ),
+        "PLAY_HARMONY": data.get("play_harmony", True),
+        "INTERVAL_HARMONY": int(data.get("interval_harmony", 5)),
+    }
+
+    pm = play_agents(global_config)
+    add_to_queue(pm)
+    generation_queue.put(pm)
+    change_groove_event.set()
+
+    # config_update_event.set()
+
+    current_loop_count = 0
     return jsonify({"message": "Processing MIDI file..."})
 
 
@@ -282,7 +350,6 @@ def control():
 
 @midi_app.route("/shutdown", methods=["POST"])
 def shutdown():
-    shutdown_server()
     return "Server shutting down..."
 
 
@@ -292,7 +359,7 @@ def add_header(response):
     return response
 
 
-def start_broadcaster():
+def start_broadcaster(config):
     print("---Starting the MIDI broadcaster---")
     # Start the Flask server in a separate thread
     flask_thread = threading.Thread(
@@ -303,10 +370,14 @@ def start_broadcaster():
 
     # Start the broadcasting loop in a separate thread
     broadcasting_thread = threading.Thread(
-        target=broadcasting_loop, args=(generation_queue, stop_event)
+        target=broadcasting_loop, args=(generation_queue, stop_event, config)
     )
     broadcasting_thread.daemon = True
     broadcasting_thread.start()
+
+    # generation_thread = threading.Thread(target=music_generation_thread)
+    # generation_thread.daemon = True
+    # generation_thread.start()
     print("MIDI broadcaster started")
 
 

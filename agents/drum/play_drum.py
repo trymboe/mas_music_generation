@@ -78,6 +78,7 @@ def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
 
 
 def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
+    print(1)
     conf: dict = load_yaml("config/bumblebeat/params.yaml")
 
     time_vocab: dict[int, int] = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
@@ -130,7 +131,7 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
 
         if attempt == 100:
             break
-
+    print(2)
     note_sequence = tokens_to_note_sequence(
         in_tokens,
         pitch_vocab,
@@ -139,7 +140,7 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
         time_vocab,
         tempo,
     )
-
+    print(3)
     out_tokens = continue_sequence(
         model,
         seq=in_tokens[-primer_length:],
@@ -152,7 +153,7 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
     )
 
     out_tokens = out_tokens[gen_len:]
-
+    print(4)
     note_sequence = tokens_to_note_sequence(
         out_tokens,
         pitch_vocab,
@@ -161,16 +162,16 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
         time_vocab,
         60,
     )
-
+    print(5)
     note_sequence = ns.quantize_note_sequence(
         note_sequence, conf["processing"]["steps_per_quarter"]
     )
 
     pm = ns.note_sequence_to_pretty_midi(note_sequence)
-
+    print(6)
     pm = loop_drum(pm, loop_measures, loops)
     pm.instruments[0].name = "drum"
-
+    print(7)
     return pm
 
 
