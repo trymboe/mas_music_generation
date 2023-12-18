@@ -8,7 +8,7 @@ import time
 
 import pretty_midi
 import torch
-import threading
+
 
 from data_processing import Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset
 
@@ -46,7 +46,7 @@ def play_agents(config) -> pretty_midi.PrettyMIDI:
     -------
     None
     """
-    print("Thread:", threading.current_thread())
+
     chord_primer, bass_primer, melody_primer = get_primer_sequences()
     mid = None
     print("----playing agents----")

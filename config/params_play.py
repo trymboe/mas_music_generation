@@ -112,7 +112,7 @@ SEGMENTS = [
     {
         # General parameters
         "TEMPO": 120,
-        "LENGTH": 12,
+        "LENGTH": 4,
         # Drum parameters
         "PLAY_DRUM": False,
         "LOOP_MEASURES": 4,
