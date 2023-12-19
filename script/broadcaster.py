@@ -15,7 +15,7 @@ import signal
 
 from agents import play_agents
 
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue as mpQueue, Event as mpEvent
 
 
 ####################
@@ -23,16 +23,16 @@ from multiprocessing import Process, Queue
 ####################
 
 # Global control events
-generation_queue = queue.Queue(maxsize=10)
+generation_queue = mpQueue(maxsize=10)
 pause_event = threading.Event()
 stop_event = threading.Event()
-change_groove_event = threading.Event()
-config_update_event = threading.Event()
+change_groove_event = mpEvent()
 
 
 global_config = {}
 current_bpm = 120
 current_loop_count = 1
+desired_loops = 1
 
 
 # Constants
@@ -136,6 +136,7 @@ def set_new_channels(config):
 def broadcasting_loop(
     generation_queue,
     stop_event,
+    change_groove_event,
     config,
     virtual_port=True,
     introduce_delay=False,
@@ -192,7 +193,12 @@ def broadcasting_loop(
 
             # If there's a new groove queued up, don't process it immediately.
             # Just mark that a new groove is waiting. Wait for the current groove to loop for the desired number of times.
-            print(change_groove_event.is_set(), generation_queue.empty())
+            print(
+                "change_groove",
+                change_groove_event.is_set(),
+                "empty queue",
+                generation_queue.empty(),
+            )
             if change_groove_event.is_set() and not generation_queue.empty():
                 new_groove_queued = True
                 change_groove_event.clear()  # Reset the event
@@ -273,30 +279,12 @@ def broadcasting_loop(
         del midiout
 
 
-def music_generation_process(config_queue):
-    global change_groove_event
+def music_generation_process(config_queue, generation_queue, change_groove_event):
     while True:
         config = config_queue.get()  # Blocking call
         pm = play_agents(config)
-        print(pm)
-        add_to_queue(pm)
-
+        generation_queue.put(pm)
         change_groove_event.set()
-        print(change_groove_event.is_set())
-
-
-# def music_generation_thread():
-#     global global_config
-#     while True:
-#         config_update_event.wait()  # Wait for a signal to generate new music
-#         config_update_event.clear()  # Reset the event
-#         print("Generating music...")
-#         # Generate music with the latest configuration
-#         print(global_config)
-#         pm = play_agents(global_config)
-#         add_to_queue(pm)
-#         generation_queue.put(pm)
-#         change_groove_event.set()
 
 
 # Initialization of global events and queues
@@ -338,7 +326,6 @@ def set_params():
     }
 
     config_queue.put(global_config)
-    # config_update_event.set()
 
     current_loop_count = 0
     return jsonify({"message": "Processing MIDI file..."})
@@ -374,7 +361,7 @@ def add_header(response):
 
 
 def start_broadcaster(config):
-    global config_queue, gen_process
+    global config_queue, gen_process, generation_queue
 
     print("---Starting the MIDI broadcaster---")
     # Start the Flask server in a separate thread
@@ -386,13 +373,17 @@ def start_broadcaster(config):
 
     # Start the broadcasting loop in a separate thread
     broadcasting_thread = threading.Thread(
-        target=broadcasting_loop, args=(generation_queue, stop_event, config)
+        target=broadcasting_loop,
+        args=(generation_queue, stop_event, change_groove_event, config),
     )
     broadcasting_thread.daemon = True
     broadcasting_thread.start()
 
-    config_queue = Queue()
-    gen_process = Process(target=music_generation_process, args=(config_queue,))
+    config_queue = mpQueue()
+    gen_process = Process(
+        target=music_generation_process,
+        args=(config_queue, generation_queue, change_groove_event),
+    )
     gen_process.start()
 
     # generation_thread = threading.Thread(target=music_generation_thread)
@@ -402,5 +393,6 @@ def start_broadcaster(config):
 
 
 def add_to_queue(obj):
+    global generation_queue
     generation_queue.put(obj)
     print(generation_queue)
