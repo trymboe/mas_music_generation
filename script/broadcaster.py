@@ -32,7 +32,7 @@ change_groove_event = mpEvent()
 global_config = {}
 current_bpm = 120
 current_loop_count = 1
-desired_loops = 1
+desired_loops = 0
 
 
 # Constants
@@ -213,8 +213,11 @@ def broadcasting_loop(
                     midi_obj
                 )
 
-                set_new_channels(config)
-                tempo_in_seconds_per_tick = current_tempo / MS_PER_SEC / ticks_per_beat
+                microseconds_per_beat = 60_000_000 / current_bpm
+                tempo_in_seconds_per_tick = (
+                    microseconds_per_beat / MS_PER_SEC / ticks_per_beat
+                )
+                set_new_channels(global_config)
                 print("Switched to the new groove")
                 new_groove_queued = False  # Reset the flag
                 current_loop_count = 0  # Reset the loop count
@@ -280,9 +283,10 @@ def broadcasting_loop(
 
 
 def music_generation_process(config_queue, generation_queue, change_groove_event):
+    global global_config
     while True:
-        config = config_queue.get()  # Blocking call
-        pm = play_agents(config)
+        global_config = config_queue.get()  # Blocking call
+        pm = play_agents(global_config)
         generation_queue.put(pm)
         change_groove_event.set()
 
