@@ -80,10 +80,7 @@ def main():
     # Create and train the agents
     create_agents(train_bass, train_chord, train_drum, train_melody)
 
-    pm = play_agents(SEGMENTS[0])
-    add_to_queue(pm)
-
-    start_broadcaster(SEGMENTS[0])
+    start_broadcaster()
     # Open the web browser
     webbrowser.open("file://" + os.path.realpath("index.html"))
 

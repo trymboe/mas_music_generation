@@ -3,135 +3,146 @@
 
 <head>
     <title>Music Generation Control Panel</title>
-    <!-- Add some styling here -->
+
+    <link rel="stylesheet" href="app/style.css">
 </head>
 
 <body>
     <h1>Music Generation Parameters</h1>
     <form id="control-form">
         <!-- General parameters -->
-        <label for="tempo">Tempo:</label>
-        <input type="number" id="tempo" name="tempo" value="120"><br><br>
+        <div class="container">
 
-        <label for="length">Length:</label>
-        <input type="number" id="length" name="length" value="12"><br><br>
+            <div class="section">
+                <h2>General Parameters</h2>
+                <label for="tempo">Tempo(bpm):</label>
+                <input type="number" id="tempo" name="tempo" value="120"><br><br>
 
-        <!-- Drum parameters -->
-        <label for="play_drum">Play Drum:</label>
-        <input type="checkbox" id="play_drum" name="play_drum" checked><br><br>
+                <label for="length">Length in beats:</label>
+                <input type="number" id="length" name="length" value="12"><br><br>
+            </div>
+            <!-- Drum parameters -->
+            <div class="section">
+                <h2>Drum Parameters</h2>
+                <label for="play_drum">Play Drum:</label>
+                <input type="checkbox" id="play_drum" name="play_drum" checked><br><br>
 
-        <label for="loop_measures">Loop Measures:</label>
-        <input type="number" id="loop_measures" name="loop_measures" value="4"><br><br>
+                <label for="loop_measures">Loop Measures:</label>
+                <input type="number" id="loop_measures" name="loop_measures" value="4"><br><br>
 
-        <label for="style">Style:</label>
-        <select id="style" name="style">
-            <option value="country">Country</option>
-            <!-- Add more styles as needed -->
-        </select><br><br>
+                <label for="style">Style:</label>
+                <select id="style" name="style">
+                    <option value="country">Country</option>
+                    <option value="dance">Dance</option>
+                    <option value="funk">Funk</option>
+                    <option value="hiphop">Hip Hop</option>
+                    <option value="jazz">Jazz</option>
+                    <option value="latin">Latin</option>
+                    <option value="pop">Pop</option>
+                    <option value="reggae">Reggae</option>
+                    <option value="rock">Rock</option>
+                    <option value="soul">Soul</option>
+                    <option value="afrobeat">Afrobeat</option>
+                    <option value="afrocuban">Afro Cuban</option>
+                    <option value="blues">Blues</option>
+                    <option value="gospel">Gospel</option>
+                    <option value="highlife">Highlife</option>
+                    <option value="middleeastern">Middle Eastern</option>
+                    <option value="neworleans">New Orleans</option>
+                    <option value="punk">Punk</option>
+                </select><br><br>
+            </div>
 
-        <!-- Bass parameters -->
-        <label for="play_bass">Play Bass:</label>
-        <input type="checkbox" id="play_bass" name="play_bass" checked><br><br>
 
-        <label for="duration_preferences_bass">Duration Preferences Bass:</label>
-        <input type="checkbox" id="duration_preferences_bass" name="duration_preferences_bass"><br><br>
+            <!-- Bass parameters -->
 
-        <label for="playstyle">Playstyle:</label>
-        <select id="playstyle" name="playstyle">
-            <option value="bass_drum">Bass Drum</option>
-            <!-- Add more playstyles as needed -->
-        </select><br><br>
+            <div class="section">
+                <h2>Bass Parameters</h2>
+                <label for="play_bass">Play Bass:</label>
+                <input type="checkbox" id="play_bass" name="play_bass" checked><br><br>
 
-        <!-- Chord parameters -->
-        <label for="play_chord">Play Chord:</label>
-        <input type="checkbox" id="play_chord" name="play_chord" checked><br><br>
+                <label for="duration_preferences_bass">Duration Selection</label>
+                <input type="checkbox" id="duration_preferences_bass" name="duration_preferences_bass"><br><br>
 
-        <label for="arpegiate_chord">Arpegiate Chord:</label>
-        <input type="checkbox" id="arpegiate_chord" name="arpegiate_chord"><br><br>
+                <label for="playstyle">Playstyle:</label>
+                <select id="playstyle" name="playstyle">
+                    <option value="bass_drum">Play On Bass Drum</option>
+                    <!-- Add more playstyles as needed -->
+                </select><br><br>
+            </div>
 
-        <label for="bounce_chord">Bounce Chord:</label>
-        <input type="checkbox" id="bounce_chord" name="bounce_chord"><br><br>
+            <!-- Chord parameters -->
+            <div class="section">
+                <h2>Chord Parameters</h2>
+                <label for="play_chord">Play Chord:</label>
+                <input type="checkbox" id="play_chord" name="play_chord" checked><br><br>
 
-        <label for="arp_style">Arp Style:</label>
-        <input type="number" id="arp_style" name="arp_style" value="2"><br><br>
+                <label for="arpegiate_chord">Arpegiate Chord:</label>
+                <input type="checkbox" id="arpegiate_chord" name="arpegiate_chord"><br><br>
 
-        <!-- Melody parameters -->
-        <label for="play_melody">Play Melody:</label>
-        <input type="checkbox" id="play_melody" name="play_melody" checked><br><br>
+                <label for="bounce_chord">Bounce Chord:</label>
+                <input type="checkbox" id="bounce_chord" name="bounce_chord"><br><br>
 
-        <label for="note_temperature_melody">Note Temperature Melody:</label>
-        <input type="number" id="note_temperature_melody" name="note_temperature_melody" step="0.1" value="0.8"><br><br>
+                <label for="arp_style">Arpegiate Style:</label>
+                <select id="arp_style" name="arp_style">
+                    <option value="0">Small Range 16th Notes</option>
+                    <option value="3">Full Range 16th Notes</option>
+                    <option value="1">12th Notes</option>
+                    <option value="2">8th Notes</option>
+                    <!-- Add more playstyles as needed -->
+                </select><br><br>
+            </div>
 
-        <label for="duration_temperature_melody">Duration Temperature Melody:</label>
-        <input type="number" id="duration_temperature_melody" name="duration_temperature_melody" step="0.1"
-            value="0.8"><br><br>
 
-        <label for="no_pause">No Pause:</label>
-        <input type="checkbox" id="no_pause" name="no_pause"><br><br>
 
-        <label for="scale_melody">Scale Melody:</label>
-        <select id="scale_melody" name="scale_melody">
-            <option value="major pentatonic">Major Pentatonic</option>
-            <!-- Add more scales as needed -->
-        </select><br><br>
+            <!-- Melody parameters -->
 
-        <label for="duration_preferences_melody">Duration Preferences Melody:</label>
-        <input type="text" id="duration_preferences_melody" name="duration_preferences_melody"
-            value="1,3,5,7,9,11,13,15"><br><br>
+            <div class="section">
+                <h2>Melody Parameters</h2>
+                <label for="play_melody">Play Melody:</label>
+                <input type="checkbox" id="play_melody" name="play_melody" checked><br><br>
 
-        <!-- Harmony parameters -->
-        <label for="play_harmony">Play Harmony:</label>
-        <input type="checkbox" id="play_harmony" name="play_harmony" checked><br><br>
+                <label for="note_temperature_melody">Note Temperature Melody:</label>
+                <input type="number" id="note_temperature_melody" name="note_temperature_melody" step="0.1"
+                    value="0.8"><br><br>
 
-        <label for="interval_harmony">Interval Harmony:</label>
-        <input type="number" id="interval_harmony" name="interval_harmony" value="5"><br><br>
+                <label for="duration_temperature_melody">Duration Temperature Melody:</label>
+                <input type="number" id="duration_temperature_melody" name="duration_temperature_melody" step="0.1"
+                    value="0.8"><br><br>
 
-        <input type="submit" value="Submit">
+                <label for="no_pause">No Pause:</label>
+                <input type="checkbox" id="no_pause" name="no_pause"><br><br>
+
+                <label for="scale_melody">Scale Melody:</label>
+                <select id="scale_melody" name="scale_melody">
+                    <option value="major pentatonic">Major Pentatonic</option>
+                    <option value="major scale">Major Scale</option>
+                </select><br><br>
+
+                <label for="duration_preferences_melody">Duration Preferences Melody:</label>
+                <input type="text" id="duration_preferences_melody" name="duration_preferences_melody"
+                    value="1,3,5,7,9,11,13,15"><br><br>
+            </div>
+
+            <div class="section">
+                <!-- Harmony parameters -->
+                <h2>Harmony Parameters</h2>
+                <label for="play_harmony">Play Harmony:</label>
+                <input type="checkbox" id="play_harmony" name="play_harmony" checked><br><br>
+
+                <label for="interval_harmony">Interval Harmony:</label>
+                <input type="number" id="interval_harmony" name="interval_harmony" value="5"><br><br>
+            </div>
+
+        </div>
+
+
+        <p id="status-message"></p>
+        <input id="submit-button" type="submit" value="Submit">
     </form>
 
-    <script>
-        document.getElementById("control-form").onsubmit = function (event) {
-            event.preventDefault();
-            var formData = {
-                tempo: document.getElementById("tempo").value,
-                length: document.getElementById("length").value,
-                play_drum: document.getElementById("play_drum").checked,
-                loop_measures: document.getElementById("loop_measures").value,
-                style: document.getElementById("style").value,
-                play_bass: document.getElementById("play_bass").checked,
-                duration_preferences_bass: document.getElementById("duration_preferences_bass").checked,
-                playstyle: document.getElementById("playstyle").value,
-                play_chord: document.getElementById("play_chord").checked,
-                arpegiate_chord: document.getElementById("arpegiate_chord").checked,
-                bounce_chord: document.getElementById("bounce_chord").checked,
-                arp_style: document.getElementById("arp_style").value,
-                play_melody: document.getElementById("play_melody").checked,
-                note_temperature_melody: document.getElementById("note_temperature_melody").value,
-                duration_temperature_melody: document.getElementById("duration_temperature_melody").value,
-                no_pause: document.getElementById("no_pause").checked,
-                scale_melody: document.getElementById("scale_melody").value,
-                duration_preferences_melody: document.getElementById("duration_preferences_melody").value.split(',').map(Number),
-                play_harmony: document.getElementById("play_harmony").checked,
-                interval_harmony: document.getElementById("interval_harmony").value
-                // Add more parameters here
-            };
+    <script src="app/script.js"></script>
 
-            fetch('http://localhost:5005/set_params', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Success:', data);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        };
-    </script>
 </body>
 
 </html>

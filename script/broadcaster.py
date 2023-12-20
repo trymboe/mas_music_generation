@@ -15,7 +15,7 @@ import signal
 
 from agents import play_agents
 
-from multiprocessing import Process, Queue as mpQueue, Event as mpEvent
+from multiprocessing import Value, Process, Queue as mpQueue, Event as mpEvent
 
 
 ####################
@@ -26,6 +26,7 @@ from multiprocessing import Process, Queue as mpQueue, Event as mpEvent
 generation_queue = mpQueue(maxsize=10)
 pause_event = threading.Event()
 stop_event = threading.Event()
+generation_is_complete = mpEvent()
 change_groove_event = mpEvent()
 
 
@@ -137,16 +138,17 @@ def broadcasting_loop(
     generation_queue,
     stop_event,
     change_groove_event,
-    config,
     virtual_port=True,
-    introduce_delay=False,
     verbose=False,
 ):
     """This is a MIDI broadcasting loop implementation in terms of synchronization & time.
     It uses the clockblocks clock to synchronize the groove loops."""
-    global desired_loops, current_bpm
+    global desired_loops, current_bpm, global_config
 
-    set_new_channels(config)
+    while not change_groove_event.is_set():
+        pass
+
+    set_new_channels(global_config)
 
     midiout = rtmidi.MidiOut()
     available_ports = midiout.get_ports()
@@ -282,13 +284,17 @@ def broadcasting_loop(
         del midiout
 
 
-def music_generation_process(config_queue, generation_queue, change_groove_event):
+def music_generation_process(
+    config_queue, generation_queue, change_groove_event, generation_is_complete
+):
     global global_config
     while True:
         global_config = config_queue.get()  # Blocking call
         pm = play_agents(global_config)
         generation_queue.put(pm)
         change_groove_event.set()
+        generation_is_complete.set()
+        print("Music generation complete. Event set.")  # Debugging print
 
 
 # Initialization of global events and queues
@@ -350,6 +356,14 @@ def control():
     return jsonify({"message": f"Action {action} processed"})
 
 
+@midi_app.route("/check_status", methods=["GET"])
+def check_status():
+    global generation_is_complete
+    is_complete = generation_is_complete.is_set()
+    print(f"Check status called. Is complete: {is_complete}")  # Debugging print
+    return jsonify({"isComplete": is_complete})
+
+
 @midi_app.route("/shutdown", methods=["POST"])
 def shutdown():
     global gen_process
@@ -358,13 +372,20 @@ def shutdown():
     return "Server shutting down..."
 
 
+@midi_app.route("/acknowledge_complete", methods=["POST"])
+def acknowledge_complete():
+    global generation_is_complete
+    generation_is_complete.clear()  # Reset the event
+    return jsonify({"acknowledged": True})
+
+
 @midi_app.after_request
 def add_header(response):
     response.cache_control.no_store = True
     return response
 
 
-def start_broadcaster(config):
+def start_broadcaster():
     global config_queue, gen_process, generation_queue
 
     print("---Starting the MIDI broadcaster---")
@@ -378,7 +399,7 @@ def start_broadcaster(config):
     # Start the broadcasting loop in a separate thread
     broadcasting_thread = threading.Thread(
         target=broadcasting_loop,
-        args=(generation_queue, stop_event, change_groove_event, config),
+        args=(generation_queue, stop_event, change_groove_event),
     )
     broadcasting_thread.daemon = True
     broadcasting_thread.start()
@@ -386,7 +407,12 @@ def start_broadcaster(config):
     config_queue = mpQueue()
     gen_process = Process(
         target=music_generation_process,
-        args=(config_queue, generation_queue, change_groove_event),
+        args=(
+            config_queue,
+            generation_queue,
+            change_groove_event,
+            generation_is_complete,
+        ),
     )
     gen_process.start()
 
