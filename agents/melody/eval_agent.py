@@ -63,19 +63,8 @@ def predict_next_notes(
             pitch_logits, duration_logits = melody_agent(
                 x, accumulated_times, current_chord_time_lefts
             )
-
-            note_logits_temperature = apply_temperature(
-                pitch_logits[0, :], config["NOTE_TEMPERATURE_MELODY"]
-            )
-
-            duration_logits_temperature = apply_temperature(
-                duration_logits[0, :], config["DURATION_TEMPERATURE_MELODY"]
-            )
-
-            note_probabilities = F.softmax(note_logits_temperature, dim=0).view(-1)
-            duration_probabilities = F.softmax(duration_logits_temperature, dim=0).view(
-                -1
-            )
+            note_probabilities = F.softmax(pitch_logits, dim=1).view(-1)
+            duration_probabilities = F.softmax(duration_logits, dim=1).view(-1)
 
             if config["SCALE_MELODY"]:
                 note_probabilities = select_with_preference(
@@ -86,6 +75,14 @@ def predict_next_notes(
                 duration_probabilities = select_with_preference(
                     duration_probabilities, config["DURATION_PREFERENCES_MELODY"]
                 )
+
+            note_probabilities = apply_temperature(
+                note_probabilities, config["NOTE_TEMPERATURE_MELODY"]
+            )
+
+            duration_probabilities = apply_temperature(
+                duration_probabilities, config["DURATION_TEMPERATURE_MELODY"]
+            )
 
             # Sample from the distributions
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
