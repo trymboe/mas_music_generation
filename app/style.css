@@ -19,7 +19,7 @@ h1 {
 /* Container and Grid Layout */
 .container {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     /* 2x3 grid */
     gap: 20px;
     /* Space between sections */
@@ -91,4 +91,42 @@ input[type="submit"]:hover {
         grid-template-columns: 1fr;
         /* Stack sections on smaller screens */
     }
+}
+
+.advanced-toggle {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 1000;
+    /* Ensures the checkbox appears above other elements */
+}
+
+.advanced-settings,
+.normal-settings {}
+
+.advanced-settings {
+    display: none;
+}
+
+
+.checkbox-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    /* 2x3 grid */
+    gap: 10px;
+    /* Space between sections */
+    width: 90%;
+    max-width: 1200px;
+    /* Maximum width */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-label input[type="checkbox"] {
+    margin-right: 5px;
 }

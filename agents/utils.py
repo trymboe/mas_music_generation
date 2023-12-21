@@ -226,7 +226,7 @@ def select_with_preference(probs, preferred_indices):
 
     # Apply the mask to the probabilities
     masked_probs = probs * mask
-
+    masked_probs = torch.clamp(masked_probs, min=0)
     # Check if there is at least one preferred index with non-zero probability
     if torch.sum(masked_probs) > 0:
         # Normalize the probabilities

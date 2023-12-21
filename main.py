@@ -1,24 +1,14 @@
 print("----loading imports----")
 import matplotlib.pyplot as plt
+import webbrowser
 import argparse
-
 import os
 
-from agents import (
-    create_agents,
-    play_agents,
-)
 
-from config import SEGMENTS
-import webbrowser
-
+from broadcaster.broadcaster import start_broadcaster
+from agents import create_agents
 from utils import get_datasets
 
-from flask import Flask
-from script.broadcaster import (
-    start_broadcaster,
-    add_to_queue,
-)
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
 
@@ -87,10 +77,6 @@ def main():
     try:
         while True:
             pass
-        #     print("Generating queue")
-        #     pm = play_agents(SEGMENTS[0])
-        #     add_to_queue(pm)
-        #     print("Got queue")
     except KeyboardInterrupt:
         print("Exiting...")
     finally:
