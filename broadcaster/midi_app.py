@@ -65,6 +65,8 @@ def set_params():
         note_temperature_melody = int(data.get("note_temperature_melody"))
         duration_temperature_melody = int(data.get("duration_temperature_melody"))
         scale_melody = data.get("scale_melody")
+        if scale_melody == "None":
+            scale_melody = False
 
         duration_preferences_bass = get_duration_preferences_bass_from_advanced(
             data.get("checkbox1"),
