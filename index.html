@@ -99,6 +99,38 @@
                 </div>
             </div>
 
+            <div class="spacing">
+                <br><br>
+            </div>
+
+            <!-- Controller section 1 -->
+            <div class="section">
+                <h2>Controller</h2>
+                <div id="mute-container" class="volume-container">
+                    <button class="mute-button" role="button" id="mute-drum">Mute</button>
+                    <button class="mute-button" role="button" id="mute-bass">Mute</button>
+                    <button class="mute-button" role="button" id="mute-chord">Mute</button>
+                    <button class="mute-button" role="button" id="mute-melody">Mute</button>
+                    <button class="mute-button" role="button" id="mute-harmony">Mute</button>
+                </div>
+
+                <div class="volume-container">
+                    <input name="volume-drum" type="range" orient="vertical" />
+                    <input name="volume-bass" type="range" orient="vertical" />
+                    <input name="volume-chord" type="range" orient="vertical" />
+                    <input name="volume-melody" type="range" orient="vertical" />
+                    <input name="volume-harmony" type="range" orient="vertical" />
+                </div>
+
+                <div class="volume-container">
+                    <label for="volume-drum">Drum</label>
+                    <label for="volume-bass">Bass</label>
+                    <label for="volume-chord">Chord</label>
+                    <label for="volume-melody">Melody</label>
+                    <label for="volume-harmony">Harmony</label>
+                </div>
+            </div>
+
 
             <!-- Chord parameters -->
             <div class="section">
@@ -186,17 +218,24 @@
                     <label for="interval_harmony">Interval Harmony:</label>
                     <input type="number" id="interval_harmony" name="interval_harmony" value="5"><br><br>
                 </div>
-
-
-
             </div>
 
+            <div class="spacing">
+                <br><br>
+            </div>
+
+            <!-- Controller section 2 -->
+            <div class="section">
+                <button id="save-button">Save</button>
+                <button id="load-button">Load</button>
+            </div>
+
+
         </div>
-
-
         <p id="status-message"></p>
         <input id="submit-button" type="submit" value="Submit">
     </form>
+
 
     <script src="app/script.js"></script>
 

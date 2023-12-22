@@ -2,7 +2,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     /* Modern Font */
-    background-color: #f4f4f4;
+    background-color: #05051a;
     /* Soft background color */
     margin: 0;
     padding: 0;
@@ -16,19 +16,18 @@ h1 {
     font-size: 2em;
 }
 
-/* Container and Grid Layout */
 .container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    /* 2x3 grid */
+    grid-template-columns: 1fr 1fr 1fr 0.5fr 1.5fr;
+    /* Adjust '2em' to the space you want */
     gap: 20px;
     /* Space between sections */
     width: 90%;
-    max-width: 1200px;
-    /* Maximum width */
+    max-width: 90%;
     margin: 0 auto;
     padding: 20px;
 }
+
 
 /* Section Styles */
 .section {
@@ -68,22 +67,30 @@ input[type="checkbox"] {
 
 /* Submit Button Styles */
 input[type="submit"] {
-    background-color: #007bff;
-    /* Bright color for button */
+    background-color: #48c774;
+    /* Modern green color */
     color: white;
     padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    width: 100%;
     font-size: 1em;
-    box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+
+    /* Centering and width adjustments */
+    display: block;
+    margin: 0 auto;
+    max-width: 300px;
+    /* Adjust max-width as per your layout */
 }
 
 input[type="submit"]:hover {
-    background-color: #0056b3;
-    /* Darker shade on hover */
+    background-color: #36a569;
+    /* Slightly darker shade for hover effect */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
 }
+
 
 /* Responsive Design for Smaller Screens */
 @media screen and (max-width: 768px) {
@@ -122,6 +129,29 @@ input[type="submit"]:hover {
     padding: 20px;
 }
 
+/* Volume slider */
+.volume-container {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    /* 2x3 grid */
+    gap: 10px;
+    /* Space between sections */
+    width: 90%;
+    max-width: 1200px;
+    /* Maximum width */
+    margin: 0 auto;
+    padding: 20px;
+}
+
+
+
+input[type=range][orient=vertical] {
+    appearance: slider-vertical;
+    width: 8px;
+    height: 175px;
+    padding: 0 5px;
+}
+
 .checkbox-label {
     display: flex;
     align-items: center;
@@ -129,4 +159,36 @@ input[type="submit"]:hover {
 
 .checkbox-label input[type="checkbox"] {
     margin-right: 5px;
+}
+
+
+
+.mute-button {
+    background-color: #f8f9fa;
+    border: 1px solid #f8f9fa;
+    border-radius: 4px;
+    color: #3c4043;
+    cursor: pointer;
+    font-family: arial, sans-serif;
+    font-size: 14px;
+    height: 36px;
+    line-height: 27px;
+    min-width: 54px;
+    padding: 0 16px;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: pre;
+}
+
+.mute-button:hover {
+    border-color: #dadce0;
+    box-shadow: rgba(0, 0, 0, .1) 0 1px 1px;
+    color: #202124;
+}
+
+.mute-button:focus {
+    border-color: #4285f4;
+    outline: none;
 }
