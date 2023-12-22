@@ -5,7 +5,7 @@ import argparse
 import os
 
 
-from broadcaster.broadcaster import start_broadcaster
+from broadcaster.midi_app import start_broadcaster
 from agents import create_agents
 from utils import get_datasets
 

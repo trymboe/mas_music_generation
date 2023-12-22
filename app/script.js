@@ -154,3 +154,4 @@ window.onload = function () {
         arpStyleSelect.disabled = true; // Always disable arp_style if bounce is selected
     };
 };
+

@@ -1,26 +1,13 @@
 # Author: Çağrı Erdem, 2023
 # Description: MIDI broadcasting script for 2groove web app.
-
-import os
-import queue
-import threading
-
 import clockblocks
 import rtmidi
 
-from flask import Flask, request, jsonify
-from flask_cors import CORS
+
 import os
-import signal
 
 from agents import play_agents
-from .utils import (
-    get_duration_preferences_bass,
-    get_duration_temperature_melody,
-    get_note_temperature_melody,
-    get_duration_preferences_bass_from_advanced,
-    get_duration_preferences_melody_from_advanced,
-)
+
 
 from multiprocessing import Value, Process, Queue as mpQueue, Event as mpEvent
 
@@ -30,17 +17,18 @@ from multiprocessing import Value, Process, Queue as mpQueue, Event as mpEvent
 ####################
 
 # Global control events
-generation_queue = mpQueue(maxsize=10)
-pause_event = mpEvent()
-stop_event = mpEvent()
-generation_is_complete = mpEvent()
-change_groove_event = mpEvent()
 
 
 global_config = {}
 current_bpm = 120
 current_loop_count = 1
 desired_loops = 0
+
+is_drum_muted = False
+is_bass_muted = False
+is_chord_muted = False
+is_melody_muted = False
+is_harmony_muted = False
 
 
 # Constants
@@ -57,6 +45,8 @@ CHANNELS = {
     "melody": [0x93, 0x83],
     "harmony": [0x94, 0x84],
 }
+
+VOLUME_DICT = {"drum": 1, "bass": 1, "chord": 1, "melody": 1, "harmony": 1}
 
 
 def midi2events(midi_obj):
@@ -118,33 +108,38 @@ def generate_midi_message(event_type, pitch, velocity, channel1, channel2):
     return [event_map.get(event_type, event_type), pitch, velocity]
 
 
-def set_new_channels(config):
-    if config["PLAY_DRUM"]:
+def set_new_channels(muted):
+    if not muted[0]:
         CHANNELS["drum"] = [0x90, 0x80]
     else:
         CHANNELS["drum"] = [0x80, 0x80]
-    if config["PLAY_BASS"]:
+    if not muted[1]:
         CHANNELS["bass"] = [0x91, 0x81]
     else:
         CHANNELS["bass"] = [0x81, 0x81]
-    if config["PLAY_CHORD"]:
+    if not muted[2]:
         CHANNELS["chord"] = [0x92, 0x82]
     else:
         CHANNELS["chord"] = [0x82, 0x82]
-    if config["PLAY_MELODY"]:
+    if not muted[3]:
         CHANNELS["melody"] = [0x93, 0x83]
     else:
         CHANNELS["melody"] = [0x83, 0x83]
-    if config["PLAY_HARMONY"]:
+    if not muted[4]:
         CHANNELS["harmony"] = [0x94, 0x84]
     else:
         CHANNELS["harmony"] = [0x84, 0x84]
+
+
+def set_volume(instrument, volume):
+    VOLUME_DICT[instrument] = volume
 
 
 def broadcasting_loop(
     generation_queue,
     stop_event,
     change_groove_event,
+    muted,
     virtual_port=True,
     verbose=False,
 ):
@@ -155,7 +150,7 @@ def broadcasting_loop(
     while not change_groove_event.is_set():
         pass
 
-    set_new_channels(global_config)
+    set_new_channels(muted)
 
     midiout = rtmidi.MidiOut()
     available_ports = midiout.get_ports()
@@ -220,7 +215,6 @@ def broadcasting_loop(
                 tempo_in_seconds_per_tick = (
                     microseconds_per_beat / MS_PER_SEC / ticks_per_beat
                 )
-                set_new_channels(global_config)
                 print("Switched to the new groove")
                 new_groove_queued = False  # Reset the flag
                 current_loop_count = 0  # Reset the loop count
@@ -251,9 +245,9 @@ def broadcasting_loop(
             for idx, event in enumerate(current_midi_events):
                 if stop_event.is_set():
                     break
-                while pause_event.is_set():
-                    master_clock.wait(0.1, units="time")
                 timestamp, event_type, pitch, velocity, instrument_name = event
+
+                velocity = int(velocity * VOLUME_DICT[instrument_name])
 
                 message = generate_midi_message(
                     event_type,
@@ -299,171 +293,3 @@ def music_generation_process(
         generation_is_complete.set()
         print("Generation complete")
         print(generation_is_complete.is_set())
-
-
-# Initialization of global events and queues
-midi_app = Flask(__name__)  # Connect to the browser interface
-CORS(midi_app)
-
-
-@midi_app.route("/set_params", methods=["POST"])
-def set_params():
-    global current_loop_count, global_config, config_queue
-
-    data = request.json
-    advanced_option = data.get("advanced_option", False)
-    if not advanced_option:
-        duration_slider_bass = int(data.get("bass_creativity"))
-        duration_preferences_bass = get_duration_preferences_bass(duration_slider_bass)
-
-        creative_slider_pitch_melody = int(data.get("pitch_creativity_melody"))
-        creative_slider_duration_melody = int(data.get("duration_creativity_melody"))
-
-        note_temperature_melody, scale_melody = get_note_temperature_melody(
-            creative_slider_pitch_melody
-        )
-        (
-            duration_temperature_melody,
-            duration_preferences_melody,
-        ) = get_duration_temperature_melody(creative_slider_duration_melody)
-
-    else:
-        note_temperature_melody = int(data.get("note_temperature_melody"))
-        duration_temperature_melody = int(data.get("duration_temperature_melody"))
-        scale_melody = data.get("scale_melody")
-
-        duration_preferences_bass = get_duration_preferences_bass_from_advanced(
-            data.get("checkbox1"),
-            data.get("checkbox2"),
-            data.get("checkbox3"),
-            data.get("checkbox4"),
-            data.get("checkbox5"),
-            data.get("checkbox6"),
-            data.get("checkbox7"),
-            data.get("checkbox8"),
-        )
-
-        duration_preferences_melody = get_duration_preferences_melody_from_advanced(
-            data.get("checkbox1_melody"),
-            data.get("checkbox2_melody"),
-            data.get("checkbox3_melody"),
-            data.get("checkbox4_melody"),
-            data.get("checkbox5_melody"),
-            data.get("checkbox6_melody"),
-        )
-    global_config = {
-        # General parameters
-        "TEMPO": int(data.get("tempo", 120)),
-        "LENGTH": int(data.get("length", 4)),
-        # Drum parameters
-        "PLAY_DRUM": data.get("play_drum", True),
-        "LOOP_MEASURES": int(data.get("loop_measures", 4)),
-        "STYLE": data.get("style", "country"),
-        # Bass parameters
-        "PLAY_BASS": data.get("play_bass", True),
-        "DURATION_PREFERENCES_BASS": duration_preferences_bass,
-        "PLAYSTYLE": data.get("playstyle", "bass_drum"),
-        # Chord parameters
-        "PLAY_CHORD": data.get("play_chord", True),
-        "ARPEGIATE_CHORD": data.get("arpegiate_chord", False),
-        "BOUNCE_CHORD": data.get("bounce_chord", False),
-        "ARP_STYLE": int(data.get("arp_style", 2)),
-        # Melody parameters
-        "PLAY_MELODY": data.get("play_melody", True),
-        "NOTE_TEMPERATURE_MELODY": note_temperature_melody,
-        "DURATION_TEMPERATURE_MELODY": duration_temperature_melody,
-        "NO_PAUSE": data.get("no_pause", False),
-        "SCALE_MELODY": scale_melody,
-        "DURATION_PREFERENCES_MELODY": duration_preferences_melody,
-        # Harmony parameters
-        "PLAY_HARMONY": data.get("play_harmony", True),
-        "INTERVAL_HARMONY": int(data.get("interval_harmony", 5)),
-    }
-    config_queue.put(global_config)
-    current_loop_count = 0
-    return jsonify({"message": "Processing MIDI file..."})
-
-
-@midi_app.route("/control", methods=["POST"])
-def control():
-    action = request.json.get("action", "")
-    if action == "pause":
-        pause_event.set()
-    elif action == "resume":
-        pause_event.clear()
-
-    elif action == "stop":
-        os.kill(os.getpid(), signal.SIGINT)  # similar to cmd+C
-        return jsonify({"message": f"Action {action} processed, server stopped"})
-
-    return jsonify({"message": f"Action {action} processed"})
-
-
-@midi_app.route("/check_status", methods=["GET"])
-def check_status():
-    global generation_is_complete
-    is_complete = generation_is_complete.is_set()
-    return jsonify({"isComplete": is_complete})
-
-
-@midi_app.route("/shutdown", methods=["POST"])
-def shutdown():
-    global gen_process
-    gen_process.terminate()
-    gen_process.join()
-    return "Server shutting down..."
-
-
-@midi_app.route("/acknowledge_complete", methods=["POST"])
-def acknowledge_complete():
-    global generation_is_complete
-    generation_is_complete.clear()  # Reset the event
-    return jsonify({"acknowledged": True})
-
-
-@midi_app.after_request
-def add_header(response):
-    response.cache_control.no_store = True
-    return response
-
-
-def start_broadcaster():
-    global config_queue, gen_process, generation_queue
-
-    print("---Starting the MIDI broadcaster---")
-    # Start the Flask server in a separate thread
-    flask_thread = threading.Thread(
-        target=lambda: midi_app.run(threaded=True, port=5005)
-    )
-    flask_thread.daemon = True
-    flask_thread.start()
-
-    # Start the broadcasting loop in a separate thread
-    broadcasting_thread = threading.Thread(
-        target=broadcasting_loop,
-        args=(generation_queue, stop_event, change_groove_event),
-    )
-    broadcasting_thread.daemon = True
-    broadcasting_thread.start()
-
-    config_queue = mpQueue()
-    gen_process = Process(
-        target=music_generation_process,
-        args=(
-            config_queue,
-            generation_queue,
-            change_groove_event,
-            generation_is_complete,
-        ),
-    )
-    gen_process.start()
-
-    # generation_thread = threading.Thread(target=music_generation_thread)
-    # generation_thread.daemon = True
-    # generation_thread.start()
-    print("MIDI broadcaster started")
-
-
-def add_to_queue(obj):
-    global generation_queue
-    generation_queue.put(obj)

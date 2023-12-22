@@ -1,27 +1,78 @@
+:root {
+    --color0: #eae8e0;
+    --color1: #efead5;
+    --color2: #C1D8C3;
+    --color3: #6A9C89;
+    --color4: #48856e;
+    --color5: #CD5C08;
+    --color6: #a64b05;
+
+}
+
 /* General Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    /* Modern Font */
-    background-color: #05051a;
-    /* Soft background color */
+    font-size: 14px;
+    background-color: var(--color1);
     margin: 0;
     padding: 0;
 }
 
+h1,
+h2 {
+    margin-top: 10px;
+    margin-bottom: 10px;
+    font-size: 1.5em;
+}
+
+h2 {
+    font-size: 1.2em;
+}
+
 h1 {
     text-align: center;
-    color: #333;
-    /* Dark color for contrast */
-    margin-bottom: 20px;
-    font-size: 2em;
+
 }
+
+.section,
+.container,
+.volume-container,
+.volume-container-items,
+.checkbox-container {
+    padding: 10px;
+    margin-bottom: 10px;
+}
+
+input[type="number"],
+input[type="text"],
+input[type="range"],
+select {
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+input[type="checkbox"],
+.checkbox-label {
+    margin-bottom: 5px;
+}
+
+.spacing {
+    height: 5px;
+}
+
+.mute-button,
+input[type="submit"] {
+    padding: 5px 10px;
+    font-size: 12px;
+    height: auto;
+    line-height: normal;
+}
+
 
 .container {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr 0.5fr 1.5fr;
-    /* Adjust '2em' to the space you want */
     gap: 20px;
-    /* Space between sections */
     width: 90%;
     max-width: 90%;
     margin: 0 auto;
@@ -31,21 +82,18 @@ h1 {
 
 /* Section Styles */
 .section {
-    background-color: #fff;
-    /* Light background for sections */
-    padding: 20px;
+    background-color: var(--color2);
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-    /* Subtle shadow */
     border-radius: 8px;
-    /* Rounded corners */
 }
 
-/* Form Element Styles */
 label {
     display: block;
-    margin-bottom: 10px;
-    color: #555;
-    /* Slightly dark color for readability */
+    margin-bottom: 5px;
 }
 
 input[type="number"],
@@ -53,41 +101,34 @@ input[type="text"],
 select {
     width: 100%;
     padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ddd;
-    /* Light border */
+    margin-bottom: 5px;
+    background-color: var(--color0);
+    border: 1px solid var(--color1);
     border-radius: 4px;
-    /* Rounded corners for inputs */
     box-sizing: border-box;
 }
 
 input[type="checkbox"] {
-    margin-right: 5px;
+    color: var(--color3);
 }
 
 /* Submit Button Styles */
 input[type="submit"] {
-    background-color: #48c774;
-    /* Modern green color */
+    background-color: var(--color5);
     color: white;
-    padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1em;
     box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.2);
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
-
-    /* Centering and width adjustments */
     display: block;
     margin: 0 auto;
     max-width: 300px;
-    /* Adjust max-width as per your layout */
+
 }
 
 input[type="submit"]:hover {
-    background-color: #36a569;
-    /* Slightly darker shade for hover effect */
+    background-color: var(--color6);
     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.3);
 }
 
@@ -126,23 +167,50 @@ input[type="submit"]:hover {
     max-width: 1200px;
     /* Maximum width */
     margin: 0 auto;
-    padding: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 /* Volume slider */
 .volume-container {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    /* 2x3 grid */
     gap: 10px;
-    /* Space between sections */
     width: 90%;
     max-width: 1200px;
-    /* Maximum width */
     margin: 0 auto;
-    padding: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 30px;
+    padding-right: 30px;
+    align-items: center;
 }
 
+input[type="range"][orient="vertical"] {
+    -webkit-appearance: none;
+    writing-mode: bt-lr;
+    /* This rotates the slider */
+    width: 8px;
+    height: 150px;
+    /* You can adjust this */
+    /* Additional styling as needed */
+}
+
+.volume-container-items {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
+    align-items: center;
+}
 
 
 input[type=range][orient=vertical] {
@@ -162,18 +230,16 @@ input[type=range][orient=vertical] {
 }
 
 
-
 .mute-button {
-    background-color: #f8f9fa;
-    border: 1px solid #f8f9fa;
+    background-color: var(--color0);
+    border: 1px solid var(--color1);
     border-radius: 4px;
     color: #3c4043;
     cursor: pointer;
     font-family: arial, sans-serif;
     font-size: 14px;
-    height: 36px;
-    line-height: 27px;
-    min-width: 54px;
+    height: 24px;
+    min-width: 24px;
     padding: 0 16px;
     text-align: center;
     user-select: none;
@@ -183,9 +249,9 @@ input[type=range][orient=vertical] {
 }
 
 .mute-button:hover {
-    border-color: #dadce0;
+    border-color: var(--color1);
     box-shadow: rgba(0, 0, 0, .1) 0 1px 1px;
-    color: #202124;
+    background-color: var(--color1);
 }
 
 .mute-button:focus {

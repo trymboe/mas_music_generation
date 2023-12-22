@@ -67,7 +67,7 @@
             <div class="section">
                 <h2>Bass Parameters</h2>
                 <label for="play_bass">Play Bass:</label>
-                <input type="checkbox" id="play_bass" name="play_bass" checked><br><br>
+                <input class="checkmarker" type="checkbox" id="play_bass" name="play_bass" checked><br><br>
 
                 <div class="normal-settings">
                     <label for="bass_creativity">Bass Creativity</label>
@@ -106,23 +106,31 @@
             <!-- Controller section 1 -->
             <div class="section">
                 <h2>Controller</h2>
-                <div id="mute-container" class="volume-container">
-                    <button class="mute-button" role="button" id="mute-drum">Mute</button>
-                    <button class="mute-button" role="button" id="mute-bass">Mute</button>
-                    <button class="mute-button" role="button" id="mute-chord">Mute</button>
-                    <button class="mute-button" role="button" id="mute-melody">Mute</button>
-                    <button class="mute-button" role="button" id="mute-harmony">Mute</button>
+
+                <div class="volume-container-items">
+                    <button type="button" class="mute-button" id="mute-drum"
+                        onclick="toggleMute('mute-drum')">M</button>
+                    <button type="button" class="mute-button" id="mute-bass"
+                        onclick="toggleMute('mute-bass')">M</button>
+                    <button type="button" class="mute-button" id="mute-chord"
+                        onclick="toggleMute('mute-chord')">M</button>
+                    <button type="button" class="mute-button" id="mute-melody"
+                        onclick="toggleMute('mute-melody')">M</button>
+                    <button type="button" class="mute-button" id="mute-harmony"
+                        onclick="toggleMute('mute-harmony')">M</button>
                 </div>
 
                 <div class="volume-container">
-                    <input name="volume-drum" type="range" orient="vertical" />
-                    <input name="volume-bass" type="range" orient="vertical" />
-                    <input name="volume-chord" type="range" orient="vertical" />
-                    <input name="volume-melody" type="range" orient="vertical" />
-                    <input name="volume-harmony" type="range" orient="vertical" />
+                    <input name="volume-drum" type="range" orient="vertical" min="0" max="1.5" value="1" step="0.01" />
+                    <input name="volume-bass" type="range" orient="vertical" min="0" max="1.5" value="1" step="0.01" />
+                    <input name="volume-chord" type="range" orient="vertical" min="0" max="1.5" value="1" step="0.01" />
+                    <input name="volume-melody" type="range" orient="vertical" min="0" max="1.5" value="1"
+                        step="0.01" />
+                    <input name="volume-harmony" type="range" orient="vertical" min="0" max="1.5" value="1"
+                        step="0.01" />
                 </div>
 
-                <div class="volume-container">
+                <div class="volume-container-items">
                     <label for="volume-drum">Drum</label>
                     <label for="volume-bass">Bass</label>
                     <label for="volume-chord">Chord</label>
@@ -136,6 +144,7 @@
             <div class="section">
                 <h2>Chord Parameters</h2>
                 <label for="play_chord">Play Chord:</label>
+
                 <input type="checkbox" id="play_chord" name="play_chord" checked><br><br>
 
                 <label for="bounce_chord">Bounce Chord:</label>
@@ -226,18 +235,20 @@
 
             <!-- Controller section 2 -->
             <div class="section">
-                <button id="save-button">Save</button>
-                <button id="load-button">Load</button>
+                <p id="status-message"></p>
+                <input id="submit-button" type="submit" value="Submit">
+
             </div>
 
 
         </div>
-        <p id="status-message"></p>
-        <input id="submit-button" type="submit" value="Submit">
+
+
     </form>
 
 
     <script src="app/script.js"></script>
+    <script src="app/controller.js"></script>
 
 </body>
 
