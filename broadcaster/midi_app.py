@@ -92,27 +92,22 @@ def set_params():
         "TEMPO": int(data.get("tempo", 120)),
         "LENGTH": int(data.get("length", 4)),
         # Drum parameters
-        "PLAY_DRUM": data.get("play_drum", True),
         "LOOP_MEASURES": int(data.get("loop_measures", 4)),
         "STYLE": data.get("style", "country"),
         # Bass parameters
-        "PLAY_BASS": data.get("play_bass", True),
         "DURATION_PREFERENCES_BASS": duration_preferences_bass,
         "PLAYSTYLE": data.get("playstyle", "bass_drum"),
         # Chord parameters
-        "PLAY_CHORD": data.get("play_chord", True),
         "ARPEGIATE_CHORD": data.get("arpegiate_chord", False),
         "BOUNCE_CHORD": data.get("bounce_chord", False),
         "ARP_STYLE": int(data.get("arp_style", 2)),
         # Melody parameters
-        "PLAY_MELODY": data.get("play_melody", True),
         "NOTE_TEMPERATURE_MELODY": note_temperature_melody,
         "DURATION_TEMPERATURE_MELODY": duration_temperature_melody,
         "NO_PAUSE": data.get("no_pause", False),
         "SCALE_MELODY": scale_melody,
         "DURATION_PREFERENCES_MELODY": duration_preferences_melody,
         # Harmony parameters
-        "PLAY_HARMONY": data.get("play_harmony", True),
         "INTERVAL_HARMONY": int(data.get("interval_harmony", 5)),
     }
     config_queue.put(global_config)

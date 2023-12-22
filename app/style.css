@@ -23,6 +23,7 @@ h2 {
     margin-top: 10px;
     margin-bottom: 10px;
     font-size: 1.5em;
+    text-align: center;
 }
 
 h2 {
@@ -161,7 +162,7 @@ input[type="submit"]:hover {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     /* 2x3 grid */
-    gap: 10px;
+    gap: 5px;
     /* Space between sections */
     width: 90%;
     max-width: 1200px;
@@ -169,8 +170,8 @@ input[type="submit"]:hover {
     margin: 0 auto;
     padding-top: 5px;
     padding-bottom: 5px;
-    padding-left: 20px;
-    padding-right: 20px;
+    padding-left: 0px;
+    padding-right: 0px;
 }
 
 /* Volume slider */
@@ -191,11 +192,7 @@ input[type="submit"]:hover {
 input[type="range"][orient="vertical"] {
     -webkit-appearance: none;
     writing-mode: bt-lr;
-    /* This rotates the slider */
-    width: 8px;
-    height: 150px;
-    /* You can adjust this */
-    /* Additional styling as needed */
+
 }
 
 .volume-container-items {
@@ -216,7 +213,7 @@ input[type="range"][orient="vertical"] {
 input[type=range][orient=vertical] {
     appearance: slider-vertical;
     width: 8px;
-    height: 175px;
+    height: 120px;
     padding: 0 5px;
 }
 

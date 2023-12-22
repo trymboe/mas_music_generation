@@ -17,12 +17,10 @@ document.getElementById("control-form").onsubmit = function (event) {
         length: document.getElementById("length").value,
 
         // Drum parameters
-        play_drum: document.getElementById("play_drum").checked,
         style: document.getElementById("style").value,
         loop_measures: document.getElementById("loop_measures").value,
 
         // Bass parameters
-        play_bass: document.getElementById("play_bass").checked,
         bass_creativity: document.getElementById("bass_creativity").value,
         checkbox1: document.getElementById("checkbox1").checked,
         checkbox2: document.getElementById("checkbox2").checked,
@@ -34,13 +32,11 @@ document.getElementById("control-form").onsubmit = function (event) {
         checkbox8: document.getElementById("checkbox8").checked,
 
         // Chord parameters
-        play_chord: document.getElementById("play_chord").checked,
         arpegiate_chord: document.getElementById("arpegiate_chord").checked,
         bounce_chord: document.getElementById("bounce_chord").checked,
         arp_style: document.getElementById("arp_style").value,
 
         // Melody parameters
-        play_melody: document.getElementById("play_melody").checked,
         pitch_creativity_melody: document.getElementById("pitch_creativity_melody").value,
         duration_creativity_melody: document.getElementById("duration_creativity_melody").value,
         note_temperature_melody: document.getElementById("note_temperature_melody").value,
@@ -55,7 +51,6 @@ document.getElementById("control-form").onsubmit = function (event) {
         checkbox6_melody: document.getElementById("double_whole_note_melody").checked,
 
         // Harmony parameters
-        play_harmony: document.getElementById("play_harmony").checked,
         interval_harmony: document.getElementById("interval_harmony").value
     };
 
