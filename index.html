@@ -5,6 +5,7 @@
     <title>Music Generation Control Panel</title>
 
     <link rel="stylesheet" href="app/style.css">
+    <link rel="stylesheet" href="app/controller2.css">
 </head>
 
 <body>
@@ -26,7 +27,7 @@
                     <label for="length" style="display: inline-block;">Length: </label>
                     <div class="tooltip" style="display: inline-block;">
                         &#9432;
-                        <span class="tooltiptext">How many beats the generated loop should be.</span>
+                        <span class="tooltiptext">How many meassures the generated loop should be.</span>
                     </div>
                     <input type="number" id="length" name="length" value="4"><br><br>
                 </div>
@@ -290,6 +291,11 @@
             <div class="section">
                 <p id="status-message"></p>
                 <input id="submit-button" type="submit" value="Submit">
+                <br><br>
+
+                <div id="loopContainer" class="loop-container">
+                    <div id="progressBar" class="progress-bar"></div>
+                </div>
 
             </div>
 

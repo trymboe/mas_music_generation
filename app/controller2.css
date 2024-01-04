@@ -1,0 +1,20 @@
+.loop-container {
+    width: 100%;
+    /* Full width of the container */
+    background-color: #ddd;
+    /* Background of the container */
+    border: 1px solid #ccc;
+    overflow: hidden;
+    /* Ensures nothing spills outside the container */
+}
+
+.progress-bar {
+    height: 20px;
+    /* Height of the progress bar */
+    background-color: #4CAF50;
+    /* Color of the progress bar */
+    width: 0;
+    /* Initial width */
+    transition: width 0s;
+    /* No transition initially */
+}

@@ -1,5 +1,10 @@
 let isGeneratingMusic = false;
 
+let globalTempo = 120; // Default value, update as needed
+let globalLengthInMeasures = 4; // Default value, update as needed
+
+setInterval(acknowledgeStartPlay, 100);
+
 document.getElementById("control-form").onsubmit = function (event) {
     event.preventDefault();
     var submitButton = document.getElementById('submit-button');
@@ -8,6 +13,7 @@ document.getElementById("control-form").onsubmit = function (event) {
     submitButton.disabled = true;
     isGeneratingMusic = true;
     statusMessage.innerHTML = "Generating Music...";
+
 
     var formData = {
         advancedSettings: document.getElementById("advanced-option").checked,
@@ -54,8 +60,8 @@ document.getElementById("control-form").onsubmit = function (event) {
         interval_harmony: document.getElementById("interval_harmony").value
     };
 
-
-    // Add more parameters here if needed
+    globalTempo = parseInt(document.getElementById("tempo").value);
+    globalLengthInMeasures = parseInt(formData.length);
 
 
     fetch('http://localhost:5005/set_params', {
@@ -103,10 +109,11 @@ document.getElementById("control-form").onsubmit = function (event) {
         fetch('http://localhost:5005/acknowledge_complete', { method: 'POST' })
             .then(response => response.json())
             .then(data => console.log(data))
+            .then(startLoopAnimation(formData.tempo, formData.length))
             .catch(error => console.error('Error:', error));
+
     }
 };
-
 
 document.getElementById('advanced-option').addEventListener('change', function () {
     var advancedSettings = document.querySelectorAll('.advanced-settings');
@@ -149,4 +156,38 @@ window.onload = function () {
         arpStyleSelect.disabled = true; // Always disable arp_style if bounce is selected
     };
 };
+
+
+function acknowledgeStartPlay() {
+    fetch('http://localhost:5005/acknowledge_start', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            if (data.acknowledged) {
+                startLoopAnimation(globalTempo, globalLengthInMeasures)
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+
+function startLoopAnimation(bpm, lengthInMeasures) {
+    const beatsPerMeasure = 4; // Adjust this for different time signatures
+    const totalBeats = lengthInMeasures * beatsPerMeasure;
+    const beatsPerSecond = bpm / 60;
+    const durationInSeconds = totalBeats / beatsPerSecond;
+
+    const progressBar = document.getElementById("progressBar");
+    progressBar.style.transition = `width ${durationInSeconds}s linear`;
+    progressBar.style.width = "100%"; // Start the animation
+
+    // Reset the animation when it's done
+    setTimeout(() => {
+        progressBar.style.transition = 'width 0s';
+        progressBar.style.width = '0';
+        // Optional: Delay the restart to visually indicate the loop restart
+        setTimeout(() => {
+            startLoopAnimation(bpm, lengthInMeasures);
+        }, 100);
+    }, durationInSeconds * 1000);
+}
 

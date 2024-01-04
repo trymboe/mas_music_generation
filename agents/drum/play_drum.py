@@ -168,20 +168,17 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
 
     pm = ns.note_sequence_to_pretty_midi(note_sequence)
 
-    pm = loop_drum(pm, loop_measures, loops)
+    pm = loop_drum(pm, loop_measures, loops, tempo)
     pm.instruments[0].name = "drum"
 
     return pm
 
 
 def loop_drum(
-    pm: pretty_midi.PrettyMIDI, measures: int, loops: int
+    pm: pretty_midi.PrettyMIDI, measures: int, loops: int, tempo: int
 ) -> pretty_midi.PrettyMIDI:
     # Assuming 4/4 time signature
     beats_per_measure = 4
-
-    # Get the tempo (assuming a constant tempo for simplicity)
-    tempo = 120  # pm.get_tempo_changes()[1][0]
 
     # Calculate the time duration of the specified measures
     seconds_per_beat = 60.0 / tempo

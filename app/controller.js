@@ -34,7 +34,6 @@ function toggleMute(instrumentId) {
         });
 }
 
-
 document.querySelectorAll('.volume-container input[type=range]').forEach(slider => {
     slider.addEventListener('input', function () {
         updateVolume(this.name, this.value);

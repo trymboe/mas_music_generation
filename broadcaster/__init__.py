@@ -12,3 +12,5 @@ from .broadcaster import (
     music_generation_process,
     set_volume,
 )
+
+from .midi_app import acknowledge_start

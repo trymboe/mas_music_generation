@@ -1,10 +1,7 @@
-# Author: Çağrı Erdem, 2023
-# Description: MIDI broadcasting script for 2groove web app.
+# Thanks to: Çağrı Erdem for the initial implementation of the MIDI broadcasting loop.
+
 import clockblocks
 import rtmidi
-
-
-import os
 
 from agents import play_agents
 
@@ -190,6 +187,7 @@ def broadcasting_loop(
     ).run_as_server()  # 0 is equivalent to absolute timing, 1 is equivalent to relative timing.
     reference_start_time = master_clock.time()
 
+    # TODO: inform js about start
     try:
         current_loop_count = 0  # Initialize loop count
         while not stop_event.is_set():
