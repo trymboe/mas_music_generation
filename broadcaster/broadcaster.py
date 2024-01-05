@@ -135,6 +135,7 @@ def set_volume(instrument, volume):
 def broadcasting_loop(
     generation_queue,
     stop_event,
+    start_event,
     change_groove_event,
     muted,
     virtual_port=True,
@@ -187,7 +188,6 @@ def broadcasting_loop(
     ).run_as_server()  # 0 is equivalent to absolute timing, 1 is equivalent to relative timing.
     reference_start_time = master_clock.time()
 
-    # TODO: inform js about start
     try:
         current_loop_count = 0  # Initialize loop count
         while not stop_event.is_set():
@@ -241,6 +241,8 @@ def broadcasting_loop(
             supposed_clock_time = 0
 
             for idx, event in enumerate(current_midi_events):
+                while start_event.is_set() is False:
+                    pass
                 if stop_event.is_set():
                     break
                 timestamp, event_type, pitch, velocity, instrument_name = event
@@ -254,7 +256,6 @@ def broadcasting_loop(
                     CHANNELS[instrument_name][0],
                     CHANNELS[instrument_name][1],
                 )
-
                 midiout.send_message(message)
 
                 if idx == len(current_midi_events) - 1:

@@ -289,13 +289,13 @@
 
             <!-- Controller section 2 -->
             <div class="section">
+                <input class="button-style" id="submit-button" type="submit" value="Generate Loop">
                 <p id="status-message"></p>
-                <input id="submit-button" type="submit" value="Submit">
-                <br><br>
 
-                <div id="loopContainer" class="loop-container">
-                    <div id="progressBar" class="progress-bar"></div>
-                </div>
+                <button class="button-style" type="button" id="playPauseButton"
+                    onclick="togglePlayPause()">&#9658;</button>
+
+                <br><br>
 
             </div>
 
@@ -308,6 +308,8 @@
 
     <script src="app/script.js"></script>
     <script src="app/controller.js"></script>
+    <script src="app/controller2.js"></script>
+
 
 </body>
 

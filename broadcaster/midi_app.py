@@ -21,12 +21,13 @@ from .broadcaster import (
     set_volume,
 )
 
-pause_event = mpEvent()
+start_event = mpEvent()
 stop_event = mpEvent()
 generation_queue = mpQueue(maxsize=10)
 generation_is_complete = mpEvent()
 change_groove_event = mpEvent()
-start_event = mpEvent()
+
+is_playing = False
 
 is_drum_muted, is_bass_muted, is_chord_muted, is_melody_muted, is_harmony_muted = (
     False,
@@ -200,21 +201,25 @@ def acknowledge_complete():
     return jsonify({"acknowledged": True})
 
 
-@midi_app.route("/acknowledge_start", methods=["POST"])
-def acknowledge_start():
-    return jsonify({"acknowledged": True})
-
-
 @midi_app.after_request
 def add_header(response):
     response.cache_control.no_store = True
     return response
 
 
-@midi_app.route("/check_start", methods=["GET"])
-def check_start():
-    is_starting = start_event.is_set()
-    return jsonify({"isStarting": is_starting})
+# In midi_app.py
+@midi_app.route("/control/play_pause", methods=["POST"])
+def play_pause():
+    global is_playing
+
+    is_playing = not is_playing
+
+    if is_playing:
+        start_event.set()
+    else:
+        start_event.clear()
+
+    return jsonify({"status": "success", "isPlaying": is_playing})
 
 
 def start_broadcaster():
@@ -234,6 +239,7 @@ def start_broadcaster():
         args=(
             generation_queue,
             stop_event,
+            start_event,
             change_groove_event,
             [
                 is_drum_muted,
