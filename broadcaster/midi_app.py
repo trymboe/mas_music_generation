@@ -22,6 +22,7 @@ from .broadcaster import (
 )
 
 start_event = mpEvent()
+pause_event = mpEvent()
 stop_event = mpEvent()
 generation_queue = mpQueue(maxsize=10)
 generation_is_complete = mpEvent()
@@ -30,6 +31,14 @@ change_groove_event = mpEvent()
 is_playing = False
 
 is_drum_muted, is_bass_muted, is_chord_muted, is_melody_muted, is_harmony_muted = (
+    False,
+    False,
+    False,
+    False,
+    False,
+)
+
+is_drum_kept, is_bass_kept, is_chord_kept, is_melody_kept, is_harmony_kept = (
     False,
     False,
     False,
@@ -94,16 +103,20 @@ def set_params():
         "TEMPO": int(data.get("tempo", 120)),
         "LENGTH": int(data.get("length", 4)),
         # Drum parameters
+        "KEEP_DRUM": data.get("keep_drum", False),
         "LOOP_MEASURES": int(data.get("loop_measures", 4)),
         "STYLE": data.get("style", "country"),
         # Bass parameters
+        "KEEP_BASS": data.get("keep_bass", False),
         "DURATION_PREFERENCES_BASS": duration_preferences_bass,
         "PLAYSTYLE": data.get("playstyle", "bass_drum"),
         # Chord parameters
+        "KEEP_CHORD": data.get("keep_chord", False),
         "ARPEGIATE_CHORD": data.get("arpegiate_chord", False),
         "BOUNCE_CHORD": data.get("bounce_chord", False),
         "ARP_STYLE": int(data.get("arp_style", 2)),
         # Melody parameters
+        "KEEP_MELODY": data.get("keep_melody", False),
         "NOTE_TEMPERATURE_MELODY": note_temperature_melody,
         "DURATION_TEMPERATURE_MELODY": duration_temperature_melody,
         "NO_PAUSE": data.get("no_pause", False),
@@ -162,21 +175,6 @@ def update_volume():
         jsonify({"status": "success", "instrument": instrument, "new_volume": volume}),
         200,
     )
-
-
-@midi_app.route("/control", methods=["POST"])
-def control():
-    action = request.json.get("action", "")
-    if action == "pause":
-        pause_event.set()
-    elif action == "resume":
-        pause_event.clear()
-
-    elif action == "stop":
-        os.kill(os.getpid(), signal.SIGINT)  # similar to cmd+C
-        return jsonify({"message": f"Action {action} processed, server stopped"})
-
-    return jsonify({"message": f"Action {action} processed"})
 
 
 @midi_app.route("/check_status", methods=["GET"])

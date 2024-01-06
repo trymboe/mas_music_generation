@@ -22,13 +22,13 @@ def play_chord(
     )
 
     if config["ARPEGIATE_CHORD"]:
-        mid = play_chord_arpeggiate(mid, timed_chord_sequence, config)
+        mid, chord_instrument = play_chord_arpeggiate(mid, timed_chord_sequence, config)
     elif config["BOUNCE_CHORD"]:
         mid = play_chord_bounce(mid, timed_chord_sequence, config)
     else:
-        mid = play_chord_hold(mid, timed_chord_sequence, config)
+        mid, chord_instrument = play_chord_hold(mid, timed_chord_sequence, config)
 
-    return mid, timed_chord_sequence
+    return mid, chord_instrument, timed_chord_sequence
 
 
 def play_chord_hold(pretty_midi_obj, chord_sequence, config):
@@ -63,7 +63,7 @@ def play_chord_hold(pretty_midi_obj, chord_sequence, config):
     piano_instrument.name = "chord"
     pretty_midi_obj.instruments.append(piano_instrument)
 
-    return pretty_midi_obj
+    return pretty_midi_obj, piano_instrument
 
 
 def play_chord_arpeggiate(pm, chord_sequence, config):
@@ -146,13 +146,13 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
     # Append instrument to PrettyMIDI object
     piano.name = "chord"
     pm.instruments.append(piano)
-    return pm
+    return pm, piano
 
 
 def play_chord_bounce(
     pm: pretty_midi.PrettyMIDI, chord_sequence, config: dict
 ) -> pretty_midi.PrettyMIDI:
-    pass
+    raise NotImplementedError
 
 
 def get_timed_chord_sequence(full_bass_sequence, dataset_primer):

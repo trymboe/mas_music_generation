@@ -124,7 +124,7 @@ def play_bass(
     bass_instrument.name = "bass"
     mid.instruments.append(bass_instrument)
 
-    return mid, predicted_bass_sequence
+    return mid, bass_instrument, predicted_bass_sequence
 
 
 def play_note(

@@ -21,13 +21,14 @@ import note_seq as ns
 def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
     drum_dataset: Drum_Dataset = get_drum_dataset()
     if config["STYLE"]:
-        return play_drum_from_style(
+        mid = play_drum_from_style(
             loop_measures=config["LOOP_MEASURES"],
             loops=int(config["LENGTH"] / config["LOOP_MEASURES"]),
             drum_dataset=drum_dataset,
             tempo=config["TEMPO"],
             style=config["STYLE"],
         )
+        return mid, mid
     else:
         raise NotImplementedError
 

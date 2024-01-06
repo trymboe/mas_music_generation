@@ -36,6 +36,13 @@
             <!-- Drum parameters -->
             <div class="section">
                 <h2>Drum Parameters</h2>
+                <label for="keep-drum" style="display: inline-block;">Keep Drum:</label>
+                <div class="tooltip" style="display: inline-block;">
+                    &#9432;
+                    <span class="tooltiptext">If checked, the drum beat will not be regenerated.</span>
+                </div>
+                <input type="checkbox" id="keep-drum" name="keep-drum"><br><br><br>
+
                 <label for="style">Style:</label>
                 <select id="style" name="style">
                     <option value="country">Country</option>
@@ -72,6 +79,13 @@
             <!-- Bass parameters -->
             <div class="section">
                 <h2>Bass Parameters</h2>
+                <label for="keep-bass" style="display: inline-block;">Keep Bass:</label>
+                <div class="tooltip" style="display: inline-block;">
+                    &#9432;
+                    <span class="tooltiptext">If checked, the bass sequence will not be regenerated.</span>
+                </div>
+                <input type="checkbox" id="keep-bass" name="keep-bass"><br><br><br>
+
                 <div class="normal-settings">
                     <label for="bass_creativity" style="display: inline-block;">Bass Creativity</label>
                     <div class="tooltip" style="display: inline-block;">
@@ -154,6 +168,13 @@
             <!-- Chord parameters -->
             <div class="section">
                 <h2>Chord Parameters</h2>
+                <label for="keep-chord" style="display: inline-block;">Keep Chord:</label>
+                <div class="tooltip" style="display: inline-block;">
+                    &#9432;
+                    <span class="tooltiptext">If checked, the chord sequence will not be regenerated.</span>
+                </div>
+                <input type="checkbox" id="keep-chord" name="keep-chord"><br><br><br>
+
                 <label for="bounce_chord" style="display: inline-block;">Bounce Chord:</label>
                 <div class="tooltip" style="display: inline-block;">
                     &#9432;
@@ -183,6 +204,13 @@
 
             <div class="section">
                 <h2>Melody Parameters</h2>
+                <label for="keep-melody" style="display: inline-block;">Keep Melody:</label>
+                <div class="tooltip" style="display: inline-block;">
+                    &#9432;
+                    <span class="tooltiptext">If checked, the melody sequence will not be regenerated.</span>
+                </div>
+                <input type="checkbox" id="keep-melody" name="keep-melody"><br><br><br>
+
                 <div class="normal-settings">
                     <label for="pitch_creativity_melody" style="display: inline-block;">Pitch Creativity</label>
                     <div class="tooltip" style="display: inline-block;">
@@ -291,13 +319,13 @@
             <div class="section">
                 <input class="button-style" id="submit-button" type="submit" value="Generate Loop">
                 <p id="status-message"></p>
+                <br>
 
                 <button class="button-style" type="button" id="playPauseButton"
                     onclick="togglePlayPause()">&#9658;</button>
 
-                <br><br>
-
             </div>
+
 
 
         </div>

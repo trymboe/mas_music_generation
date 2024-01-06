@@ -184,3 +184,25 @@ def get_duration_preferences_melody_from_advanced(
     if note_double:
         duration_preferences.append(15)
     return duration_preferences
+
+
+def get_kept_instruments(GENERATION_LOG):
+    """
+    Get the list of previously kept instruments from the generation log.
+
+    Args:
+    ----------
+        GENERATION_LOG (list): The generation log containing instrument information.
+
+    Returns:
+    ----------
+        list: A list of previously kept instruments in the order [drum, bass, chord, melody].
+    """
+    if not GENERATION_LOG:
+        return [False, False, False, False]
+    prev_drum = GENERATION_LOG[-1][0]
+    prev_bass = GENERATION_LOG[-1][1]
+    prev_chord = GENERATION_LOG[-1][2]
+    prev_melody = GENERATION_LOG[-1][3]
+
+    return [prev_drum, prev_bass, prev_chord, prev_melody]

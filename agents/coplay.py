@@ -25,11 +25,10 @@ from config import (
     CHORD_SIZE_MELODY,
     PITCH_SIZE_MELODY,
     INT_TO_TRIAD,
-    SEGMENTS,
 )
 
 
-def play_agents(config) -> pretty_midi.PrettyMIDI:
+def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     """
     Orchestrates the playing of bass, chord, and drum agents to generate a music piece.
 
@@ -56,7 +55,14 @@ def play_agents(config) -> pretty_midi.PrettyMIDI:
     # ------------------------------------------------------
     print("    ----playing drum----")
     start = time.time()
-    new_mid = play_drum(config)
+    if config["KEEP_DRUM"]:
+        # If it is the first time, there are no drums to keep
+        if not kept_instruments[0]:
+            new_mid, drum_mid = play_drum(config)
+        else:
+            new_mid = drum_mid = kept_instruments[0][0]
+    else:
+        new_mid, drum_mid = play_drum(config)
     end = time.time()
 
     print("      ----drum playing time: ", end - start)
@@ -65,7 +71,20 @@ def play_agents(config) -> pretty_midi.PrettyMIDI:
     # ------------------------------------------------------
     print("    ----playing bass----")
     start = time.time()
-    new_mid, predicted_bass_sequence = play_bass(new_mid, bass_primer, config)
+    if config["KEEP_BASS"]:
+        # If it is the first time, there are no drums to keep
+        if not kept_instruments[1]:
+            new_mid, bass_instrument, predicted_bass_sequence = play_bass(
+                new_mid, bass_primer, config
+            )
+        else:
+            bass_instrument = kept_instruments[1][0]
+            predicted_bass_sequence = kept_instruments[1][1]
+            new_mid.instruments.append(bass_instrument)
+    else:
+        new_mid, bass_instrument, predicted_bass_sequence = play_bass(
+            new_mid, bass_primer, config
+        )
     end = time.time()
     print("      ----bass playing time: ", end - start)
 
@@ -74,9 +93,25 @@ def play_agents(config) -> pretty_midi.PrettyMIDI:
     # ------------------------------------------------------
     print("    ----playing chord----")
     start = time.time()
-    new_mid, predicted_chord_sequence = play_chord(
-        new_mid, predicted_bass_sequence, chord_primer, config
-    )
+    print()
+    print()
+    print("config keep chord", config["KEEP_CHORD"])
+    print("kept intrument", kept_instruments[2])
+    print()
+    print()
+    if config["KEEP_CHORD"]:
+        if not kept_instruments[2]:
+            new_mid, chord_instrument, predicted_chord_sequence = play_chord(
+                new_mid, predicted_bass_sequence, chord_primer, config
+            )
+        else:
+            chord_instrument = kept_instruments[2][0]
+            predicted_chord_sequence = kept_instruments[2][1]
+            new_mid.instruments.append(chord_instrument)
+    else:
+        new_mid, chord_instrument, predicted_chord_sequence = play_chord(
+            new_mid, predicted_bass_sequence, chord_primer, config
+        )
     end = time.time()
     print("      ----chord playing time: ", end - start)
 
@@ -85,9 +120,19 @@ def play_agents(config) -> pretty_midi.PrettyMIDI:
     # ------------------------------------------------------
     print("    ----playing melody----")
     start = time.time()
-    new_mid, predicted_melody_sequence = play_melody(
-        new_mid, predicted_chord_sequence, melody_primer, config
-    )
+    if config["KEEP_MELODY"]:
+        if not kept_instruments[3]:
+            new_mid, melody_instrument, predicted_melody_sequence = play_melody(
+                new_mid, predicted_chord_sequence, melody_primer, config
+            )
+        else:
+            melody_instrument = kept_instruments[3][0]
+            predicted_melody_sequence = kept_instruments[3][1]
+            new_mid.instruments.append(melody_instrument)
+    else:
+        new_mid, melody_instrument, predicted_melody_sequence = play_melody(
+            new_mid, predicted_chord_sequence, melody_primer, config
+        )
     end = time.time()
     print("      ----melody playing time: ", end - start)
 
@@ -115,9 +160,14 @@ def play_agents(config) -> pretty_midi.PrettyMIDI:
     #     predicted_melody_sequence,
     #     config,
     # )
-
+    instruments = [
+        [drum_mid],
+        [bass_instrument, predicted_bass_sequence],
+        [chord_instrument, predicted_chord_sequence],
+        [melody_instrument, predicted_melody_sequence],
+    ]
     mid.write(SAVE_RESULT_PATH)
-    return mid
+    return mid, instruments
 
 
 def get_new_primer_sequences(

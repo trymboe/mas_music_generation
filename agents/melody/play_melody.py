@@ -21,8 +21,8 @@ def play_melody(
     note_sequence = predict_next_notes(
         chord_sequence, melody_agent, melody_primer, config
     )
-    mid = play_melody_notes(note_sequence, mid, config)
-    return mid, note_sequence
+    mid, melody_instrument = play_melody_notes(note_sequence, mid, config)
+    return mid, melody_instrument, note_sequence
 
 
 def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
@@ -47,4 +47,4 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
     melody_instrument.name = "melody"
     mid.instruments.append(melody_instrument)
 
-    return mid
+    return mid, melody_instrument

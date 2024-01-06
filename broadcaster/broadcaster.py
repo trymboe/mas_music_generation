@@ -5,6 +5,8 @@ import rtmidi
 
 from agents import play_agents
 
+from .utils import get_kept_instruments
+
 
 from multiprocessing import Value, Process, Queue as mpQueue, Event as mpEvent
 
@@ -27,6 +29,13 @@ is_chord_muted = False
 is_melody_muted = False
 is_harmony_muted = False
 
+is_drum_kept = False
+is_bass_kept = False
+is_chord_kept = False
+is_melody_kept = False
+is_harmony_kept = False
+
+GENERATION_LOG = []
 
 # Constants
 MS_PER_SEC = 1_000_000  # microseconds per second
@@ -286,7 +295,9 @@ def music_generation_process(
     global global_config
     while True:
         global_config = config_queue.get()  # Blocking call
-        pm = play_agents(global_config)
+        kept_instruments = get_kept_instruments(GENERATION_LOG)
+        pm, instruments = play_agents(global_config, kept_instruments)
+        GENERATION_LOG.append(instruments)
         generation_queue.put(pm)
         change_groove_event.set()
         generation_is_complete.set()
