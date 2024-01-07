@@ -93,12 +93,6 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     # ------------------------------------------------------
     print("    ----playing chord----")
     start = time.time()
-    print()
-    print()
-    print("config keep chord", config["KEEP_CHORD"])
-    print("kept intrument", kept_instruments[2])
-    print()
-    print()
     if config["KEEP_CHORD"]:
         if not kept_instruments[2]:
             new_mid, chord_instrument, predicted_chord_sequence = play_chord(

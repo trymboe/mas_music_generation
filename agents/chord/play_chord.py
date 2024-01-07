@@ -20,11 +20,10 @@ def play_chord(
     timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence, dataset_primer
     )
-
     if config["ARPEGIATE_CHORD"]:
         mid, chord_instrument = play_chord_arpeggiate(mid, timed_chord_sequence, config)
     elif config["BOUNCE_CHORD"]:
-        mid = play_chord_bounce(mid, timed_chord_sequence, config)
+        mid, chord_instrument = play_chord_bounce(mid, timed_chord_sequence, config)
     else:
         mid, chord_instrument = play_chord_hold(mid, timed_chord_sequence, config)
 
@@ -152,7 +151,35 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
 def play_chord_bounce(
     pm: pretty_midi.PrettyMIDI, chord_sequence, config: dict
 ) -> pretty_midi.PrettyMIDI:
-    raise NotImplementedError
+    note_mapping = {i: 60 + i for i in range(24)}
+    piano_instrument = pretty_midi.Instrument(program=0)  # 0: Acoustic Grand Piano
+    current_time = 0.0  # Initialize a variable to keep track of time
+
+    for chord, duration in chord_sequence:
+        number_of_bounces = duration * 2
+        bounce_duration = duration / number_of_bounces
+        for _ in range(number_of_bounces):
+            for note in chord:
+                midi_note = note_mapping[note]
+                piano_note = pretty_midi.Note(
+                    velocity=64,  # volume
+                    pitch=midi_note,  # MIDI note number
+                    start=beats_to_seconds(current_time, config["TEMPO"]),  # start time
+                    end=beats_to_seconds(
+                        current_time + bounce_duration, config["TEMPO"]
+                    ),  # end time
+                )
+                # Add note to the piano_instrument
+                piano_instrument.notes.append(piano_note)
+
+            # Move the current time cursor
+            current_time += bounce_duration
+
+    # Add the piano_instrument to the PrettyMIDI object
+    piano_instrument.name = "chord"
+    pm.instruments.append(piano_instrument)
+
+    return pm, piano_instrument
 
 
 def get_timed_chord_sequence(full_bass_sequence, dataset_primer):
