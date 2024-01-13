@@ -7,14 +7,13 @@ This project is developed as part of a master thesis with the aim of exploring a
 Please note that this project is currently a Work in Progress (WIP). This means that not all features are fully implemented, and the project is in active development.
 
 ## Dependencies and Setup
-Please refer to the `requirements.txt` file for a list of necessary Python libraries and dependencies required to run this project. You can install them using the following command:
+Dependencies required to run this project are listed in the requirements.txt file. Install them using:
 ```bash
 pip install -r requirements.txt
 ```
 
 ### Models
-Training your own models will several hours, even on high performance computers.
-If you want to train your own models, it can be done by running 
+Training models requires several hours, even on high-performance computers. To train your own models, run the following command with these arguments:
 ```bash
 python main.py
 ```
@@ -24,8 +23,7 @@ With these args:
 -td: train drum model
 -tm: train melody model
 
-If you want to use pretrained models, they can be downloaded using gdown.
-Download from root directory
+To use pretrained models, download them using gdown from the root directory:
 
 ### Bass model
 ```bash 
@@ -48,17 +46,32 @@ gdown https://drive.google.com/uc?id=1nUGb2Mbs4Z_ulcG374OVaY2ud_uomIjg -O models
 ```
 
 # Usage
-When you have your dependencies installed, and models trained or downloaded, you can run the program like this:
+Once the dependencies are installed and the models are either trained or downloaded, run the program:
 ```bash
 python main.py
 ```
-This will automatically open a localy hosted app in your browser. In the app you can tune parameters an create your own loops.
+This will automatically open a localy hosted app in your browser. In the app you can tune parameters an create your own music.
+
+## Getting sound
+To play the generated music, you need a MIDI player capable of listening to multiple MIDI ports simultaneously. The music will be broadcast to virtual MIDI channels on your computer and picked up by the MIDI player.
+
+The agents and their channels are as follows:
+
+- Channel 1: Drum
+- Channel 2: Bass
+- Channel 3: Chord
+- Channel 4: Melody
+- Channel 5: Harmony
+
+Below is an example setup in Ableton Live 11:
+
+![Image of ableton setup](media/ableton_setup.png)
+
+
 
 
 ## Acknowledgments
-Thanks to Kyrre Glette for supervision on my masters project.
-
-Thanks to Çağrı Erdem for the help in implementation of the MIDI broadcasting loop.
-
-Thanks to the Bumblebeat project for inspiring and providing a solid foundation for the drum generation aspect of this project.
+Special thanks to Kyrre Glette for supervising this master's project.
+Thanks to Çağrı Erdem for assistance with the implementation of the MIDI broadcasting loop.
+Appreciation to the Bumblebeat project for inspiration and foundational work in drum generation.
 [Bumblebeat Project](https://github.com/thomasgnuttall/bumblebeat/tree/master)
