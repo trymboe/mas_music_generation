@@ -31,6 +31,7 @@ def play_bass(
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
 
     running_time = start_time = end_time = chord_start_time = 0.0
+
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if config["PLAYSTYLE"] == "bass_drum":
         for note, duration in predicted_bass_sequence:
@@ -50,6 +51,16 @@ def play_bass(
                             bass_instrument,
                             pitch=midi_note,
                             start_time=running_time,
+                            end_time=end_time,
+                            tempo=config["TEMPO"],
+                        )
+                    else:
+                        end_time = chord_start_time + duration
+
+                        play_note(
+                            bass_instrument,
+                            pitch=midi_note,
+                            start_time=running_time + duration,
                             end_time=end_time,
                             tempo=config["TEMPO"],
                         )
