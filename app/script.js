@@ -139,25 +139,29 @@ document.getElementById('advanced-option').addEventListener('change', function (
 });
 
 // Disable or enable arpegiate chord based on bounce chord checkbox
-window.onload = function () {
+document.addEventListener('DOMContentLoaded', function () {
     var arpegiateChordCheckbox = document.getElementById('arpegiate_chord');
     var bounceChordCheckbox = document.getElementById('bounce_chord');
     var arpStyleSelect = document.getElementById('arp_style');
 
-    // Disable or enable bounce chord based on arpegiate chord checkbox
-    arpegiateChordCheckbox.onclick = function () {
+    if (!arpegiateChordCheckbox || !bounceChordCheckbox || !arpStyleSelect) {
+        console.error('One or more elements not found!');
+        return;
+    }
+
+    arpegiateChordCheckbox.addEventListener('change', function () {
         bounceChordCheckbox.checked = false;
         bounceChordCheckbox.disabled = this.checked;
         arpStyleSelect.disabled = !this.checked;
-    };
+    });
 
-    // Disable or enable arpegiate chord based on bounce chord checkbox
-    bounceChordCheckbox.onclick = function () {
+    bounceChordCheckbox.addEventListener('change', function () {
         arpegiateChordCheckbox.checked = false;
         arpegiateChordCheckbox.disabled = this.checked;
         arpStyleSelect.disabled = true; // Always disable arp_style if bounce is selected
-    };
-};
+    });
+});
+
 
 
 window.onload = function () {
