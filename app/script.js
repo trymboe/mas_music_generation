@@ -223,9 +223,9 @@ window.onload = function () {
     };
 
     keepChord.onclick = function () {
-        arpegiateChord.disabled = this.checked;
-        bounceChord.disabled = this.checked;
-        arpStyle.disabled = this.checked;
+        // arpegiateChord.disabled = this.checked;
+        // bounceChord.disabled = this.checked;
+        // arpStyle.disabled = this.checked;
         keepBass.checked = this.checked;
         bassCreativity.disabled = this.checked;
         checkbox1.disabled = this.checked;

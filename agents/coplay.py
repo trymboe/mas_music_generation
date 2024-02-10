@@ -1,5 +1,5 @@
 from .bass import play_bass
-from .chord import play_chord
+from .chord import play_chord, play_known_chord
 from .drum import play_drum
 from .melody import play_melody
 from .harmony import play_harmony
@@ -99,8 +99,11 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
                 new_mid, predicted_bass_sequence, chord_primer, config
             )
         else:
-            chord_instrument = kept_instruments[2][0]
             predicted_chord_sequence = kept_instruments[2][1]
+            # If we want to keep the chord, but have a new play style
+            new_mid, chord_instrument = play_known_chord(
+                new_mid, predicted_chord_sequence, config
+            )
             new_mid.instruments.append(chord_instrument)
     else:
         new_mid, chord_instrument, predicted_chord_sequence = play_chord(

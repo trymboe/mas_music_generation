@@ -16,7 +16,7 @@ from config import (
 
 def play_chord(
     mid: MidiFile, predicted_bass_sequence, dataset_primer, config: dict
-) -> tuple[MidiFile, list]:
+) -> tuple[MidiFile, list, pretty_midi.Instrument]:
     timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence, dataset_primer
     )
@@ -28,6 +28,32 @@ def play_chord(
         mid, chord_instrument = play_chord_hold(mid, timed_chord_sequence, config)
 
     return mid, chord_instrument, timed_chord_sequence
+
+
+def play_known_chord(
+    mid: MidiFile, timed_chord_sequence: list, config: dict
+) -> tuple[MidiFile, pretty_midi.Instrument]:
+    """
+    Genereates a MIDI file with the given chord sequence.
+    This function is used when a chord line is kept from the previous loop, but there might be
+    a change in the playstyle.
+
+    Args:
+        mid (MidiFile): midi file to be modified
+        timed_chord_sequence (list): list of tuples containing the chord and its duration
+        config (dict): configuration dictionary
+
+    Returns:
+        tuple[MidiFile, pretty_midi.Instrument]: the modified midi file and the chord instrument
+    """
+    if config["ARPEGIATE_CHORD"]:
+        mid, chord_instrument = play_chord_arpeggiate(mid, timed_chord_sequence, config)
+    elif config["BOUNCE_CHORD"]:
+        mid, chord_instrument = play_chord_bounce(mid, timed_chord_sequence, config)
+    else:
+        mid, chord_instrument = play_chord_hold(mid, timed_chord_sequence, config)
+
+    return mid, chord_instrument
 
 
 def play_chord_hold(pretty_midi_obj, chord_sequence, config):
