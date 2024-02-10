@@ -5,6 +5,7 @@ from .melody import play_melody
 from .harmony import play_harmony
 import random
 import time
+import copy
 
 import pretty_midi
 import torch
@@ -48,7 +49,6 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
 
     chord_primer, bass_primer, melody_primer = get_primer_sequences()
     mid = None
-    print("----playing agents----")
 
     # ------------------------------------------------------
     #                   playing drum
@@ -60,9 +60,13 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
         if not kept_instruments[0]:
             new_mid, drum_mid = play_drum(config)
         else:
-            new_mid = drum_mid = kept_instruments[0][0]
+            drum_mid = kept_instruments[0][0]
+            new_mid = copy.deepcopy(drum_mid)
+            drum_mid.write("results/test.mid")
     else:
-        new_mid, drum_mid = play_drum(config)
+        drum_mid = play_drum(config)
+        new_mid = copy.deepcopy(drum_mid)
+        drum_mid.write("results/test1.mid")
     end = time.time()
 
     print("      ----drum playing time: ", end - start)
@@ -157,6 +161,7 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     #     predicted_melody_sequence,
     #     config,
     # )
+    drum_mid.write("results/test2.mid")
     instruments = [
         [drum_mid],
         [bass_instrument, predicted_bass_sequence],

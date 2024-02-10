@@ -28,7 +28,7 @@ def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
             tempo=config["TEMPO"],
             style=config["STYLE"],
         )
-        return mid, mid
+        return mid
     else:
         raise NotImplementedError
 
