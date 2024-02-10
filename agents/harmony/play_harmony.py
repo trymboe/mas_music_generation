@@ -7,7 +7,7 @@ from config import PITCH_SIZE_MELODY
 def play_harmony(
     mid: pretty_midi.PrettyMIDI, melody_sequence: list[list[int]], config: dict
 ) -> pretty_midi.PrettyMIDI:
-    harmony_instrument = pretty_midi.Instrument(program=81)
+    harmony_instrument = pretty_midi.Instrument(program=0)
 
     running_duration = 0
     for pitch, duration in melody_sequence:

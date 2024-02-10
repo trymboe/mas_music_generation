@@ -26,7 +26,7 @@ def play_melody(
 
 
 def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
-    melody_instrument = pretty_midi.Instrument(program=81)
+    melody_instrument = pretty_midi.Instrument(program=0)
     running_time: float = 0.0
     for note, duration in note_sequence:
         # get duration in beats, orignaly in quarter notes
