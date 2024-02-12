@@ -23,7 +23,7 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
     Run model pipeline from setup specified in <conf>
 
     Params
-    ======
+    ----------
     conf: dict
         config from conf/train_conf.yaml
     drum_dataset: Drum_Dataset
