@@ -182,6 +182,9 @@ class Drum_Dataset:
                 self.val_data_fill.append(item)
 
         print("Processing dataset TRAIN...")
+        self.train_all = self.process_dataset(
+            self.train_data, conf=processing_conf
+        )
         self.train_beat = self.process_dataset(
             self.train_data_beat, conf=processing_conf
         )
@@ -190,10 +193,12 @@ class Drum_Dataset:
         )
 
         print("Processing dataset TEST...")
+        self.test_all = self.process_dataset(self.test_data, conf=processing_conf)
         self.test_beat = self.process_dataset(self.test_data_beat, conf=processing_conf)
         self.test_fill = self.process_dataset(self.test_data_fill, conf=processing_conf)
 
         print("Processing dataset VALID...")
+        self.valid_all = self.process_dataset(self.valid_data, conf=processing_conf)
         self.valid_beat = self.process_dataset(self.val_data_beat, conf=processing_conf)
         self.valid_fill = self.process_dataset(self.val_data_fill, conf=processing_conf)
 
