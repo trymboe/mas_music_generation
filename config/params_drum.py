@@ -52,8 +52,9 @@ GENRE = "rock"
 QUANTIZE = True
 STEPS_PER_QUARTER = 4
 WORK_DIR = "models/drum"
+VERSION = "full"
 
-MODEL_PATH_DRUM = "models/drum/drum_model.pt"
+MODEL_PATH_DRUM = "models/drum/drum_model_" + VERSION + ".pt"
 
 
 # Hyperparameters
