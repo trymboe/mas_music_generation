@@ -172,7 +172,6 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
         predicted_chord_sequence,
         melody_primer,
         predicted_melody_sequence,
-        config,
     )
 
     instruments = [
