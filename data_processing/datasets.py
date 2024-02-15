@@ -153,12 +153,51 @@ class Drum_Dataset:
         self.test_data = [x for x in test_dataset]
         self.valid_data = [x for x in valid_dataset]
 
+        self.train_data_beat = []
+        self.train_data_fill = []
+        self.test_data_beat = []
+        self.test_data_fill = []
+        self.val_data_beat = []
+        self.val_data_fill = []
+
+        for item in self.train_data:
+            if item["type"] == 0:
+                self.train_data_beat.append(item)
+            elif item["type"] == 1:
+                self.train_data_fill.append(item)
+
+        for item in self.test_data:
+            if item["type"] == 0:
+                self.test_data_beat.append(item)
+            elif item["type"] == 1:
+                self.test_data_fill.append(item)
+
+        for item in self.valid_data:
+            if item["type"] == 0:
+                self.val_data_beat.append(item)
+            elif item["type"] == 1:
+                self.val_data_fill.append(item)
+
         print("Processing dataset TRAIN...")
-        self.train = self.process_dataset(self.train_data, conf=processing_conf)
+        self.train_all = self.process_dataset(
+            self.train_data, conf=processing_conf
+        )
+        self.train_beat = self.process_dataset(
+            self.train_data_beat, conf=processing_conf
+        )
+        self.train_fill = self.process_dataset(
+            self.train_data_fill, conf=processing_conf
+        )
+
         print("Processing dataset TEST...")
-        self.test = self.process_dataset(self.test_data, conf=processing_conf)
+        self.test_all = self.process_dataset(self.test_data, conf=processing_conf)
+        self.test_beat = self.process_dataset(self.test_data_beat, conf=processing_conf)
+        self.test_fill = self.process_dataset(self.test_data_fill, conf=processing_conf)
+
         print("Processing dataset VALID...")
-        self.valid = self.process_dataset(self.valid_data, conf=processing_conf)
+        self.valid_all = self.process_dataset(self.valid_data, conf=processing_conf)
+        self.valid_beat = self.process_dataset(self.val_data_beat, conf=processing_conf)
+        self.valid_fill = self.process_dataset(self.val_data_fill, conf=processing_conf)
 
     def download_midi(self, dataset_name, dataset_split):
         print(f"Downloading midi data: {dataset_name}, split: {dataset_split}")
@@ -224,9 +263,9 @@ class Drum_Dataset:
 
     def get_iterator(self, split, *args, **kwargs):
         if split == "train":
-            data_iter = LMOrderedIterator(self.train, *args, **kwargs)
+            data_iter = LMOrderedIterator(self.train_beat, *args, **kwargs)
         elif split in ["valid", "test"]:
-            data = self.valid if split == "valid" else self.test
+            data = self.valid_beat if split == "valid" else self.test_beat
             data_iter = LMOrderedIterator(data, *args, **kwargs)
 
         return data_iter

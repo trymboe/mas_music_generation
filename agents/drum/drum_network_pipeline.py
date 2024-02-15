@@ -2,6 +2,7 @@ import sys
 import math
 import os
 import time
+import json
 import itertools
 
 import torch
@@ -12,7 +13,7 @@ from .drum_network import Drum_Network
 
 from data_processing import Drum_Dataset
 
-from config import WORK_DIR, MODEL_PATH_DRUM, DEVICE
+from config import WORK_DIR, MODEL_PATH_DRUM, DEVICE, VERSION
 from .utils import create_exp_dir, create_dir_if_not_exists
 
 sys.path.append("utils")
@@ -23,7 +24,7 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
     Run model pipeline from setup specified in <conf>
 
     Params
-    ======
+    ----------
     conf: dict
         config from conf/train_conf.yaml
     drum_dataset: Drum_Dataset
@@ -47,6 +48,8 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
     # logging = create_exp_dir(model_conf['work_dir'],
     #   scripts_to_save=['train.py', 'mem_transformer.py'], debug=model_conf['debug'])
     logging = create_exp_dir(WORK_DIR, scripts_to_save=None, debug=model_conf["debug"])
+    loss_list = []
+    val_loss_list = []
 
     # Set the random seed manually for reproducibility.
     # np.random.seed(model_conf['seed'])
@@ -371,11 +374,15 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
                 total_loss += seq_len * loss.float().item()
                 total_len += seq_len
 
+
         # Switch back to the training mode
         model.reset_length(
             model_conf["tgt_len"], model_conf["ext_len"], model_conf["mem_len"]
         )
         model.train()
+        
+        print("total_loss", total_loss)
+        print("total_len", total_len)
 
         return total_loss / total_len
 
@@ -462,6 +469,7 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
                 logging(log_str)
                 train_loss = 0
                 log_start_time = time.time()
+                loss_list.append(cur_loss)
 
             if train_step == 1 or train_step % model_conf["eval_interval"] == 0:
                 val_loss = evaluate(va_iter)
@@ -475,13 +483,14 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
                         val_loss,
                     )
                 )
+                val_loss_list.append(val_loss)
                 log_str += " | valid ppl {:9.3f}".format(math.exp(val_loss))
                 logging(log_str)
                 logging("-" * 100)
                 # Save the model if the validation loss is the best we've seen so far.
                 if not best_val_loss or val_loss < best_val_loss:
                     create_dir_if_not_exists(
-                        os.path.join(WORK_DIR, f"train_step_{train_step}", "")
+                        os.path.join(WORK_DIR, VERSION, f"train_step_{train_step}", "")
                     )
                     if not model_conf["debug"]:
                         with open(
@@ -531,6 +540,7 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
             if train_step == model_conf["max_step"]:
                 logging("-" * 100)
                 logging("End of training")
+                save_to_json(loss_list, val_loss_list)
                 break
     except KeyboardInterrupt:
         logging("-" * 100)
@@ -552,3 +562,11 @@ def drum_network_pipeline(conf: dict, drum_dataset: Drum_Dataset):
     logging("=" * 100)
 
     return model
+
+def save_to_json(loss_list, val_loss_list):
+    
+    with open(
+        "results/data/drum/training_data" + str(VERSION) +".json", "w"
+    ) as file:
+        json.dump(loss_list, file)
+        json.dump(val_loss_list, file)
