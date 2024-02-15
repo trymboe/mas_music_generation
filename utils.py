@@ -1,8 +1,7 @@
 from data_processing import (
     get_drum_dataset,
     get_melody_dataset,
-    get_bass_dataset,
-    get_chord_dataset,
+    get_bass_and_chord_dataset,
 )
 
 
@@ -24,5 +23,4 @@ def get_datasets() -> None:
 
     get_melody_dataset(root_directory)
     get_drum_dataset()
-    get_bass_dataset(root_directory)
-    get_chord_dataset(root_directory)
+    get_bass_and_chord_dataset(root_directory)

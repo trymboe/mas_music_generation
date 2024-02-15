@@ -65,18 +65,15 @@ class Chord_Dataset(Dataset):
             for i in range(len(song) - self.sequence_length):
                 seq = song[i : i + self.sequence_length]
                 # Convert to pairs
-                try:
-                    chord = [
-                        (
-                            NOTE_TO_INT[pair[0]],
-                            CHORD_TO_INT[pair[1]],
-                            int(pair[2][0]),
-                            pair[2][1],
-                        )
-                        for pair in seq
-                    ]
-                except KeyError:
-                    continue
+                chord = [
+                    (
+                        NOTE_TO_INT[pair[0]],
+                        CHORD_TO_INT[pair[1]],
+                        int(pair[2][0]),
+                        pair[2][1],
+                    )
+                    for pair in seq
+                ]
 
                 data.append(chord)
                 labels.append(CHORD_TO_INT[seq[-1][1]])

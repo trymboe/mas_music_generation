@@ -15,7 +15,7 @@ from config import (
 )
 
 
-def get_bass_dataset(root_directory: str) -> None:
+def get_bass_and_chord_dataset(root_directory: str) -> None:
     """
     Creates a dataset object containing timed note sequences for the training
     and evaluation of the bass agent.
@@ -28,47 +28,38 @@ def get_bass_dataset(root_directory: str) -> None:
     ----------
         Bass_Dataset: A dataset object containing timed note sequences.
     """
-    if not os.path.exists(TRAIN_DATASET_PATH_BASS):
+    if not os.path.exists(TRAIN_DATASET_PATH_BASS) or not os.path.exists(
+        TRAIN_DATASET_PATH_CHORD
+    ):
         timed_notes_list: list[list[list[tuple[str, int]]]] = []
-        for split in ["train", "test", "val"]:
-            _, notes, beats = extract_chords_from_files(root_directory, True, split)
-            timed_notes_list.append(get_timed_notes(notes, beats))
-
-        bass_dataset_train: Bass_Dataset = Bass_Dataset(timed_notes_list[0])
-        bass_dataset_test: Bass_Dataset = Bass_Dataset(timed_notes_list[1])
-        bass_dataset_val: Bass_Dataset = Bass_Dataset(timed_notes_list[2])
-
-        torch.save(bass_dataset_train, TRAIN_DATASET_PATH_BASS)
-        torch.save(bass_dataset_test, TEST_DATASET_PATH_BASS)
-        torch.save(bass_dataset_val, VAL_DATASET_PATH_BASS)
-
-
-def get_chord_dataset(root_directory: str) -> Chord_Dataset:
-    """
-    Creates a dataset object containing chord progressions for the training
-    and evaluation of the chord agent.
-
-    Args
-    ----------
-        root_directory (str): The root directory of the dataset.
-
-    Returns
-    ----------
-        Chord_Dataset: A dataset object containing chord progressions.
-    """
-    if not os.path.exists(TRAIN_DATASET_PATH_CHORD):
         chords_list: list[list[tuple[str, str]]] = []
         for split in ["train", "test", "val"]:
-            chords, _, _ = extract_chords_from_files(root_directory, True, split)
+            chords, notes, beats = extract_chords_from_files(
+                root_directory, True, split
+            )
+            print(split)
+            print(len(chords[0]))
+            print(len(notes[0]))
             chords_list.append(chords)
+            timed_notes_list.append(get_timed_notes(notes, beats))
 
-        chord_dataset_train: Chord_Dataset = Chord_Dataset(chords_list[0])
-        chord_dataset_test: Chord_Dataset = Chord_Dataset(chords_list[1])
-        chord_dataset_val: Chord_Dataset = Chord_Dataset(chords_list[2])
+        if not os.path.exists(TRAIN_DATASET_PATH_CHORD):
+            chord_dataset_train: Chord_Dataset = Chord_Dataset(chords_list[0])
+            chord_dataset_test: Chord_Dataset = Chord_Dataset(chords_list[1])
+            chord_dataset_val: Chord_Dataset = Chord_Dataset(chords_list[2])
 
-        torch.save(chord_dataset_train, TRAIN_DATASET_PATH_CHORD)
-        torch.save(chord_dataset_test, TEST_DATASET_PATH_CHORD)
-        torch.save(chord_dataset_val, VAL_DATASET_PATH_CHORD)
+            torch.save(chord_dataset_train, TRAIN_DATASET_PATH_CHORD)
+            torch.save(chord_dataset_test, TEST_DATASET_PATH_CHORD)
+            torch.save(chord_dataset_val, VAL_DATASET_PATH_CHORD)
+
+        if not os.path.exists(TRAIN_DATASET_PATH_BASS):
+            bass_dataset_train: Bass_Dataset = Bass_Dataset(timed_notes_list[0])
+            bass_dataset_test: Bass_Dataset = Bass_Dataset(timed_notes_list[1])
+            bass_dataset_val: Bass_Dataset = Bass_Dataset(timed_notes_list[2])
+
+            torch.save(bass_dataset_train, TRAIN_DATASET_PATH_BASS)
+            torch.save(bass_dataset_test, TEST_DATASET_PATH_BASS)
+            torch.save(bass_dataset_val, VAL_DATASET_PATH_BASS)
 
 
 def extract_chords_from_files(root_dir, only_triads, split):
@@ -224,6 +215,10 @@ def remove_non_triad(string):
 
     # # Remove non-letter characters at the end of the string
     modified_str = re.sub(r"[^a-zA-Z24]+$", "", modified_str)
+
+    modified_str = "dim" if modified_str == "hdim" else modified_str
+
+    modified_str = "min" if modified_str == "minmaj" else modified_str
 
     # If the resulting string is empty, replace with "maj"
     if not modified_str:
