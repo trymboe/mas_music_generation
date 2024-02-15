@@ -59,4 +59,7 @@ def get_input_sequence_chords(dataset_primer, full_bass_sequence):
 
     # Convert the list of lists to a tensor
     input_tensor = torch.tensor(input_sequence, dtype=torch.int64)
+
+    print(input_tensor)
+    exit()
     return input_tensor
