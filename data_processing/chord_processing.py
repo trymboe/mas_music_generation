@@ -17,16 +17,16 @@ from config import (
 
 def get_bass_and_chord_dataset(root_directory: str) -> None:
     """
-    Creates a dataset object containing timed note sequences for the training
-    and evaluation of the bass agent.
+    Creates a dataset object containing timed note sequences and chords for the training
+    and evaluation of the bass agent and chord agent.
 
     Args
     ----------
-        root_directory (str): The root directory of the dataset.
+        root_directory (str): The root directory of the data.
 
     Returns
     ----------
-        Bass_Dataset: A dataset object containing timed note sequences.
+        None
     """
     if not os.path.exists(TRAIN_DATASET_PATH_BASS) or not os.path.exists(
         TRAIN_DATASET_PATH_CHORD

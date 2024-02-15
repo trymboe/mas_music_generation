@@ -29,26 +29,41 @@ from config import (
     INT_TO_TRIAD,
 )
 
+NEW_BASS_PRIMER = None
+NEW_CHORD_PRIMER = None
+NEW_MELODY_PRIMER = None
+
 
 def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     """
-    Orchestrates the playing of bass, chord, and drum agents to generate a music piece.
+    Plays the different musical instruments (drum, bass, chord, melody, harmony) based on the given configuration and
+    the previously kept instruments.
 
-    This function generates a music piece by playing the bass, chord, and drum agents sequentially. The generated music
-    is then written to a MIDI file. The function also handles the random selection of a primer from the dataset to
-    start the generation process.
-
-    Parameters
+    Args:
     ----------
-    arpeggiate : bool
-        Flag indicating whether to arpeggiate the chord sequences.
+        config (dict): The configuration settings for the music generation.
+        kept_instruments (list): The list of previously kept instruments.
 
-    Returns
-    -------
-    None
+    Returns:
+    ----------
+        pretty_midi.PrettyMIDI: The generated MIDI file.
+        list: The list of instruments used in the generated MIDI file.
     """
 
-    chord_primer, bass_primer, melody_primer = get_primer_sequences()
+    # Rest of the code...
+
+
+def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
+
+    global NEW_BASS_PRIMER, NEW_CHORD_PRIMER, NEW_MELODY_PRIMER
+
+    if NEW_BASS_PRIMER is None:
+        chord_primer, bass_primer, melody_primer = get_primer_sequences()
+    else:
+        chord_primer = NEW_CHORD_PRIMER
+        bass_primer = NEW_BASS_PRIMER
+        melody_primer = NEW_MELODY_PRIMER
+
     mid = None
 
     # ------------------------------------------------------
@@ -150,8 +165,7 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     else:
         mid = new_mid
 
-    # bass_primer, chord_primer, melody_primer = get_new_primer_sequences(
-    get_new_primer_sequences(
+    NEW_BASS_PRIMER, NEW_CHORD_PRIMER, NEW_MELODY_PRIMER = get_new_primer_sequences(
         bass_primer,
         predicted_bass_sequence,
         chord_primer,
@@ -178,99 +192,89 @@ def get_new_primer_sequences(
     predicted_chord_sequence,
     previous_melody_primer,
     predicted_melody_sequence,
-    config,
 ) -> tuple[list, list, list]:
+    """
+    Generates new primer sequences for bass, chord, and melody based on the previous primer sequences and predicted sequences.
 
-    print("previous_bass_primer", previous_bass_primer)
-    print()
-    print("predicted_bass_sequence", predicted_bass_sequence)
-    print()
-    print()
-    print("previous_chord_primer", previous_chord_primer)
-    print()
-    print("predicted_chord_sequence", predicted_chord_sequence)
-    print()
-    print()
-    print("previous_melody_primer", previous_melody_primer)
-    print()
-    print("previous_melody_primer[0]", previous_melody_primer[0])
-    print()
-    print("predicted_melody_sequence", predicted_melody_sequence)
-    print()
-    print()
-    print()
+    Args:
+    ----------
+        previous_bass_primer (list): The previous bass primer sequence.
+        predicted_bass_sequence (list): The predicted bass sequence.
+        previous_chord_primer (list): The previous chord primer sequence.
+        predicted_chord_sequence (list): The predicted chord sequence.
+        previous_melody_primer (list): The previous melody primer sequence.
+        predicted_melody_sequence (list): The predicted melody sequence.
 
-    if len(predicted_bass_sequence) >= SEQUENCE_LENGTH_BASS:
-        bass_primer = predicted_bass_sequence[-SEQUENCE_LENGTH_BASS:]
-        chord_primer = predicted_chord_sequence[-SEQUENCE_LENGTH_BASS:]
-    # If the primer is not long enough, we need to combine the primer with the predicted sequence
-    else:
-        combined_chord_events = []
-        combined_bass_events = [
-            previous_bass_primer[0].tolist(),
-            previous_bass_primer[1].tolist(),
-        ]
-        for i in range(len(previous_chord_primer)):
+    Returns:
+    ----------
+        tuple[list, list, list]: A tuple containing the new bass primer sequence, chord primer sequence, and melody primer sequence.
+    """
 
-            combined_chord_events.append(
-                [
-                    int(previous_chord_primer[i][0].item()),
-                    int(previous_chord_primer[i][1].item()),
-                ]
-            )
+    # Bass and chord primer
+    combined_chord_events = []
+    combined_bass_events = [
+        previous_bass_primer[0].tolist(),
+        previous_bass_primer[1].tolist(),
+    ]
+    for i in range(len(previous_chord_primer)):
 
-        for i in range(len(predicted_bass_sequence)):
-            combined_bass_events[0].append(predicted_bass_sequence[i][0])
-            combined_bass_events[1].append(predicted_bass_sequence[i][1])
-
-            combined_chord_events.append(get_chord(predicted_chord_sequence[i][0]))
-
-        full_bass_events = combined_bass_events
-        combined_bass_events = [
-            combined_bass_events[0][-SEQUENCE_LENGTH_BASS:],
-            combined_bass_events[1][-SEQUENCE_LENGTH_BASS:],
-        ]
-
-        full_chord_events = combined_chord_events
-        combined_chord_events = combined_chord_events[-SEQUENCE_LENGTH_BASS:]
-
-        bass_primer = [
-            torch.tensor(combined_bass_events[0]),
-            torch.tensor(combined_bass_events[1]),
-        ]
-
-        chord_primer = torch.tensor(combined_chord_events)
-
-    if len(predicted_melody_sequence) >= SEQUENCE_LENGHT_MELODY:
-        melody_primer = predicted_melody_sequence[-SEQUENCE_LENGHT_MELODY:]
-    else:
-        combined_melody_events = previous_melody_primer
-
-        notes = get_notes(
-            predicted_melody_sequence, full_bass_events, full_chord_events
+        combined_chord_events.append(
+            [
+                int(previous_chord_primer[i][0].item()),
+                int(previous_chord_primer[i][1].item()),
+            ]
         )
 
-        print()
-        print("full_bass_events", full_bass_events)
-        print()
+    for i in range(len(predicted_bass_sequence)):
+        combined_bass_events[0].append(predicted_bass_sequence[i][0])
+        combined_bass_events[1].append(predicted_bass_sequence[i][1])
 
-        print()
-        print("full_chord_events", full_chord_events)
-        print()
+        combined_chord_events.append(get_chord(predicted_chord_sequence[i][0]))
 
-        print()
-        for note in notes:
-            print(note)
-            print()
+    full_bass_events = combined_bass_events
+    combined_bass_events = [
+        combined_bass_events[0][-SEQUENCE_LENGTH_BASS:],
+        combined_bass_events[1][-SEQUENCE_LENGTH_BASS:],
+    ]
 
-        print()
+    full_chord_events = combined_chord_events
+    combined_chord_events = combined_chord_events[-SEQUENCE_LENGTH_BASS:]
 
-        melody_primer = notes
+    bass_primer = [
+        torch.tensor(combined_bass_events[0]),
+        torch.tensor(combined_bass_events[1]),
+    ]
+
+    chord_primer = torch.tensor(combined_chord_events)
+
+    # Melody primer
+    combined_melody_events = previous_melody_primer
+
+    notes = get_notes(predicted_melody_sequence, full_bass_events, full_chord_events)
+
+    for note in notes:
+        combined_melody_events.append(note)
+
+    melody_primer = combined_melody_events[-SEQUENCE_LENGHT_MELODY:]
 
     return bass_primer, chord_primer, melody_primer
 
 
 def get_notes(predicted_melody_sequence, full_bass_events, full_chord_events):
+    """
+    Generates a sequence of notes based on the predicted melody sequence. It uses the bass and chord events to determine the current, next chord, and the time left on the chord.
+
+    Args:
+    ----------
+        predicted_melody_sequence (list): A list of tuples representing the predicted melody sequence. Each tuple contains the pitch and duration of a note.
+        full_bass_events (list): A list of lists representing the full bass events. Each inner list contains the pitch and duration of a bass note.
+        full_chord_events (list): A list of lists representing the full chord events. Each inner list contains the pitches of a chord.
+
+    Returns:
+    ----------
+        list: A list of lists representing the generated sequence of notes. Each inner list contains the pitch vector, duration vector, current chord, next chord, time left on chord vector, and other information about the note.
+    """
+
     total_melody_duration = 0
     full_sequenece = []
     for idx in range(len(predicted_melody_sequence) - 1, -1, -1):
@@ -287,21 +291,28 @@ def get_notes(predicted_melody_sequence, full_bass_events, full_chord_events):
 
         # get chord vectors
         length_bass = 0
-        for idx in range(len(full_bass_events) - 1, -1, -1):
-            length_melody = total_melody_duration / 8
-            length_bass += full_bass_events[idx][1]
+        for j in range(len(full_bass_events[0]) - 1, -1, -1):
 
-            if length_bass >= length_melody:
-                current_chord = get_full_chord(full_chord_events[idx])
-                if idx + 1 < len(full_chord_events):
-                    next_chord = get_full_chord(full_chord_events[idx + 1])
-                else:
-                    next_chord = current_chord
+            length_melody = total_melody_duration / 4
+            length_bass += full_bass_events[1][j]
+            # if we have not arrived at the correct chord yet
+            if length_bass < length_melody:
+                continue
+
+            current_chord = get_full_chord(full_chord_events[j])
+
+            if j + 1 < len(full_chord_events):
+                next_chord = get_full_chord(full_chord_events[j + 1])
+            else:
+                next_chord = current_chord
+
             tloc = length_bass - length_melody
-            tloc *= 8
-            tloc = max(16, tloc)
-            tloc = min(1, tloc)
-            tloc_vector = one_hot(int(tloc) - 1, TIME_LEFT_ON_CHORD_SIZE_MELODY)
+            tloc *= 4
+            tloc = min(15, tloc)
+            tloc = max(0, tloc)
+            tloc_vector = one_hot(int(tloc), TIME_LEFT_ON_CHORD_SIZE_MELODY)
+            break
+
         full_sequenece.insert(
             0,
             [
@@ -311,106 +322,46 @@ def get_notes(predicted_melody_sequence, full_bass_events, full_chord_events):
                 next_chord,
                 tloc_vector,
                 [1, 0, 0, 0],
+                ["0", 0],
             ],
         )
     return full_sequenece
 
 
 def get_full_chord(chord):
+    """
+    Converts a chord to its corresponding one-hot representation for melody generation.
+
+    Args:
+    ----------
+        chord (list): A list representing the chord, where the first element is the root note and the second element is the triad.
+
+    Returns:
+    ----------
+        list: The one-hot representation of the chord.
+
+    """
     root = chord[0]
     triad = chord[1]
+    # melody only deals with major or minor chords
+    triad = 0 if triad > 1 else triad
     chord_index = root * 2 + triad
-    return one_hot(chord_index - 1, CHORD_SIZE_MELODY)
-
-    # # Bass and chord primer
-    # if len(predicted_bass_sequence) >= SEQUENCE_LENGTH_BASS:
-    #     bass_primer = predicted_bass_sequence[-SEQUENCE_LENGTH_BASS:]
-    #     chord_primer = predicted_chord_sequence[-SEQUENCE_LENGTH_BASS:]
-    # else:
-    #     print()
-    #     print()
-    #     print("bass primer", bass_primer)
-    #     print("predicted_bass_sequence", predicted_bass_sequence)
-    #     combined_bass_events = []
-    #     combined_chord_events = []
-    #     combined_melody_events = []
-    #     for idx in range(len(bass_primer[0])):
-    #         combined_bass_events.append(
-    #             (int(bass_primer[0][idx]), int(bass_primer[1][idx]))
-    #         )
-    #         combined_chord_events.append(
-    #             (int(chord_primer[idx][0]), int(chord_primer[idx][1]))
-    #         )
-    #     print("combined_bass_events 1", combined_bass_events)
-
-    #     combined_melody_events = melody_primer
-    #     for idx in range(len(predicted_bass_sequence)):
-    #         # Bass
-    #         combined_bass_events.append((predicted_bass_sequence[idx]))
-
-    #         # Chord
-    #         root_note = predicted_chord_sequence[idx][0][0]
-    #         chord_type = [
-    #             (chord - root_note) for chord in predicted_chord_sequence[idx][0]
-    #         ]
-    #         combined_chord_events.append((root_note, get_key(chord_type, INT_TO_TRIAD)))
-
-    #     print("combined_bass_events 2", combined_bass_events)
-    #     print()
-    #     print()
-
-    #     print("chord_primer", chord_primer)
-    #     print("predicted_chord_sequence", predicted_chord_sequence)
-    #     print("combined_chord_events", combined_chord_events)
-    #     print()
-    #     print()
-
-    #     running_time_beats: int = 0
-    #     for idx in range(len(predicted_melody_sequence)):
-    #         # Melody
-    #         print("predicted_chord_sequence", predicted_chord_sequence)
-    #         print("predicted_melody_sequence", predicted_melody_sequence)
-    #         print("melody_primer", melody_primer[0])
-    #         pitch_vector = one_hot(
-    #             predicted_melody_sequence[idx][0] - 60, PITCH_SIZE_MELODY
-    #         )
-    #         duration_vector = one_hot(
-    #             predicted_melody_sequence[idx][1], DURATION_SIZE_MELODY
-    #         )
-    #         running_time_beats += predicted_melody_sequence[idx][1] / 4
-    #         (
-    #             (current_root, current_chord),
-    #             (next_root, next_chord),
-    #             time_left_on_chord,
-    #         ) = get_chords(running_time_beats, predicted_chord_sequence)
-
-    #         print("current_root", current_root)
-    #         print("current_chord", current_chord)
-    #         print("next_root", next_root)
-    #         print("next_chord", next_chord)
-    #         print("time_left_on_chord", time_left_on_chord)
-    #         exit()
-    #         current_chord = max(1, current_chord)
-    #         current_chord_idx = current_root * 2 + current_chord
-    #         current_chord_vector = one_hot(current_chord_idx, CHORD_SIZE_MELODY)
-
-    #         next_chord = max(1, next_chord)
-    #         next_chord_idx = next_root * 2 + next_chord
-    #         next_chord_vector = one_hot(next_chord_idx, CHORD_SIZE_MELODY)
-    #         time_left_on_chord_vector = one_hot(
-    #             int(time_left_on_chord), TIME_LEFT_ON_CHORD_SIZE_MELODY
-    #         )
-    #         # not working
-    #         accumulated_time_vector = one_hot(1, 4)
-    #         print(len(melody_primer[0]))
-
-    #     bass_primer = combined_bass_events[-SEQUENCE_LENGTH_BASS:]
-    #     chord_primer = combined_chord_events[-SEQUENCE_LENGTH_BASS:]
-
-    # return [bass_primer, chord_primer, None]
+    return one_hot(chord_index, CHORD_SIZE_MELODY)
 
 
 def get_chord(triad):
+    """
+    Converts a triad to a chord by finding the root note and the chord type.
+
+    Args:
+    ----------
+        triad (list): A list of three notes representing a triad.
+
+    Returns:
+    ----------
+        list: A list containing the root note and the chord type.
+
+    """
     root = triad[0]
     triad = [note - root for note in triad]
     for key, value in INT_TO_TRIAD.items():
@@ -418,55 +369,39 @@ def get_chord(triad):
             return [root, key]
 
 
-def get_chords(running_time_beats, predicted_chord_sequence):
-    running_duration_on_chord = 0
-    for idx, (chord, duration) in enumerate(predicted_chord_sequence):
-        running_duration_on_chord += duration
-        if running_duration_on_chord > running_time_beats:
-            time_left_on_chord = float(running_duration_on_chord)
-            print()
-            print(duration)
-            print(running_duration_on_chord)
-            print(running_time_beats)
-            print(time_left_on_chord)
-            exit()
-
-            root_note = chord[0]
-            chord_type = [(c - root_note) for c in chord]
-            current_chord = (root_note, get_key(chord_type, INT_TO_TRIAD))
-            if idx + 1 < len(predicted_chord_sequence):
-                root_note = predicted_chord_sequence[idx + 1][0][0]
-                chord = predicted_chord_sequence[idx + 1][0]
-                chord_type = [(c - root_note) for c in chord]
-
-                next_chord = (root_note, get_key(chord_type, INT_TO_TRIAD))
-            else:
-                next_chord = current_chord
-            return current_chord, next_chord, time_left_on_chord
-
-    root_note = predicted_chord_sequence[-1]
-    chord_type = [(c - root_note) for c in predicted_chord_sequence[-1][0]]
-    current_chord = (root_note, get_key(chord_type, INT_TO_TRIAD))
-    next_chord = current_chord
-
-    return current_chord, next_chord, 0
-
-
 def one_hot(idx, length):
+    """
+    Converts an index to a one-hot encoded list of the specified length.
+
+    Args:
+    ----------
+        idx (int): The index to be converted.
+        length (int): The length of the one-hot encoded list.
+
+    Returns:
+    ----------
+        list: A one-hot encoded list with the specified index set to 1 and all other elements set to 0.
+    """
     one_hot = [0] * length
     one_hot[idx] = 1
     return one_hot
 
 
-# Function to find key from value
-def get_key(val, dic):  #
-    for key, value in dic.items():
-        if value == val:
-            return key
-    return "Key not found"
-
-
 def merge_pretty_midi(pm1, pm2):
+    """
+    Merge two PrettyMIDI objects by shifting the start and end times of the notes in the second object
+    and then merging tracks with the same program and drum status.
+
+    Args:
+    ----------
+        pm1 (PrettyMIDI): The first PrettyMIDI object.
+        pm2 (PrettyMIDI): The second PrettyMIDI object.
+
+    Returns:
+    ----------
+        PrettyMIDI: The merged PrettyMIDI object.
+    """
+
     # Find the end time of the last note in the first MIDI object
     end_time_pm1 = max(
         note.end for instrument in pm1.instruments for note in instrument.notes
@@ -491,17 +426,17 @@ def merge_pretty_midi(pm1, pm2):
     return pm1
 
 
-def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
+def get_primer_sequences() -> tuple[list, list, list]:
     """
-    Gets random primer sequences for bass, chord and melody, from the test dataset.
+    Retrieves primer sequences for chord, bass, and melody from the datasets.
 
-    Parameters
+    Parameters:
     ----------
-    None
+        None
 
-    Returns
-    -------
-
+    Returns:
+    ----------
+        tuple[list, list, list]: A tuple containing the chord primer, bass primer, and melody primer sequences.
     """
 
     chord_dataset: Chord_Dataset = torch.load(TEST_DATASET_PATH_CHORD)
@@ -532,6 +467,7 @@ def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
         elif found:
             break
 
+    attempt = 0
     if not primer_end_chord:
         if attempt > 30:
             print("Tried 30 times, giving up")
@@ -541,11 +477,6 @@ def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
 
     chord_primer = chord_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD][0]
     bass_primer = bass_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD]
-
-    print("bass_primer", bass_primer)
-    print()
-    print("chord_primer", chord_primer)
-    exit()
     melody_primer = melody_dataset[primer_start][0]
 
     return chord_primer, bass_primer, melody_primer
