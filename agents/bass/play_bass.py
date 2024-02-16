@@ -13,6 +13,19 @@ def play_bass(
     primer: list,
     config: dict,
 ) -> tuple[pretty_midi.PrettyMIDI, list[int, int]]:
+    """
+    Generates and plays the bass sequence on top of the given midi file. Based on primer sequence, and configuration.
+
+    Args:
+        mid (pretty_midi.PrettyMIDI): The input MIDI file.
+        primer (list): The primer sequence for generating the bass sequence.
+        config (dict): The configuration settings for generating the bass sequence.
+
+    Returns:
+        tuple[pretty_midi.PrettyMIDI, list[int, int]]: A tuple containing the modified MIDI file,
+        the bass instrument, and the predicted bass sequence.
+    """
+
     bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
     bass_agent.eval()
 
@@ -30,96 +43,18 @@ def play_bass(
     # Create a new Instrument instance for an Electric Bass
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
 
-    running_time = start_time = end_time = chord_start_time = 0.0
-
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if config["PLAYSTYLE"] == "bass_drum":
-        for note, duration in predicted_bass_sequence:
-            midi_note = note_mapping[note]
-            # Get the start time of the bass note (aligned with the bass drum hit)
-            running_time = chord_start_time
-
-            for idx, drum_beat in enumerate(bass_drum_times):
-                # the chord is finished
-                if bass_drum_times[idx] >= chord_start_time + duration:
-                    # If no note has been played yet, play a note for the entire duration
-                    if running_time == chord_start_time:
-                        # If there are no more bass drum hits, play the note for the entire duration
-                        end_time = chord_start_time + duration
-
-                        play_note(
-                            bass_instrument,
-                            pitch=midi_note,
-                            start_time=running_time,
-                            end_time=end_time,
-                            tempo=config["TEMPO"],
-                        )
-                    else:
-                        end_time = chord_start_time + duration
-
-                        play_note(
-                            bass_instrument,
-                            pitch=midi_note,
-                            start_time=running_time + duration,
-                            end_time=end_time,
-                            tempo=config["TEMPO"],
-                        )
-
-                    chord_start_time += duration
-                    break
-                # the beat is inside the current chord, play notes
-                if drum_beat >= chord_start_time:
-                    # If it is the first beat of the chord, and no note is played, play a bass note
-                    if running_time == chord_start_time:
-                        try:
-                            end_time = min(
-                                (chord_start_time + duration), bass_drum_times[idx + 1]
-                            )
-                        # If there are no more bass drum hits, play the note for the entire duration
-                        except:
-                            end_time = chord_start_time + duration
-                        play_note(
-                            bass_instrument,
-                            pitch=midi_note,
-                            start_time=running_time,
-                            end_time=end_time,
-                            tempo=config["TEMPO"],
-                        )
-
-                    start_time = bass_drum_times[idx]
-                    # Song is finished if there are no more bass drum hits
-                    if idx + 1 == len(bass_drum_times):
-                        end_time = running_time + duration
-                        if end_time > chord_start_time + duration:
-                            end_time = chord_start_time + duration
-                        play_note(
-                            bass_instrument,
-                            pitch=midi_note,
-                            start_time=start_time,
-                            end_time=end_time,
-                            tempo=config["TEMPO"],
-                        )
-                        break
-
-                    else:
-                        end_time = bass_drum_times[idx + 1]
-                        if end_time <= start_time:
-                            end_time = running_time + duration
-                        # End note if it goes past the chord
-                        if end_time > chord_start_time + duration:
-                            end_time = chord_start_time + duration
-
-                    play_note(
-                        bass_instrument,
-                        pitch=midi_note,
-                        start_time=start_time,
-                        end_time=end_time,
-                        tempo=config["TEMPO"],
-                    )
-
-                    running_time = end_time
+        play_bass_drum_style(
+            bass_drum_times,
+            bass_instrument,
+            predicted_bass_sequence,
+            note_mapping,
+            config,
+        )
 
     else:  # Original behavior if playstyle isn't "bass_drum"
+        chord_start_time = 0.0
         for note, duration in predicted_bass_sequence:
             midi_note = note_mapping[note]
             bass_note = pretty_midi.Note(
@@ -138,6 +73,57 @@ def play_bass(
     return mid, bass_instrument, predicted_bass_sequence
 
 
+def play_bass_drum_style(
+    bass_drum_times, bass_instrument, predicted_bass_sequence, note_mapping, config
+) -> None:
+    """
+    Plays the bass drum style based on the bass drum hits.
+
+    Args:
+    ----------
+        bass_drum_times (list): List of bass drum hit times.
+        bass_instrument (pretty_midi.Instrument): PrettyMIDI Instrument object for the bass.
+        predicted_bass_sequence (list): List of tuples representing the predicted bass sequence.
+            Each tuple contains the note and its duration.
+        note_mapping (dict): Dictionary mapping note names to MIDI note numbers.
+        config (dict): Configuration settings.
+
+    Returns:
+    ----------
+        None
+    """
+
+    running_time = start_time = end_time = duration_acc = chord_start_time = 0.0
+
+    for note, duration in predicted_bass_sequence:
+        chord_start_time = duration_acc
+        duration_acc += duration
+        while running_time < duration_acc:
+            midi_note = note_mapping[note]
+
+            tloc = (
+                chord_start_time + duration
+            ) - running_time  # Time left in the chord
+
+            start_time = running_time
+            if not bass_drum_times:
+                end_time = chord_start_time + duration
+            else:
+                # End time is either the end of the chord or the next bass drum hit, whichever comes first
+                end_time = min(running_time + tloc, bass_drum_times[0])
+
+            play_note(
+                bass_instrument,
+                pitch=midi_note,
+                start_time=start_time,
+                end_time=end_time,
+                tempo=config["TEMPO"],
+            )
+            if bass_drum_times and end_time == bass_drum_times[0]:
+                bass_drum_times.pop(0)
+            running_time = end_time
+
+
 def play_note(
     bass_instrument: pretty_midi.Instrument,
     pitch: int,
@@ -145,7 +131,24 @@ def play_note(
     end_time: float,
     tempo: int,
     velocity: int = 70,
-):
+) -> None:
+    """
+    Adds a note to the bass instrument.
+
+    Parameters:
+    ----------
+    - bass_instrument (pretty_midi.Instrument): The bass instrument to add the note to.
+    - pitch (int): The MIDI pitch of the note.
+    - start_time (float): The start time of the note in beats.
+    - end_time (float): The end time of the note in beats.
+    - tempo (int): The tempo of the music in beats per minute.
+    - velocity (int, optional): The velocity (loudness) of the note. Defaults to 70.
+
+    returns:
+    ----------
+    - None
+    """
+
     bass_note = pretty_midi.Note(
         velocity=velocity,
         pitch=pitch,

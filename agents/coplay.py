@@ -425,13 +425,13 @@ def merge_pretty_midi(pm1, pm2):
     return pm1
 
 
-def get_primer_sequences() -> tuple[list, list, list]:
+def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
     """
     Retrieves primer sequences for chord, bass, and melody from the datasets.
 
     Parameters:
     ----------
-        None
+        attempt (int): The number of attempts to retrieve the primer sequences.
 
     Returns:
     ----------
