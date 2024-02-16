@@ -33,7 +33,7 @@ def play_bass(
         bass_agent, primer, config
     )
 
-    if config["PLAYSTYLE"] == "bass_drum":
+    if config["PLAYSTYLE"] == "bass_drum" or config["PLAYSTYLE"] == "transition_jam":
         bass_drum_times = find_bass_drum(mid, config["TEMPO"])
 
     # Mapping from sequence numbers to MIDI note numbers
@@ -46,6 +46,14 @@ def play_bass(
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if config["PLAYSTYLE"] == "bass_drum":
         play_bass_drum_style(
+            bass_drum_times,
+            bass_instrument,
+            predicted_bass_sequence,
+            note_mapping,
+            config,
+        )
+    elif config["PLAYSTYLE"] == "transition_jam":
+        play_transition_jam_style(
             bass_drum_times,
             bass_instrument,
             predicted_bass_sequence,
@@ -122,6 +130,67 @@ def play_bass_drum_style(
             if bass_drum_times and end_time == bass_drum_times[0]:
                 bass_drum_times.pop(0)
             running_time = end_time
+
+
+def play_transition_jam_style(
+    bass_drum_times, bass_instrument, predicted_bass_sequence, note_mapping, config
+) -> None:
+    raise NotImplementedError
+    transition_style = [
+        "octave_jump",
+        "diatonic_passing",
+        "chromatic_passing",
+        "approach tones",
+        "chromatic_approach",
+    ]
+    allowed_transitions = {1: ["octave_jump", "approach tones"]}
+
+    running_time = start_time = end_time = duration_acc = chord_start_time = 0.0
+
+    for idx, note in enumerate(predicted_bass_sequence):
+        note, duration = note
+        if idx + 1 < len(predicted_bass_sequence):
+            next_note = predicted_bass_sequence[idx + 1]
+            shortes_distance = find_shortes_distance(note, next_note)
+
+        if shortes_distance == 2:
+            allowed_transitions = ["octave_jump", "diatonic_passing", "approach tones"]
+
+        chord_start_time = duration_acc
+        duration_acc += duration
+        while running_time < duration_acc:
+            midi_note = note_mapping[note]
+
+            tloc = (
+                chord_start_time + duration
+            ) - running_time  # Time left in the chord
+
+            start_time = running_time
+            if not bass_drum_times:
+                end_time = chord_start_time + duration
+            else:
+                # End time is either the end of the chord or the next bass drum hit, whichever comes first
+                end_time = min(running_time + tloc, bass_drum_times[0])
+
+            play_note(
+                bass_instrument,
+                pitch=midi_note,
+                start_time=start_time,
+                end_time=end_time,
+                tempo=config["TEMPO"],
+            )
+            if bass_drum_times and end_time == bass_drum_times[0]:
+                bass_drum_times.pop(0)
+            running_time = end_time
+
+
+def find_shortes_distance(a, b):
+    direct_distance = abs(a - b)
+
+    circular_distance = 12 - direct_distance
+
+    # Return the minimum of the two distances
+    return min(direct_distance, circular_distance)
 
 
 def play_note(
