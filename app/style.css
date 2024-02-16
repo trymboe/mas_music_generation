@@ -294,3 +294,7 @@ input[type=range][orient=vertical] {
     visibility: visible;
     opacity: 1;
 }
+
+#status-message-div {
+    text-align: center;
+}
