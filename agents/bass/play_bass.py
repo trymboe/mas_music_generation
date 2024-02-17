@@ -1,5 +1,6 @@
 import pretty_midi
 import torch
+import random
 
 from .eval_agent import predict_next_k_notes_bass
 from config import MODEL_PATH_BASS, DEVICE
@@ -135,26 +136,37 @@ def play_bass_drum_style(
 def play_transition_jam_style(
     bass_drum_times, bass_instrument, predicted_bass_sequence, note_mapping, config
 ) -> None:
-    raise NotImplementedError
-    transition_style = [
-        "octave_jump",
-        "diatonic_passing",
-        "chromatic_passing",
-        "approach tones",
-        "chromatic_approach",
-    ]
-    allowed_transitions = {1: ["octave_jump", "approach tones"]}
+    """
+    Plays a transition jam style bass sequence.
+
+    Args:
+        bass_drum_times (list): List of bass drum hit times.
+        bass_instrument (Instrument): The bass instrument to play.
+        predicted_bass_sequence (list): List of predicted bass notes and durations.
+        note_mapping (dict): Mapping of note names to MIDI values.
+        config (dict): Configuration parameters.
+
+    Returns:
+        None
+    """
+
+    transition_style = ["octave_jump", "passing", "approach tones", "walking", "non"]
 
     running_time = start_time = end_time = duration_acc = chord_start_time = 0.0
 
     for idx, note in enumerate(predicted_bass_sequence):
         note, duration = note
         if idx + 1 < len(predicted_bass_sequence):
-            next_note = predicted_bass_sequence[idx + 1]
-            shortes_distance = find_shortes_distance(note, next_note)
-
-        if shortes_distance == 2:
-            allowed_transitions = ["octave_jump", "diatonic_passing", "approach tones"]
+            next_note = predicted_bass_sequence[idx + 1][0]
+            shortes_distance, direction = find_shortes_distance(note, next_note)
+            # transition = random.choice(transition_style)
+        else:
+            next_note = predicted_bass_sequence[0][0]
+            shortes_distance, direction = 0, "up"
+        transition = "octave_jump"
+        transition_notes, num_beat_transition = get_transition_note(
+            note, shortes_distance, direction, transition
+        )
 
         chord_start_time = duration_acc
         duration_acc += duration
@@ -162,35 +174,126 @@ def play_transition_jam_style(
             midi_note = note_mapping[note]
 
             tloc = (
-                chord_start_time + duration
+                chord_start_time + duration - num_beat_transition
             ) - running_time  # Time left in the chord
 
             start_time = running_time
+            # If there are no more bass drum hits, play the rest of the chord
             if not bass_drum_times:
-                end_time = chord_start_time + duration
+                end_time = chord_start_time + duration - num_beat_transition
             else:
                 # End time is either the end of the chord or the next bass drum hit, whichever comes first
                 end_time = min(running_time + tloc, bass_drum_times[0])
 
-            play_note(
-                bass_instrument,
-                pitch=midi_note,
-                start_time=start_time,
-                end_time=end_time,
-                tempo=config["TEMPO"],
-            )
+            if end_time <= running_time + tloc and duration != num_beat_transition:
+                play_note(
+                    bass_instrument,
+                    pitch=midi_note,
+                    start_time=start_time,
+                    end_time=end_time,
+                    tempo=config["TEMPO"],
+                )
+
+            # Check if we need to play transition notes
+            # Will play if end of chord
+            if end_time == running_time + tloc:
+                # Play transition notes
+                end_time = play_transition_notes(
+                    transition_notes, bass_instrument, end_time, config
+                )
+
             if bass_drum_times and end_time == bass_drum_times[0]:
                 bass_drum_times.pop(0)
+
             running_time = end_time
 
 
+def play_transition_notes(transition_notes, bass_instrument, end_time, config):
+    """
+    Plays the transition notes using the specified bass instrument.
+
+    Args:
+        transition_notes (list): A list of tuples containing the note and duration of each transition note.
+        bass_instrument (str): The name of the bass instrument to be used for playing the notes.
+        end_time (float): The end time of the previous note.
+        config (dict): A dictionary containing configuration parameters.
+
+    Returns:
+        float: The end time of the last played note.
+    """
+    for note, duration in transition_notes:
+        note += 24
+        play_note(
+            bass_instrument,
+            pitch=note,
+            start_time=end_time,
+            end_time=end_time + duration,
+            tempo=config["TEMPO"],
+        )
+        end_time += duration
+    return end_time
+
+
+def get_transition_note(note, shortes_distance, direction, transition):
+    """
+    Get the transition notes and the number of beats for a given transition type.
+
+    Parameters:
+    note (int): The starting note.
+    shortes_distance (float): The shortest distance between notes.
+    direction (str): The direction of the transition.
+    transition (str): The type of transition.
+
+    Returns:
+    transition_notes (list): A list of transition notes and their durations.
+    num_beat_transition (int): The number of beats for the transition.
+    """
+
+    in_scale = [0, 2, 4, 5, 7, 9, 11]
+    num_beat_transition = 0
+    if transition == "octave_jump":
+        num_beat_transition = 2
+        transition_notes = [
+            [note, 0.5],
+            [note + 12, 0.5],
+            [note, 0.5],
+            [note + 12, 0.5],
+        ]
+
+    return transition_notes, num_beat_transition
+
+
 def find_shortes_distance(a, b):
+    """
+    Calculates the shortest distance between two musical notes on a chromatic scale.
+
+    Parameters:
+    a (int): The first note value.
+    b (int): The second note value.
+
+    Returns:
+    tuple: A tuple containing the shortest distance between the two notes and the direction of the distance.
+           The distance can be either a direct distance or a circular distance on a chromatic scale.
+           The direction can be either "up" or "down".
+    """
+
     direct_distance = abs(a - b)
 
     circular_distance = 12 - direct_distance
+    direction = None
+    if direct_distance < circular_distance:
+        if a < b:
+            direction = "up"
+        else:
+            direction = "down"
+    else:
+        if a < b:
+            direction = "down"
+        else:
+            direction = "up"
 
     # Return the minimum of the two distances
-    return min(direct_distance, circular_distance)
+    return min(direct_distance, circular_distance), direction
 
 
 def play_note(
