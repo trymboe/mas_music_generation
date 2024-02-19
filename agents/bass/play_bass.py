@@ -44,8 +44,6 @@ def play_bass(
     # Create a new Instrument instance for an Electric Bass
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
 
-    print(config["PLAYSTYLE"])
-
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if config["PLAYSTYLE"] == "bass_drum":
         bass_instrument = play_bass_drum_style(
@@ -174,13 +172,14 @@ def play_transition_jam_style(
         chord_start_time = duration_acc
         duration_acc += duration
         while running_time < duration_acc:
+            print("running_time", running_time)
             midi_note = note_mapping[note]
+            start_time = running_time
 
             tloc = (
                 chord_start_time + duration - num_beat_transition
             ) - running_time  # Time left in the chord
 
-            start_time = running_time
             # If there are no more bass drum hits, play the rest of the chord
             if not bass_drum_times:
                 end_time = chord_start_time + duration - num_beat_transition
@@ -204,11 +203,18 @@ def play_transition_jam_style(
                 end_time = play_transition_notes(
                     transition_notes, bass_instrument, end_time, config
                 )
+                if bass_drum_times:
+                    while end_time > bass_drum_times[0]:
+                        bass_drum_times.pop(0)
+                        if not bass_drum_times:
+                            break
 
+            # Remove the bass drum hit if it was played and exists
             if bass_drum_times and end_time == bass_drum_times[0]:
                 bass_drum_times.pop(0)
 
             running_time = end_time
+
     return bass_instrument
 
 
