@@ -34,7 +34,7 @@ def play_bass(
         bass_agent, primer, config
     )
 
-    if config["PLAYSTYLE"] == "bass_drum" or config["PLAYSTYLE"] == "transition_jam":
+    if config["PLAYSTYLE"] == "bass_drum" or config["PLAYSTYLE"] == "transition":
         bass_drum_times = find_bass_drum(mid, config["TEMPO"])
 
     # Mapping from sequence numbers to MIDI note numbers
@@ -44,17 +44,19 @@ def play_bass(
     # Create a new Instrument instance for an Electric Bass
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
 
+    print(config["PLAYSTYLE"])
+
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
     if config["PLAYSTYLE"] == "bass_drum":
-        play_bass_drum_style(
+        bass_instrument = play_bass_drum_style(
             bass_drum_times,
             bass_instrument,
             predicted_bass_sequence,
             note_mapping,
             config,
         )
-    elif config["PLAYSTYLE"] == "transition_jam":
-        play_transition_jam_style(
+    elif config["PLAYSTYLE"] == "transition":
+        bass_instrument = play_transition_jam_style(
             bass_drum_times,
             bass_instrument,
             predicted_bass_sequence,
@@ -84,7 +86,7 @@ def play_bass(
 
 def play_bass_drum_style(
     bass_drum_times, bass_instrument, predicted_bass_sequence, note_mapping, config
-) -> None:
+) -> pretty_midi.Instrument:
     """
     Plays the bass drum style based on the bass drum hits.
 
@@ -99,7 +101,7 @@ def play_bass_drum_style(
 
     Returns:
     ----------
-        None
+        bass_instrument (pretty_midi.Instrument): The bass instrument with the notes added.
     """
 
     running_time = start_time = end_time = duration_acc = chord_start_time = 0.0
@@ -131,11 +133,12 @@ def play_bass_drum_style(
             if bass_drum_times and end_time == bass_drum_times[0]:
                 bass_drum_times.pop(0)
             running_time = end_time
+    return bass_instrument
 
 
 def play_transition_jam_style(
     bass_drum_times, bass_instrument, predicted_bass_sequence, note_mapping, config
-) -> None:
+) -> pretty_midi.Instrument:
     """
     Plays a transition jam style bass sequence.
 
@@ -147,7 +150,7 @@ def play_transition_jam_style(
         config (dict): Configuration parameters.
 
     Returns:
-        None
+        bass_instrument (pretty_midi.Instrument): The bass instrument with the notes added.
     """
 
     transition_style = ["octave_jump", "passing", "approach tones", "walking", "non"]
@@ -206,6 +209,7 @@ def play_transition_jam_style(
                 bass_drum_times.pop(0)
 
             running_time = end_time
+    return bass_instrument
 
 
 def play_transition_notes(transition_notes, bass_instrument, end_time, config):

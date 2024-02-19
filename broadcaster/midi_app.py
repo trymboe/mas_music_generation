@@ -98,6 +98,7 @@ def set_params():
             data.get("checkbox5_melody"),
             data.get("checkbox6_melody"),
         )
+    playstyle = "transition" if data.get("bass_transition", False) else "bass_drum"
     global_config = {
         # General parameters
         "TEMPO": int(data.get("tempo", 120)),
@@ -109,7 +110,7 @@ def set_params():
         # Bass parameters
         "KEEP_BASS": data.get("keep_bass", False),
         "DURATION_PREFERENCES_BASS": duration_preferences_bass,
-        "PLAYSTYLE": data.get("playstyle", "bass_drum"),
+        "PLAYSTYLE": playstyle,
         # Chord parameters
         "KEEP_CHORD": data.get("keep_chord", False),
         "ARPEGIATE_CHORD": data.get("arpegiate_chord", False),

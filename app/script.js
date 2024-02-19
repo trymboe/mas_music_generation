@@ -28,6 +28,7 @@ document.getElementById("control-form").onsubmit = function (event) {
         // Bass parameters
         keep_bass: document.getElementById("keep-bass").checked,
         bass_creativity: document.getElementById("bass_creativity").value,
+        bass_transition: document.getElementById("bass-transition").value,
         checkbox1: document.getElementById("checkbox1").checked,
         checkbox2: document.getElementById("checkbox2").checked,
         checkbox3: document.getElementById("checkbox3").checked,
@@ -176,6 +177,7 @@ window.onload = function () {
 
     // Bass params
     var bassCreativity = document.getElementById('bass_creativity');
+    var bassTransitions = document.getElementById('bass-transitions');
     var checkbox1 = document.getElementById('checkbox1');
     var checkbox2 = document.getElementById('checkbox2');
     var checkbox3 = document.getElementById('checkbox3');
