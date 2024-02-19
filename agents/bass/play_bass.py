@@ -150,8 +150,7 @@ def play_transition_jam_style(
     Returns:
         bass_instrument (pretty_midi.Instrument): The bass instrument with the notes added.
     """
-
-    transition_style = ["octave_jump", "passing", "approach tones", "walking", "non"]
+    transition_style = ["octave_jump", "approach", "passing", "walking"]
 
     running_time = start_time = end_time = duration_acc = chord_start_time = 0.0
 
@@ -160,19 +159,18 @@ def play_transition_jam_style(
         if idx + 1 < len(predicted_bass_sequence):
             next_note = predicted_bass_sequence[idx + 1][0]
             shortes_distance, direction = find_shortes_distance(note, next_note)
-            # transition = random.choice(transition_style)
+            transition = random.choice(transition_style)
+            # transition = "walking"
         else:
             next_note = predicted_bass_sequence[0][0]
             shortes_distance, direction = 0, "up"
-        transition = "octave_jump"
         transition_notes, num_beat_transition = get_transition_note(
-            note, shortes_distance, direction, transition
+            note, next_note, shortes_distance, direction, transition
         )
 
         chord_start_time = duration_acc
         duration_acc += duration
         while running_time < duration_acc:
-            print("running_time", running_time)
             midi_note = note_mapping[note]
             start_time = running_time
 
@@ -244,7 +242,7 @@ def play_transition_notes(transition_notes, bass_instrument, end_time, config):
     return end_time
 
 
-def get_transition_note(note, shortes_distance, direction, transition):
+def get_transition_note(note, next_note, shortes_distance, direction, transition):
     """
     Get the transition notes and the number of beats for a given transition type.
 
@@ -269,6 +267,38 @@ def get_transition_note(note, shortes_distance, direction, transition):
             [note, 0.5],
             [note + 12, 0.5],
         ]
+    elif transition == "approach":
+        num_beat_transition = 1
+        if direction == "up":
+            transition_notes = [
+                [next_note - 1, 1],
+            ]
+        else:
+            transition_notes = [
+                [next_note + 1, 1],
+            ]
+    elif transition == "passing":
+        num_beat_transition = 1
+        transition_note = round(shortes_distance / 2)
+        if direction == "up":
+            transition_notes = [
+                [note + transition_note, 1],
+            ]
+        else:
+            transition_notes = [
+                [note - transition_note, 1],
+            ]
+    elif transition == "walking":
+        num_beat_transition = min(2, shortes_distance / 2)
+        transition_notes = []
+        if direction == "up":
+            for i in range(int(num_beat_transition * 2)):
+                note_pair = [next_note - int(num_beat_transition * 2 + 1) + i + 1, 0.5]
+                transition_notes.append(note_pair)
+        else:
+            for i in range(int(num_beat_transition * 2)):
+                note_pair = [next_note + int(num_beat_transition * 2 + 1) - i - 1, 0.5]
+                transition_notes.append(note_pair)
 
     return transition_notes, num_beat_transition
 
@@ -289,21 +319,14 @@ def find_shortes_distance(a, b):
 
     direct_distance = abs(a - b)
 
-    circular_distance = 12 - direct_distance
     direction = None
-    if direct_distance < circular_distance:
-        if a < b:
-            direction = "up"
-        else:
-            direction = "down"
+    if a < b:
+        direction = "up"
     else:
-        if a < b:
-            direction = "down"
-        else:
-            direction = "up"
+        direction = "down"
 
     # Return the minimum of the two distances
-    return min(direct_distance, circular_distance), direction
+    return direct_distance, direction
 
 
 def play_note(
