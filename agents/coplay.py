@@ -1,4 +1,4 @@
-from .bass import play_bass
+from .bass import play_bass, play_known_bass
 from .chord import play_chord, play_known_chord
 from .drum import play_drum
 from .melody import play_melody
@@ -90,15 +90,16 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     print("    ----playing bass----")
     start = time.time()
     if config["KEEP_BASS"]:
-        # If it is the first time, there are no drums to keep
+        # If it is the first time, there are no bass to keep
         if not kept_instruments[1]:
             new_mid, bass_instrument, predicted_bass_sequence = play_bass(
                 new_mid, bass_primer, config
             )
         else:
-            bass_instrument = kept_instruments[1][0]
             predicted_bass_sequence = kept_instruments[1][1]
-            new_mid.instruments.append(bass_instrument)
+            new_mid, bass_instrument, predicted_bass_sequence = play_known_bass(
+                new_mid, predicted_bass_sequence, config
+            )
     else:
         new_mid, bass_instrument, predicted_bass_sequence = play_bass(
             new_mid, bass_primer, config

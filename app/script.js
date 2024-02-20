@@ -11,7 +11,7 @@ document.getElementById("control-form").onsubmit = function (event) {
     submitButton.disabled = true;
     isGeneratingMusic = true;
     statusMessage.innerHTML = "Generating Music...";
-
+    ;
 
     var formData = {
         advancedSettings: document.getElementById("advanced-option").checked,
@@ -28,7 +28,7 @@ document.getElementById("control-form").onsubmit = function (event) {
         // Bass parameters
         keep_bass: document.getElementById("keep-bass").checked,
         bass_creativity: document.getElementById("bass_creativity").value,
-        bass_transition: document.getElementById("bass-transition").value,
+        bass_transition: document.getElementById("bass-transition").checked,
         checkbox1: document.getElementById("checkbox1").checked,
         checkbox2: document.getElementById("checkbox2").checked,
         checkbox3: document.getElementById("checkbox3").checked,
