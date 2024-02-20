@@ -123,7 +123,6 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
             new_mid, chord_instrument = play_known_chord(
                 new_mid, predicted_chord_sequence, config
             )
-            new_mid.instruments.append(chord_instrument)
     else:
         new_mid, chord_instrument, predicted_chord_sequence = play_chord(
             new_mid, predicted_bass_sequence, chord_primer, config
