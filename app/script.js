@@ -11,7 +11,7 @@ document.getElementById("control-form").onsubmit = function (event) {
     submitButton.disabled = true;
     isGeneratingMusic = true;
     statusMessage.innerHTML = "Generating Music...";
-    ;
+
 
     var formData = {
         advancedSettings: document.getElementById("advanced-option").checked,
