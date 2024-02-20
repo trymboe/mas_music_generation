@@ -55,22 +55,23 @@ CHANNELS = {
 VOLUME_DICT = {"drum": 1, "bass": 1, "chord": 1, "melody": 1, "harmony": 1}
 
 
-def midi2events(midi_obj):
-    """(docstring)"""
-    events = []
-    tempo = None
-    ticks_per_beat = midi_obj.ticks_per_beat
-    for track in midi_obj.tracks:
-        for msg in track:
-            if msg.type == "note_on" or msg.type == "note_off":
-                events.append((msg.time, msg.type, msg.note, msg.velocity))
-            elif msg.type == "set_tempo":
-                tempo = msg.tempo
-    return events, tempo, ticks_per_beat
-
-
 def pretty_midi2events(pretty_midi_obj):
-    """Convert pretty_midi object to a sequence of events."""
+    """
+    Converts a PrettyMIDI object into a list of events.
+
+    Args:
+    ----------
+        pretty_midi_obj (PrettyMIDI): The PrettyMIDI object to convert.
+
+    Returns:
+    ----------
+        tuple: A tuple containing the list of events, the tempo, and the ticks per beat.
+            - events (list): A list of events, where each event is a tuple containing the start tick, event type,
+              pitch, velocity, and instrument name.
+            - tempo (int): The tempo of the MIDI file in beats per minute (BPM).
+            - ticks_per_beat (int): The number of ticks per beat in the MIDI file.
+    """
+
     events = []
 
     tempo_changes = pretty_midi_obj.get_tempo_changes()
@@ -109,12 +110,38 @@ def pretty_midi2events(pretty_midi_obj):
 
 
 def generate_midi_message(event_type, pitch, velocity, channel1, channel2):
+    """
+    Generate a MIDI message based on the given event type, pitch, velocity and sends it to channel1 and channel2.
+    Channel1 is used for "note_on" events, and channel2 is used for "note_off" events.
+
+    Parameters:
+    ----------
+    - event_type (str): The type of MIDI event ("note_on" or "note_off").
+    - pitch (int): The pitch value of the MIDI note.
+    - velocity (int): The velocity value of the MIDI note.
+    - channel1 (int): The channel number for "note_on" events.
+    - channel2 (int): The channel number for "note_off" events.
+
+    Returns:
+    ----------
+    - list: A list representing the MIDI message, containing the event type, pitch, and velocity.
+    """
     event_map = {"note_on": channel1, "note_off": channel2}
 
     return [event_map.get(event_type, event_type), pitch, velocity]
 
 
 def set_new_channels(muted):
+    """
+    Sets the MIDI channels for different musical instruments based on the given mute status.
+
+    Args:
+    ----------
+        muted (list): A list of boolean values indicating the mute status of each instrument.
+
+    Returns:
+        None
+    """
     if not muted[0]:
         CHANNELS["drum"] = [0x90, 0x80]
     else:
@@ -138,6 +165,18 @@ def set_new_channels(muted):
 
 
 def set_volume(instrument, volume):
+    """
+    Set the volume of a specific instrument in the volume dict.
+
+    Parameters:
+    ----------
+    instrument (str): The name of the instrument.
+    volume (float): The volume level to set for the instrument.
+
+    Returns:
+    ----------
+    None
+    """
     VOLUME_DICT[instrument] = volume
 
 
@@ -150,8 +189,20 @@ def broadcasting_loop(
     virtual_port=True,
     verbose=False,
 ):
-    """This is a MIDI broadcasting loop implementation in terms of synchronization & time.
-    It uses the clockblocks clock to synchronize the groove loops."""
+    """
+    Executes the broadcasting loop for broadcasting MIDI events to a virtual midi port.
+
+    Args:
+    ----------
+        generation_queue (Queue): The queue containing the MIDI events to be played.
+        stop_event (Event): The event to signal the loop to stop.
+        start_event (Event): The event to signal the loop to start playing.
+        change_groove_event (Event): The event to signal a change in the current groove.
+        muted (bool): Flag indicating whether the channels should be muted.
+        virtual_port (bool, optional): Flag indicating whether to use a virtual MIDI port. Defaults to True.
+        verbose (bool, optional): Flag indicating whether to print verbose output. Defaults to False.
+    """
+
     global desired_loops, current_bpm, global_config
 
     while not change_groove_event.is_set():
@@ -291,6 +342,18 @@ def broadcasting_loop(
 def music_generation_process(
     config_queue, generation_queue, change_groove_event, generation_is_complete
 ):
+    """
+    Process for generating music based on the provided configuration.
+    Add instruments to logs and sends signals processes.
+
+    Args:
+    ----------
+        config_queue (Queue): A queue to receive the configuration.
+        generation_queue (Queue): A queue to send the generated music.
+        change_groove_event (Event): An event to signal a change in groove.
+        generation_is_complete (Event): An event to signal the completion of music generation.
+    """
+
     # TODO, not use global config, get config from queue
     global global_config
     while True:

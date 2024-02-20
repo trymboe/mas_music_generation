@@ -19,11 +19,13 @@ def play_bass(
     Generates and plays the bass sequence on top of the given midi file. Based on primer sequence, and configuration.
 
     Args:
+    ----------
         mid (pretty_midi.PrettyMIDI): The input MIDI file.
         primer (list): The primer sequence for generating the bass sequence.
         config (dict): The configuration settings for generating the bass sequence.
 
     Returns:
+    ----------
         tuple[pretty_midi.PrettyMIDI, list[int, int]]: A tuple containing the modified MIDI file,
         the bass instrument, and the predicted bass sequence.
     """
@@ -69,6 +71,20 @@ def play_bass(
 
 
 def play_normal_bass(predicted_bass_sequence, bass_instrument):
+    """
+    Plays the predicted bass sequence without any specific playstyle, using the given bass instrument.
+
+    Args:
+    ----------
+        predicted_bass_sequence (list): A list of tuples representing the predicted bass sequence.
+            Each tuple contains the note index and duration of the note.
+        bass_instrument (pretty_midi.Instrument): The bass instrument to play the sequence with.
+
+    Returns:
+    ----------
+        pretty_midi.Instrument: The modified bass instrument with the added notes.
+
+    """
     note_mapping = {i: 24 + i for i in range(12)}
     chord_start_time = 0.0
     for note, duration in predicted_bass_sequence:
@@ -90,6 +106,21 @@ def play_known_bass(
     predicted_bass_sequence: list,
     config: dict,
 ) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
+    """
+    Plays the bass sequence when the previous bass sequence is kept, using the specified play style.
+
+    Args:
+    ----------
+        mid (pretty_midi.PrettyMIDI): The input PrettyMIDI object.
+        predicted_bass_sequence (list): The predicted bass sequence.
+        config (dict): The configuration settings.
+
+    Returns:
+    ----------
+        tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]: A tuple containing the modified PrettyMIDI object,
+        the bass instrument, and the predicted bass sequence.
+    """
+
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
     if config["PLAYSTYLE"] == "bass_drum" or config["PLAYSTYLE"] == "transition":
         bass_drum_times = find_bass_drum(mid, config["TEMPO"])
@@ -170,6 +201,7 @@ def play_transition_jam_style(
     Plays a transition jam style bass sequence.
 
     Args:
+    ----------
         bass_drum_times (list): List of bass drum hit times.
         bass_instrument (Instrument): The bass instrument to play.
         predicted_bass_sequence (list): List of predicted bass notes and durations.
@@ -177,6 +209,7 @@ def play_transition_jam_style(
         config (dict): Configuration parameters.
 
     Returns:
+    ----------
         bass_instrument (pretty_midi.Instrument): The bass instrument with the notes added.
     """
     note_mapping = {i: 24 + i for i in range(12)}
@@ -251,12 +284,14 @@ def play_transition_notes(transition_notes, bass_instrument, end_time, config):
     Plays the transition notes using the specified bass instrument.
 
     Args:
+    ----------
         transition_notes (list): A list of tuples containing the note and duration of each transition note.
         bass_instrument (str): The name of the bass instrument to be used for playing the notes.
         end_time (float): The end time of the previous note.
         config (dict): A dictionary containing configuration parameters.
 
     Returns:
+    ----------
         float: The end time of the last played note.
     """
     for note, duration in transition_notes:
@@ -277,12 +312,14 @@ def get_transition_note(note, next_note, shortes_distance, direction, transition
     Get the transition notes and the number of beats for a given transition type.
 
     Parameters:
+    ----------
     note (int): The starting note.
     shortes_distance (float): The shortest distance between notes.
     direction (str): The direction of the transition.
     transition (str): The type of transition.
 
     Returns:
+    ----------
     transition_notes (list): A list of transition notes and their durations.
     num_beat_transition (int): The number of beats for the transition.
     """
@@ -338,10 +375,12 @@ def find_shortes_distance(a, b):
     Calculates the shortest distance between two musical notes on a chromatic scale.
 
     Parameters:
+    ----------
     a (int): The first note value.
     b (int): The second note value.
 
     Returns:
+    ----------
     tuple: A tuple containing the shortest distance between the two notes and the direction of the distance.
            The distance can be either a direct distance or a circular distance on a chromatic scale.
            The direction can be either "up" or "down".
@@ -398,9 +437,11 @@ def find_bass_drum(pm: pretty_midi.PrettyMIDI, tempo: int) -> list[float]:
     Find every time step where the bass drum is played in a given PrettyMIDI object.
 
     Args:
+    ----------
     - pm (pretty_midi.PrettyMIDI): A PrettyMIDI object containing one drum track.
 
     Returns:
+    ----------
     - List[float]: List of start times (in seconds) where the bass drum is played.
     """
     bass_drum_times = []

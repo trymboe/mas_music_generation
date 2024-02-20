@@ -21,6 +21,18 @@ from .utils import get_indices, split_indices
 
 
 def get_melody_dataset(root_dir: str) -> None:
+    """
+    Retrieves the melody dataset from the specified root directory and saves it as separate train, test, and validation datasets.
+
+    Args:
+    ----------
+        root_dir (str): The root directory where the dataset is located.
+
+    Returns:
+    ----------
+        None
+    """
+
     if not os.path.exists(TRAIN_DATASET_PATH_MELODY):
         all_events_list = []
         for split in ["train", "test", "val"]:
@@ -39,6 +51,19 @@ def get_melody_dataset(root_dir: str) -> None:
 
 
 def get_combined_melody_dataset(root_dir: str) -> None:
+    """
+    Retrieves the melody dataset from the specified root directory and saves it as Torch tensors.
+    With this variant, train, test and val datasets all gets sequences from the same songs, but without leaking information between the splits.
+
+    Args:
+    ----------
+        root_dir (str): The root directory containing the melody dataset.
+
+    Returns:
+    ----------
+        None
+    """
+
     if not os.path.exists(TRAIN_DATASET_COMBINED_PATH_MELODY):
         all_events_list = []
 
@@ -56,6 +81,16 @@ def get_combined_melody_dataset(root_dir: str) -> None:
 
 
 def process_melody(root_dir: str, split) -> Melody_Dataset:
+    """
+    Process the melody and chord files in the given root directory.
+
+    Args:
+        root_dir (str): The root directory containing the melody and chord files.
+        split: The split of the dataset to process. Can be "combined", "train", "val", or any other custom split.
+
+    Returns:
+        Melody_Dataset: A dataset containing the processed melody and chord events.
+    """
     root_dirs = []
     if split == "combined":
         root_dirs.append(os.path.join(root_dir, "train"))
@@ -91,6 +126,22 @@ def process_melody(root_dir: str, split) -> Melody_Dataset:
 def process_melody_and_chord(
     midi_file: str, chord_file: str
 ) -> list[list[int], list[int], list[list[int]], list[bool]]:
+    """
+    Process the melody and chord information from MIDI and chord files. It creates the sequences that make up the melody dataset.
+    Each sequence contains the pitch vector, duration vector, current chord vector, next chord vector, time left current chord vector, accumulated time vector (not used), and placement information for each note in the melody track.
+
+    Args:
+    ----------
+        midi_file (str): The path to the MIDI file.
+        chord_file (str): The path to the chord file.
+
+    Returns:
+    ----------
+        list[list[int], list[int], list[list[int]], list[bool]]: A list of events containing the pitch vector,
+        duration vector, current chord vector, next chord vector, time left current chord vector,
+        accumulated time vector, and placement information for each note in the melody track.
+    """
+
     pm = pretty_midi.PrettyMIDI(midi_file)
 
     # Iterate over the instruments in the MIDI data
@@ -199,9 +250,9 @@ def process_melody_and_chord(
                         note.start - rest_duration, tempo
                     )
 
-                    time_left_current_chord_vector_pause: list[
-                        int
-                    ] = one_hote_time_left(time_left_current_chord_pause)
+                    time_left_current_chord_vector_pause: list[int] = (
+                        one_hote_time_left(time_left_current_chord_pause)
+                    )
 
                     list_of_events.append(
                         [
@@ -237,10 +288,34 @@ def process_melody_and_chord(
 
 
 def get_one_hot_index(one_hot_vector: list[int]) -> int:
+    """
+    Returns the index of the first occurrence of 1 in the given one-hot vector.
+    For debugging purposes.
+
+    Args:
+    ----------
+        one_hot_vector (list[int]): The one-hot vector.
+
+    Returns:
+    ----------
+        int: The index of the first occurrence of 1 in the one-hot vector, or None if no 1 is found.
+    """
     return next((i for i, value in enumerate(one_hot_vector) if value == 1), None)
 
 
 def add_note(pitch: int):
+    """
+    Converts a pitch value into a pitch vector representation.
+
+    Args:
+    ----------
+        pitch (int): The pitch value to be converted.
+
+    Returns:
+    ----------
+        list[int]: The pitch vector representation of the pitch value.
+    """
+
     pitch_vector: list[int] = [0] * (PITCH_VECTOR_SIZE + 1)
     assert PITCH_VECTOR_SIZE % 12 == 0
     octaves = pitch // 12
@@ -258,6 +333,24 @@ def add_note(pitch: int):
 
 
 def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_end_seconds, pm):
+    """
+    Finds the corresponding chord for a given start tick and calculates the time left for the current chord.
+    Is used to get the current and next chord vectors, and the time left for the current chord.
+
+    Parameters:
+    ----------
+    chord_list (list): A list of tuples containing the timing and chord information.
+    tempo (int): The tempo of the music.
+    ticks_per_beat (int): The number of ticks per beat.
+    start_tick (int): The start tick of the note.
+    note_end_seconds (float): The end time of the note in seconds.
+    pm (int): The number of pulses per metronome tick.
+
+    Returns:
+    ----------
+    tuple: A tuple containing the current chord vector, next chord vector, and time left for the current chord.
+    """
+
     # Find the corresponding chord
     current_chord_vector = None
     next_chord_vector = None
@@ -296,6 +389,19 @@ def find_chord(chord_list, tempo, ticks_per_beat, start_tick, note_end_seconds, 
 
 
 def get_accumulated_time(note_start: int, tempo: int) -> list[int]:
+    """
+    Calculates the accumulated time for a given note start position.
+
+    Args:
+    ----------
+        note_start (int): The start position of the note in seconds.
+        tempo (int): The tempo of the music in beats per minute.
+
+    Returns:
+    ----------
+        list[int]: A list of accumulated time values for each bar in the music.
+    """
+
     note_start_beats = round(note_start * tempo / 60)
     relative_bar = note_start_beats % 4
     accumulated_time: list[int] = [0] * 4
@@ -305,6 +411,19 @@ def get_accumulated_time(note_start: int, tempo: int) -> list[int]:
 
 
 def get_key(val, dic):
+    """
+    Returns the key associated with a given value in a dictionary.
+
+    Args:
+    ----------
+        val: The value to search for in the dictionary.
+        dic: The dictionary to search in.
+
+    Returns:
+    ----------
+        The key associated with the given value, if found.
+        Otherwise, returns "Key not found".
+    """
     for key, value in dic.items():
         if value == val:
             return key
@@ -312,6 +431,17 @@ def get_key(val, dic):
 
 
 def one_hote_time_left(time_left_current_chord: float) -> list[int]:
+    """
+    Converts the time left in the current chord to a one-hot encoded list.
+
+    Args:
+    ----------
+        time_left_current_chord (float): The time left in the current chord.
+
+    Returns:
+    ----------
+        list[int]: A one-hot encoded list representing the time left in the current chord.
+    """
     list_oh: list[int] = [0] * TIME_LEFT_ON_CHORD_SIZE_MELODY
     index = round(time_left_current_chord)
     index = max(index, 0)
@@ -320,9 +450,22 @@ def one_hote_time_left(time_left_current_chord: float) -> list[int]:
     return list_oh
 
 
-def calculate_chord_quarters(
-    start_time: float, end_time: float, tempo: int, pm: pretty_midi.PrettyMIDI
-) -> float:
+def calculate_chord_quarters(start_time: float, end_time: float, tempo: int) -> float:
+    """
+    Calculate the number of quarters in a chord based on the start time and end time.
+
+    Parameters:
+    ----------
+        start_time (float): The start time of the chord in seconds.
+        end_time (float): The end time of the chord in seconds.
+        tempo (int): The tempo of the music in beats per minute.
+        pm (pretty_midi.PrettyMIDI): The PrettyMIDI object representing the MIDI file.
+
+    Returns:
+    ----------
+        float: The number of quarters in the chord.
+
+    """
     duration_seconds = end_time - start_time
     beats_per_second = tempo / 60
     number_of_quarters = duration_seconds * beats_per_second * 4

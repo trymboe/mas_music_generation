@@ -95,6 +95,19 @@ def train_chord(model: nn.Module) -> None:
 
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:
+    """
+    Calculate the validation loss for a given model using the provided dataloader and criterion.
+
+    Args:
+    ----------
+        model (nn.Module): The model to evaluate.
+        dataloader (DataLoader): The dataloader containing the validation data.
+        criterion: The loss criterion used for calculating the loss.
+
+    Returns:
+    ----------
+        float: The average validation loss.
+    """
     model.eval()
     batch_loss = []
     for batch_idx, (data, targets) in enumerate(dataloader):

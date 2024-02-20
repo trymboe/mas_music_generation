@@ -63,6 +63,24 @@ def get_bass_and_chord_dataset(root_directory: str) -> None:
 
 
 def extract_chords_from_files(root_dir, only_triads, split):
+    """
+    Extracts chord and root note information from the chord_audio.txt files in the specified directory.
+    This is the funduments behind the bass and chord datasets.
+
+    Args:
+    ----------
+        root_dir (str): The root directory containing the files.
+        only_triads (bool): Flag indicating whether to include only triads.
+        split (str): The subdirectory within the root directory to process.
+
+    Returns:
+    ----------
+        tuple: A tuple containing the extracted chords, notes, and beats.
+            - all_chords (list[list[tuple(str, str)]]): A list of chords, where each chord is represented as a tuple of root and version.
+            - all_notes (list): A list of notes extracted from the chords.
+            - all_beats (list[list[int]]): A list of beat information for each chord.
+    """
+
     print(root_dir, split)
     all_chords: list[list[tuple(str, str)]] = []
     all_beats: list[list[int]] = []
@@ -126,6 +144,19 @@ def extract_chords_from_files(root_dir, only_triads, split):
 
 
 def find_chord_length(chord_start, chord_end, beat_list):
+    """
+    Calculates the length of a chord based on its start and end positions in a list of beats.
+
+    Parameters:
+    ----------
+    chord_start (float): The start position of the chord.
+    chord_end (float): The end position of the chord.
+    beat_list (list): A list of beats.
+
+    Returns:
+    ----------
+    int: The length of the chord in beats.
+    """
     distance_to_start: float = 10000
     for index, time in enumerate(beat_list):
         current_distance = abs(float(time) - chord_start)
@@ -153,6 +184,18 @@ def find_chord_length(chord_start, chord_end, beat_list):
 
 
 def get_beat_info(dir_name, file_name):
+    """
+    Retrieves the beat information from a file.
+
+    Parameters:
+    ----------
+    dir_name (str): The directory name where the file is located.
+    file_name (str): The name of the file.
+
+    Returns:
+    ----------
+    list: A list containing the beat information.
+    """
     beat_list = []
     with open(os.path.join(dir_name, file_name), "r") as file:
         for line in file:
@@ -161,17 +204,18 @@ def get_beat_info(dir_name, file_name):
     return beat_list
 
 
-def total_length(chords):
-    count = 0
-    for item in chords:
-        if isinstance(item, list):
-            count += total_length(item)
-        else:
-            count += 1
-    return count
-
-
 def flat_to_sharp(chords):
+    """
+    Converts the name of chords with flat root notes to name of chords with sharp root notes.
+
+    Args:
+    ----------
+        chords (list): A list of chords, where each chord is a tuple containing the root note, version, and any additional information.
+
+    Returns:
+    ----------
+        list: A new list of chords with the root notes converted from flat to sharp.
+    """
     new_chords = []
     for chord in chords:
         root, version, _ = chord
@@ -190,6 +234,18 @@ def flat_to_sharp(chords):
 
 
 def flat_to_sharp_key(key):
+    """
+    Converts a key from flat notation to sharp notation.
+
+    Args:
+    ----------
+        key (str): The key in flat notation, e.g. "Db:maj", "Eb:min".
+
+    Returns:
+    ----------
+        str: The key in sharp notation, e.g. "C#:maj", "D#:min".
+    """
+
     # Mapping of flat notes to their sharp equivalents
     flat_to_sharp_map = {"Db": "C#", "Eb": "D#", "Gb": "F#", "Ab": "G#", "Bb": "A#"}
 
@@ -204,16 +260,29 @@ def flat_to_sharp_key(key):
 
 
 def remove_non_triad(string):
+    """
+    Removes non-triad elements from a chord string.
+    Used to convert non-triad chords to triads.
+
+    Args:
+    ----------
+        string (str): The input chord string.
+
+    Returns:
+    ----------
+        str: The modified chord string with non-triad elements removed.
+    """
+
     # Remove anything after a forward slash '/'
     string = re.sub(r"/.*$", "", string)
 
     # Remove everything inside parentheses and after
     modified_str = re.sub(r"\(.*?\)", "", string)
 
-    # # Replace numbers that aren't 2 or 4 with an empty string
+    # Replace numbers that aren't 2 or 4 with an empty string
     modified_str = re.sub(r"(?<!\d)(?:(?!2|4)\d)+(?!\d)", "", modified_str)
 
-    # # Remove non-letter characters at the end of the string
+    # Remove non-letter characters at the end of the string
     modified_str = re.sub(r"[^a-zA-Z24]+$", "", modified_str)
 
     modified_str = "dim" if modified_str == "hdim" else modified_str
@@ -227,6 +296,18 @@ def remove_non_triad(string):
 
 
 def get_key(dir_name, file_name):
+    """
+    Retrieves the key from a text file.
+
+    Parameters:
+    ----------
+    dir_name (str): The directory name where the file is located.
+    file_name (str): The name of the file.
+
+    Returns:
+    ----------
+    list: A list of keys extracted from the file.
+    """
     key = []
     # Check if key_audio.txt exists
     with open(os.path.join(dir_name, file_name), "r") as file:
@@ -237,30 +318,18 @@ def get_key(dir_name, file_name):
     return key
 
 
-def transpose_chord(chords, key):
-    # Define the musical notes in order
-    notes = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
-    root = key.split(":")[0]
-
-    # Find the interval between the original key and C
-    interval = notes.index("C") - notes.index(root)
-
-    # Transpose each chord in the progression by the interval
-    transposed_chords = []
-    for chord in chords:
-        root, version = chord
-        new_root_index = (notes.index(root) + interval) % len(notes)
-        new_root = notes[new_root_index]
-        transposed_chords.append((new_root, version))
-
-    return transposed_chords
-
-
-def transpose_minor(chords, key):
-    pass
-
-
 def get_notes_from_chords(chords):
+    """
+    Extracts the root notes from a list of chords.
+
+    Args:
+    ----------
+        chords (list): A list of chords, where each chord is represented as a list of notes.
+
+    Returns:
+    ----------
+        list: A list of notes extracted from the chords.
+    """
     all_notes = []
     for song in chords:
         song_notes = []

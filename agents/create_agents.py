@@ -122,6 +122,14 @@ def create_agents(
 
 
 def create_drum_agent():
+    """
+    Creates a drum agent by loading the drum dataset, loading the configuration parameters,
+    and building the drum network pipeline.
+
+    Returns:
+    ----------
+        The drum agent model.
+    """
     drum_dataset = get_drum_dataset()
     conf = load_yaml("config/bumblebeat/params.yaml")
     model = drum_network_pipeline(conf, drum_dataset)

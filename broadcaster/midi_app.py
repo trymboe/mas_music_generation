@@ -53,6 +53,14 @@ CORS(midi_app)
 
 @midi_app.route("/set_params", methods=["POST"])
 def set_params():
+    """
+    Sets the parameters for MIDI file generation based on the frontend.
+
+    Returns:
+    ----------
+        A JSON response indicating that the MIDI file is being processed.
+    """
+
     global current_loop_count, global_config, config_queue
 
     data = request.json
@@ -133,6 +141,17 @@ def set_params():
 
 @midi_app.route("/mute", methods=["POST"])
 def mute():
+    """
+    Mutes or unmutes the specified instrument.
+
+    The function receives a JSON payload containing the instrument and mute state.
+    It updates the corresponding global variable based on the instrument and mute state provided.
+    After updating the global variables, it calls the `set_new_channels` function to apply the changes.
+
+    Returns:
+    ----------
+        A tuple containing a JSON response with the status, instrument, and mute state, and the HTTP status code.
+    """
     global is_drum_muted, is_bass_muted, is_chord_muted, is_melody_muted, is_harmony_muted
     data = request.get_json()
     instrument = data.get("instrument")
@@ -166,6 +185,13 @@ def mute():
 
 @midi_app.route("/update_volume", methods=["POST"])
 def update_volume():
+    """
+    Updates the volume of a specific instrument.
+
+    Returns:
+    ----------
+        A tuple containing the JSON response, HTTP status code.
+    """
     data = request.get_json()
     instrument = data.get("instrument").split("-")[1]
     volume = float(data.get("volume"))
@@ -180,6 +206,13 @@ def update_volume():
 
 @midi_app.route("/check_status", methods=["GET"])
 def check_status():
+    """
+    Check the status of the music generation process.
+
+    Returns:
+    ----------
+        A JSON response indicating whether the generation is complete or not.
+    """
     global generation_is_complete
     is_complete = generation_is_complete.is_set()
     return jsonify({"isComplete": is_complete})
@@ -187,6 +220,13 @@ def check_status():
 
 @midi_app.route("/shutdown", methods=["POST"])
 def shutdown():
+    """
+    Terminate the generator process.
+
+    Returns:
+    ----------
+        str: A message indicating that the server is shutting down.
+    """
     global gen_process
     gen_process.terminate()
     gen_process.join()
@@ -195,6 +235,15 @@ def shutdown():
 
 @midi_app.route("/acknowledge_complete", methods=["POST"])
 def acknowledge_complete():
+    """
+    Acknowledges that the generation process is complete.
+
+    This function clears the 'generation_is_complete' event and returns a JSON response indicating that the acknowledgement was successful.
+
+    Returns:
+    ----------
+        A JSON response indicating that the acknowledgement was successful.
+    """
     global generation_is_complete
     generation_is_complete.clear()  # Reset the event
     return jsonify({"acknowledged": True})
@@ -202,6 +251,17 @@ def acknowledge_complete():
 
 @midi_app.after_request
 def add_header(response):
+    """
+    Adds header to the response object.
+
+    Args:
+    ----------
+        response (object): The response object to add the header to.
+
+    Returns:
+    ----------
+        object: The modified response object with the added header.
+    """
     response.cache_control.no_store = True
     return response
 
@@ -209,6 +269,15 @@ def add_header(response):
 # In midi_app.py
 @midi_app.route("/control/play_pause", methods=["POST"])
 def play_pause():
+    """
+    Toggles the play/pause state of the MIDI app.
+
+    Returns:
+    ----------
+        dict: A dictionary containing the status and the current play/pause state.
+            - "status" (str): The status of the operation ("success").
+            - "isPlaying" (bool): The current play/pause state.
+    """
     global is_playing
 
     is_playing = not is_playing
@@ -222,6 +291,19 @@ def play_pause():
 
 
 def start_broadcaster():
+    """
+    Starts the MIDI broadcaster by running the Flask server and the broadcasting loop in separate threads.
+    It also starts the music generation process.
+
+    Parameters:
+    ----------
+        None
+
+    Returns:
+    ----------
+        None
+    """
+
     global config_queue, gen_process, generation_queue
 
     print("---Starting the MIDI broadcaster---")

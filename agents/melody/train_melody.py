@@ -54,7 +54,7 @@ def train_melody(model: Melody_Network) -> None:
     if COMBINED:
         melody_dataset_train = torch.load(TRAIN_DATASET_COMBINED_PATH_MELODY)
         melody_dataset_val = torch.load(VAL_DATASET_COMBINED_PATH_MELODY)
-    else:    
+    else:
         melody_dataset_train = torch.load(TRAIN_DATASET_PATH_MELODY)
         melody_dataset_val = torch.load(VAL_DATASET_PATH_MELODY)
 
@@ -89,8 +89,14 @@ def train_melody(model: Melody_Network) -> None:
     for epoch in range(NUM_EPOCHS_MELODY):
         batch_loss = []
         if epoch % CHECKPOINT_FREQUENCY_MELODY == 0:
-            torch.save(model, "models/melody/checkpoints/checkpoint_"+(COMMENT_MELODY)+str(epoch)+".pt")
-            #TODO: save data to json
+            torch.save(
+                model,
+                "models/melody/checkpoints/checkpoint_"
+                + (COMMENT_MELODY)
+                + str(epoch)
+                + ".pt",
+            )
+            # TODO: save data to json
             print("saving checkpoint")
         for idx, batch in enumerate(dataloader_train):
             if idx > MAX_BATCHES_MELODY:
@@ -159,6 +165,15 @@ def train_melody(model: Melody_Network) -> None:
 
 
 def save_to_json(loss_list, val_loss_list):
+    """
+    Save the training data, including hyperparameters, loss list, and validation loss list, to a JSON file.
+
+    Args:
+    ----------
+        loss_list (list): List of training losses.
+        val_loss_list (list): List of validation losses.
+    """
+
     hyperparameters = {
         "PITCH_VECTOR_SIZE": PITCH_VECTOR_SIZE,
         "SEQUENCE_LENGHT_MELODY": SEQUENCE_LENGHT_MELODY,
@@ -185,10 +200,23 @@ def save_to_json(loss_list, val_loss_list):
     # Save the combined data as a JSON file
     file_name = f"results/data/melody/training_data{hyperparameters['NUM_EPOCHS_MELODY']}_{COMMENT_MELODY}.json"
     with open(file_name, "w") as file:
-        json.dump(data_to_save, file, indent=4) 
+        json.dump(data_to_save, file, indent=4)
 
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:
+    """
+    Calculate the validation loss for a given model using the provided dataloader and criterion.
+
+    Args:
+    ----------
+        model (nn.Module): The model to evaluate.
+        dataloader (DataLoader): The dataloader containing the validation data.
+        criterion: The loss criterion used for calculating the loss.
+
+    Returns:
+    ----------
+        float: The average validation loss.
+    """
     model.eval()
     batch_loss = []
     for idx, batch in enumerate(dataloader):
@@ -228,6 +256,17 @@ def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> 
 
 
 def get_gt(gt):
+    """
+    Converts a one-hot encoded ground truth tensor to its corresponding label tensor.
+
+    Args:
+    ----------
+        gt (torch.Tensor): The ground truth tensor.
+
+    Returns:
+    ----------
+        torch.Tensor: The label tensor obtained by taking the argmax along the second dimension of the input tensor.
+    """
     if len(gt.size()) > 1 and gt.size(1) > 1:  # Check for one-hot encoding
         return torch.argmax(gt, dim=1)
 
@@ -279,6 +318,22 @@ def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
 
 
 def process_data(batch):
+    """
+    Process the data in the batch and convert it into tensors for training.
+
+    Args:
+    ----------
+        batch (list): A list of sequences, where each sequence contains input and label data.
+
+    Returns:
+    ----------
+        tuple: A tuple containing the processed inputs, targets, accumulated time tensor, and current chord time left tensor.
+            - inputs (tuple): A tuple of tensors representing the input data, including pitches, durations, current chords, and next chords.
+            - targets (tuple): A tuple of tensors representing the target data, including ground truth pitches and durations.
+            - accumulated_time_tensor (torch.Tensor): A tensor representing the accumulated times for each sequence in the batch.
+            - current_chord_time_left_tensor (torch.Tensor): A tensor representing the time left for the current chord in each sequence.
+    """
+
     # batch - input/label - Sequence - note - pitch/duration/chord
     # Initialize lists to store sequence data
     pitches, durations, current_chords, next_chords = [], [], [], []
