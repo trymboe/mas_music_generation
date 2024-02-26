@@ -27,6 +27,8 @@ from config import (
     CHORD_SIZE_MELODY,
     PITCH_SIZE_MELODY,
     INT_TO_TRIAD,
+    INT_TO_CHORD,
+    INT_TO_NOTE,
 )
 
 NEW_BASS_PRIMER = None
@@ -49,12 +51,6 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
         pretty_midi.PrettyMIDI: The generated MIDI file.
         list: The list of instruments used in the generated MIDI file.
     """
-
-    # Rest of the code...
-
-
-def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
-
     global NEW_BASS_PRIMER, NEW_CHORD_PRIMER, NEW_MELODY_PRIMER
 
     if NEW_BASS_PRIMER is None:
@@ -181,7 +177,32 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
         [melody_instrument, predicted_melody_sequence],
     ]
     mid.write(SAVE_RESULT_PATH)
-    return mid, instruments
+    chord_progression = get_chord_progression(predicted_chord_sequence)
+    return mid, instruments, chord_progression
+
+
+def get_chord_progression(predicted_chord_sequence):
+    """
+    Converts the predicted chord sequence into a list containing the strings of the chord progression.
+
+    Args:
+    ----------
+        predicted_chord_sequence (list): A list of tuples representing the predicted chord sequence.
+            Each tuple contains the chord index and its duration.
+
+    Returns:
+    ----------
+        list: A list of lists representing the full chord progression.
+            Each inner list contains the full chord name and its duration.
+    """
+    full_chord_progression = []
+    for chord, duration in predicted_chord_sequence:
+        root, chord_type = get_chord(chord)
+        root_name = INT_TO_NOTE[root]
+        chord_variant = INT_TO_CHORD[chord_type]
+        full_chord_name = root_name + chord_variant
+        full_chord_progression.append([full_chord_name, duration])
+    return full_chord_progression
 
 
 def get_new_primer_sequences(

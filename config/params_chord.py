@@ -34,6 +34,8 @@ CHORD_TO_INT = {
     "sus4": 5,
 }
 
+INT_TO_CHORD = {v: k for k, v in CHORD_TO_INT.items()}
+
 INT_TO_TRIAD = {
     0: [0, 4, 7],
     1: [0, 3, 7],

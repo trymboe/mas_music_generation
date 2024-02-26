@@ -112,11 +112,30 @@ document.getElementById("control-form").onsubmit = function (event) {
         fetch('http://localhost:5005/acknowledge_complete', { method: 'POST' })
             .then(response => response.json())
             .then(data => console.log(data))
-            .then(startLoopAnimation(formData.tempo, formData.length))
+            .then(getChordProgression())
             .catch(error => console.error('Error:', error));
+
 
     }
 };
+
+function getChordProgression() {
+    fetch('http://localhost:5005/send_chord_progression')
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
+            updateChordProgression(data.chordProgression, data.duration);
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function updateChordProgression(chordProgression, duration) {
+    const messageField1 = document.getElementById('chord-progression-message1');
+    const messageField2 = document.getElementById('chord-progression-message2');
+
+    messageField1.innerHTML = chordProgression;
+    messageField2.innerHTML = duration;
+}
 
 document.getElementById('advanced-option').addEventListener('change', function () {
     var advancedSettings = document.querySelectorAll('.advanced-settings');

@@ -25,8 +25,10 @@ start_event = mpEvent()
 pause_event = mpEvent()
 stop_event = mpEvent()
 generation_queue = mpQueue(maxsize=10)
+chord_progression_queue = mpQueue(maxsize=10)
 generation_is_complete = mpEvent()
 change_groove_event = mpEvent()
+
 
 is_playing = False
 
@@ -290,6 +292,27 @@ def play_pause():
     return jsonify({"status": "success", "isPlaying": is_playing})
 
 
+@midi_app.route("/send_chord_progression", methods=["GET"])
+def send_chord_progression():
+    """
+    Sends the chord progression to the JS backend..
+
+    Args:
+        None
+
+    Returns:
+        A JSON response containing the received chord progression.
+    """
+    global chord_progression_queue
+    chord_progression = chord_progression_queue.get()
+    cp_string = ""
+    duration_string = ""
+    for chord, duration in chord_progression:
+        cp_string += chord + " "
+        duration_string += str(duration) + " "
+    return jsonify({"chordProgression": cp_string, "duration": duration_string})
+
+
 def start_broadcaster():
     """
     Starts the MIDI broadcaster by running the Flask server and the broadcasting loop in separate threads.
@@ -342,6 +365,7 @@ def start_broadcaster():
             generation_queue,
             change_groove_event,
             generation_is_complete,
+            chord_progression_queue,
         ),
     )
     gen_process.start()

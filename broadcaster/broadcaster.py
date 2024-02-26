@@ -340,7 +340,11 @@ def broadcasting_loop(
 
 # In the music_generation_process function
 def music_generation_process(
-    config_queue, generation_queue, change_groove_event, generation_is_complete
+    config_queue,
+    generation_queue,
+    change_groove_event,
+    generation_is_complete,
+    chord_progression_queue,
 ):
     """
     Process for generating music based on the provided configuration.
@@ -359,7 +363,10 @@ def music_generation_process(
     while True:
         global_config = config_queue.get()  # Blocking call
         kept_instruments = get_kept_instruments(GENERATION_LOG)
-        pm, instruments = play_agents(global_config, kept_instruments)
+        pm, instruments, chord_progression = play_agents(
+            global_config, kept_instruments
+        )
+        chord_progression_queue.put(chord_progression)
         GENERATION_LOG.append(instruments)
         generation_queue.put(pm)
         change_groove_event.set()

@@ -295,6 +295,6 @@ input[type=range][orient=vertical] {
     opacity: 1;
 }
 
-#status-message-div {
+.inner-controll-div {
     text-align: center;
 }

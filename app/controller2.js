@@ -21,3 +21,4 @@ function updatePlayPauseButton(isPlaying) {
         button.innerHTML = '&#9658;'; // Play symbol
     }
 }
+
