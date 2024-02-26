@@ -9,6 +9,73 @@ def play_harmony(
 ) -> pretty_midi.PrettyMIDI:
     harmony_instrument = pretty_midi.Instrument(program=0)
 
+    if False:
+        harmony_instrument = play_interval()
+    else:
+        harmony_instrument = play_delay(melody_sequence, config, harmony_instrument)
+
+    harmony_instrument.name = "harmony"
+    mid.instruments.append(harmony_instrument)
+
+    return mid
+
+
+def play_delay(
+    melody_sequence: list[list[int]],
+    config: dict,
+    harmony_instrument: pretty_midi.Instrument,
+):
+    running_duration = 0
+    for pitch, duration in melody_sequence:
+        duration *= 0.25
+
+        tempo = config["TEMPO"]
+        # delay of an 8th note
+        delay = 30 / tempo
+
+        # if config["INTERVAL"]:
+        play_pitch = pitch + 5
+
+        start = beats_to_seconds(running_duration, config["TEMPO"])
+        end = beats_to_seconds(running_duration + duration, config["TEMPO"])
+
+        running_duration += duration
+        # If the note is a pause, skip it
+        if pitch == 5 * 12 + PITCH_SIZE_MELODY:
+            continue
+
+        max_length = (config["LENGTH"] * 4 / tempo) * 60
+
+        # for i in range(config["DELAY_NUM"]):
+        velocity = 72
+        for i in range(2):
+            if start + delay > max_length:
+                start = start
+            else:
+                start = start + delay
+
+            if end + delay > max_length:
+                end = end
+            else:
+                end = end + delay
+            velocity = velocity - 10
+
+            harmony_note = pretty_midi.Note(
+                velocity=velocity,
+                pitch=play_pitch,
+                start=start,
+                end=end,
+            )
+
+        harmony_instrument.notes.append(harmony_note)
+    return harmony_instrument
+
+
+def play_interval(
+    melody_sequence: list[list[int]],
+    config: dict,
+    harmony_instrument: pretty_midi.Instrument,
+):
     running_duration = 0
     for pitch, duration in melody_sequence:
         duration *= 0.25
@@ -31,8 +98,4 @@ def play_harmony(
         )
 
         harmony_instrument.notes.append(harmony_note)
-
-    harmony_instrument.name = "harmony"
-    mid.instruments.append(harmony_instrument)
-
-    return mid
+    return harmony_instrument
