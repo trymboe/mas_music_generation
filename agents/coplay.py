@@ -1,8 +1,9 @@
-from .bass import play_bass, play_known_bass
+from .melody import play_melody, play_known_melody
 from .chord import play_chord, play_known_chord
+from .bass import play_bass, play_known_bass
 from .drum import play_drum
-from .melody import play_melody
 from .harmony import play_harmony
+from .utils import adjust_for_key
 import random
 import time
 import copy
@@ -11,7 +12,7 @@ import pretty_midi
 import torch
 
 
-from data_processing import Bass_Dataset, Chord_Dataset, Drum_Dataset, Melody_Dataset
+from data_processing import Bass_Dataset, Chord_Dataset, Melody_Dataset
 
 
 from config import (
@@ -137,9 +138,10 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
                 new_mid, predicted_chord_sequence, melody_primer, config
             )
         else:
-            melody_instrument = kept_instruments[3][0]
             predicted_melody_sequence = kept_instruments[3][1]
-            new_mid.instruments.append(melody_instrument)
+            new_mid, melody_instrument = play_known_melody(
+                new_mid, predicted_melody_sequence, config
+            )
     else:
         new_mid, melody_instrument, predicted_melody_sequence = play_melody(
             new_mid, predicted_chord_sequence, melody_primer, config
@@ -177,11 +179,11 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
         [melody_instrument, predicted_melody_sequence],
     ]
     mid.write(SAVE_RESULT_PATH)
-    chord_progression = get_chord_progression(predicted_chord_sequence)
+    chord_progression = get_chord_progression(predicted_chord_sequence, config)
     return mid, instruments, chord_progression
 
 
-def get_chord_progression(predicted_chord_sequence):
+def get_chord_progression(predicted_chord_sequence, config):
     """
     Converts the predicted chord sequence into a list containing the strings of the chord progression.
 
@@ -198,6 +200,8 @@ def get_chord_progression(predicted_chord_sequence):
     full_chord_progression = []
     for chord, duration in predicted_chord_sequence:
         root, chord_type = get_chord(chord)
+        root = adjust_for_key(root, config["KEY"])
+        root = root % 12
         root_name = INT_TO_NOTE[root]
         chord_variant = INT_TO_CHORD[chord_type]
         full_chord_name = root_name + chord_variant

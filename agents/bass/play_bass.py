@@ -7,7 +7,7 @@ from .eval_agent import predict_next_k_notes_bass
 from config import MODEL_PATH_BASS, DEVICE
 from data_processing import Bass_Dataset
 from .bass_network import Bass_Network
-from ..utils import beats_to_seconds, seconds_to_beat
+from ..utils import beats_to_seconds, seconds_to_beat, adjust_for_key
 
 
 def play_bass(
@@ -61,7 +61,9 @@ def play_bass(
         )
 
     else:  # Original behavior if playstyle isn't "bass_drum"
-        bass_instrument = play_normal_bass(predicted_bass_sequence, bass_instrument)
+        bass_instrument = play_normal_bass(
+            predicted_bass_sequence, bass_instrument, config
+        )
 
     # Add the bass_instrument to the PrettyMIDI object
     bass_instrument.name = "bass"
@@ -70,9 +72,10 @@ def play_bass(
     return mid, bass_instrument, predicted_bass_sequence
 
 
-def play_normal_bass(predicted_bass_sequence, bass_instrument):
+def play_normal_bass(predicted_bass_sequence, bass_instrument, config):
     """
     Plays the predicted bass sequence without any specific playstyle, using the given bass instrument.
+    Is not used
 
     Args:
     ----------
@@ -88,6 +91,8 @@ def play_normal_bass(predicted_bass_sequence, bass_instrument):
     note_mapping = {i: 24 + i for i in range(12)}
     chord_start_time = 0.0
     for note, duration in predicted_bass_sequence:
+        note = adjust_for_key(note, config["KEY"])
+        note = note % 12
         midi_note = note_mapping[note]
         bass_note = pretty_midi.Note(
             velocity=60,
@@ -165,6 +170,8 @@ def play_bass_drum_style(
     running_time = start_time = end_time = duration_acc = chord_start_time = 0.0
 
     for note, duration in predicted_bass_sequence:
+        note = adjust_for_key(note, config["KEY"])
+        note = note % 12
         chord_start_time = duration_acc
         duration_acc += duration
         while running_time < duration_acc:
@@ -219,6 +226,8 @@ def play_transition_jam_style(
 
     for idx, note in enumerate(predicted_bass_sequence):
         note, duration = note
+        note = adjust_for_key(note, config["KEY"])
+        note = note % 12
         if idx + 1 < len(predicted_bass_sequence):
             next_note = predicted_bass_sequence[idx + 1][0]
             shortes_distance, direction = find_shortes_distance(note, next_note)

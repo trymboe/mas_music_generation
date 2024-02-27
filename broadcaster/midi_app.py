@@ -113,6 +113,7 @@ def set_params():
         # General parameters
         "TEMPO": int(data.get("tempo", 120)),
         "LENGTH": int(data.get("length", 4)),
+        "KEY": data.get("key", "C"),
         # Drum parameters
         "KEEP_DRUM": data.get("keep_drum", False),
         "LOOP_MEASURES": int(data.get("loop_measures", 4)),

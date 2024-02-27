@@ -4,7 +4,7 @@ import pretty_midi
 
 from .melody_network import Melody_Network
 from .eval_agent import predict_next_notes
-from ..utils import beats_to_seconds
+from ..utils import beats_to_seconds, adjust_for_key
 
 from config import MODEL_PATH_MELODY, DEVICE, PITCH_SIZE_MELODY
 
@@ -25,6 +25,15 @@ def play_melody(
     return mid, melody_instrument, note_sequence
 
 
+def play_known_melody(
+    mid: pretty_midi.PrettyMIDI, note_sequence: list, config: dict
+) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
+
+    mid, melody_instrument = play_melody_notes(note_sequence, mid, config)
+
+    return mid, melody_instrument
+
+
 def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
     melody_instrument = pretty_midi.Instrument(program=0)
     running_time: float = 0.0
@@ -38,6 +47,7 @@ def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
             continue
         start = beats_to_seconds(running_time, config["TEMPO"])
         end = beats_to_seconds(running_time + (duration), config["TEMPO"])
+        note = adjust_for_key(note, config["KEY"])
         melody_note: pretty_midi.Note = pretty_midi.Note(
             velocity=72, pitch=note, start=start, end=end
         )

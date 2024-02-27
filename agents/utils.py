@@ -93,6 +93,53 @@ class TxlSimpleSampler:
         return token, probs
 
 
+def get_interval_from_key(key):
+    """
+    Get the interval of the key
+
+    Param
+    -----
+    key: str
+        Key of the song
+
+    Return
+    -----
+    int
+    """
+    key_intervals = {
+        "C": 0,
+        "C#": 1,
+        "D": 2,
+        "D#": 3,
+        "E": 4,
+        "F": 5,
+        "F#": 6,
+        "G": 7,
+        "G#": 8,
+        "A": 9,
+        "A#": 10,
+        "B": 11,
+    }
+    return key_intervals[key]
+
+
+def adjust_for_key(note, key):
+    """
+    Adjusts the given note based on the specified key.
+
+    Parameters:
+    ----------
+    note (int): The note to be adjusted.
+    key (str): The key to adjust the note to.
+
+    Returns:
+    ----------
+    int: The adjusted note.
+    """
+    note += get_interval_from_key(key)
+    return note
+
+
 def tokens_to_note_sequence(
     tokens,
     pitch_vocab,

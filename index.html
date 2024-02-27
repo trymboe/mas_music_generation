@@ -22,7 +22,7 @@
                 <h2>General Parameters</h2>
                 <div class="settings">
                     <label for="tempo" style="display: inline-block;">Tempo(bpm):</label>
-                    <input type="number" id="tempo" name="tempo" value="120"><br><br>
+                    <input type="number" id="tempo" name="tempo" value="120" disabled><br><br>
 
                     <label for="length" style="display: inline-block;">Length: </label>
                     <div class="tooltip" style="display: inline-block;">
@@ -30,6 +30,26 @@
                         <span class="tooltiptext">How many meassures the generated loop should be.</span>
                     </div>
                     <input type="number" id="length" name="length" value="4"><br><br>
+
+                    <label for="Key" style="display: inline-block;">Key: </label>
+                    <div class="tooltip" style="display: inline-block;">
+                        &#9432;
+                        <span class="tooltiptext">What key the music should be in.</span>
+                    </div>
+                    <select id="key" name="key">
+                        <option value="C">C maj</option>
+                        <option value="C#">C# maj</option>
+                        <option value="D">D maj</option>
+                        <option value="D#">D# maj</option>
+                        <option value="E">E maj</option>
+                        <option value="F">F maj</option>
+                        <option value="F#">F# maj</option>
+                        <option value="G">G maj</option>
+                        <option value="G#">G# maj</option>
+                        <option value="A">A maj</option>
+                        <option value="A#">A# maj</option>
+                        <option value="B">B maj</option>
+                    </select><br><br>
                 </div>
             </div>
 

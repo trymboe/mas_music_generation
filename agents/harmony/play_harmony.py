@@ -1,6 +1,6 @@
 import pretty_midi
 
-from ..utils import beats_to_seconds
+from ..utils import beats_to_seconds, adjust_for_key
 from config import PITCH_SIZE_MELODY
 
 
@@ -48,6 +48,8 @@ def play_delay(
         if pitch == 5 * 12 + PITCH_SIZE_MELODY:
             continue
 
+        play_pitch = adjust_for_key(play_pitch, config["KEY"])
+
         max_length = (config["LENGTH"] * 4 / tempo) * 60
 
         # for i in range(config["DELAY_NUM"]):
@@ -93,7 +95,7 @@ def play_interval(
         # If the note is a pause, skip it
         if pitch == 5 * 12 + PITCH_SIZE_MELODY:
             continue
-
+        harmony_pitch = adjust_for_key(harmony_pitch, config["KEY"])
         harmony_note = pretty_midi.Note(
             velocity=60,
             pitch=harmony_pitch,

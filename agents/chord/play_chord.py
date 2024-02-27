@@ -1,11 +1,10 @@
-from mido import MidiFile, MidiTrack, Message
 import pretty_midi
 import random
 
 import torch
 
 from .eval_agent import predict_next_k_notes_chords
-from ..utils import beats_to_seconds
+from ..utils import beats_to_seconds, adjust_for_key
 
 from config import (
     MODEL_PATH_CHORD,
@@ -15,8 +14,8 @@ from config import (
 
 
 def play_chord(
-    mid: MidiFile, predicted_bass_sequence, dataset_primer, config: dict
-) -> tuple[MidiFile, list, pretty_midi.Instrument]:
+    mid: pretty_midi.PrettyMIDI, predicted_bass_sequence, dataset_primer, config: dict
+) -> tuple[pretty_midi.PrettyMIDI, list, pretty_midi.Instrument]:
     timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence, dataset_primer
     )
@@ -31,8 +30,8 @@ def play_chord(
 
 
 def play_known_chord(
-    mid: MidiFile, timed_chord_sequence: list, config: dict
-) -> tuple[MidiFile, pretty_midi.Instrument]:
+    mid: pretty_midi.PrettyMIDI, timed_chord_sequence: list, config: dict
+) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
     """
     Genereates a MIDI file with the given chord sequence.
     This function is used when a chord line is kept from the previous loop, but there might be
@@ -69,6 +68,8 @@ def play_chord_hold(pretty_midi_obj, chord_sequence, config):
     for chord, duration in chord_sequence:
         # Create a Note instance for each note in the chord
         for note in chord:
+            note = adjust_for_key(note, config["KEY"])
+            note = note % 12
             midi_note = note_mapping[note]
             piano_note = pretty_midi.Note(
                 velocity=64,  # volume
@@ -93,7 +94,7 @@ def play_chord_hold(pretty_midi_obj, chord_sequence, config):
 
 def play_chord_arpeggiate(pm, chord_sequence, config):
     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
-    note_mapping = {i: 60 + i for i in range(24)}
+    note_mapping = {i: 60 + i for i in range(36)}
 
     # Create an instrument instance for Acoustic Grand Piano
     piano_program = pretty_midi.instrument_name_to_program("Acoustic Grand Piano")
@@ -129,8 +130,10 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
                     if idx == 0 or idx == 1 or idx == 2:
                         midi_note -= 24
 
-                velocity = random.randint(40, 64)
+                velocity = random.randint(65, 75)
                 # Add note
+                midi_note = adjust_for_key(midi_note, config["KEY"])
+
                 note = pretty_midi.Note(
                     velocity=velocity,
                     pitch=midi_note,
@@ -156,7 +159,8 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
                             midi_note += 12  # increase the root note by one octave
 
                         # Add note
-                        velocity = random.randint(55, 70)
+                        velocity = random.randint(65, 75)
+                        midi_note = adjust_for_key(midi_note, config["KEY"])
                         note = pretty_midi.Note(
                             velocity=velocity,
                             pitch=midi_note,
@@ -186,9 +190,11 @@ def play_chord_bounce(
         bounce_duration = duration / number_of_bounces
         for _ in range(number_of_bounces):
             for note in chord:
+                note = adjust_for_key(note, config["KEY"])
+                note = note % 12
                 midi_note = note_mapping[note]
                 piano_note = pretty_midi.Note(
-                    velocity=64,  # volume
+                    velocity=72,  # volume
                     pitch=midi_note,  # MIDI note number
                     start=beats_to_seconds(current_time, config["TEMPO"]),  # start time
                     end=beats_to_seconds(

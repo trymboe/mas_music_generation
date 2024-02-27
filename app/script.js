@@ -19,6 +19,7 @@ document.getElementById("control-form").onsubmit = function (event) {
         // General parameters
         tempo: document.getElementById("tempo").value,
         length: document.getElementById("length").value,
+        key: document.getElementById("key").value,
 
         // Drum parameters
         keep_drum: document.getElementById("keep-drum").checked,
