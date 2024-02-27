@@ -9,10 +9,12 @@ def play_harmony(
 ) -> pretty_midi.PrettyMIDI:
     harmony_instrument = pretty_midi.Instrument(program=0)
 
-    if False:
-        harmony_instrument = play_interval()
-    else:
+    if config["INTERVAL"] and not config["DELAY"]:
+        harmony_instrument = play_interval(melody_sequence, config, harmony_instrument)
+    elif config["DELAY"]:
         harmony_instrument = play_delay(melody_sequence, config, harmony_instrument)
+    else:
+        return mid
 
     harmony_instrument.name = "harmony"
     mid.instruments.append(harmony_instrument)
@@ -33,8 +35,10 @@ def play_delay(
         # delay of an 8th note
         delay = 30 / tempo
 
-        # if config["INTERVAL"]:
-        play_pitch = pitch + 5
+        if config["INTERVAL"]:
+            play_pitch = pitch + 5
+        else:
+            play_pitch = pitch
 
         start = beats_to_seconds(running_duration, config["TEMPO"])
         end = beats_to_seconds(running_duration + duration, config["TEMPO"])
@@ -48,7 +52,7 @@ def play_delay(
 
         # for i in range(config["DELAY_NUM"]):
         velocity = 72
-        for i in range(2):
+        for _ in range(3):
             if start + delay > max_length:
                 start = start
             else:
@@ -80,7 +84,7 @@ def play_interval(
     for pitch, duration in melody_sequence:
         duration *= 0.25
 
-        harmony_pitch = pitch + config["INTERVAL_HARMONY"]
+        harmony_pitch = pitch + 5
 
         start = beats_to_seconds(running_duration, config["TEMPO"])
         end = beats_to_seconds(running_duration + duration, config["TEMPO"])

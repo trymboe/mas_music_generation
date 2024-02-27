@@ -310,13 +310,20 @@
             <div class="section">
                 <!-- Harmony parameters -->
                 <h2>Harmony Parameters</h2>
-
-                <label for="interval_harmony" style="display: inline-block;">Interval Harmony:</label>
+                <label for="interval" style="display: inline-block;">Interval</label>
                 <div class="tooltip" style="display: inline-block;">
                     &#9432;
-                    <span class="tooltiptext">Number of halfnotes from the melody note</span>
+                    <span class="tooltiptext">If checked, the harmony agent will harmonize with a 5 seminote
+                        intervall</span>
                 </div>
-                <input type="number" id="interval_harmony" name="interval_harmony" value="5"><br><br>
+                <input type="checkbox" id="interval" name="interval"><br><br>
+
+                <label for="delay" style="display: inline-block;">Delay</label>
+                <div class="tooltip" style="display: inline-block;">
+                    &#9432;
+                    <span class="tooltiptext">If checked, the harmony agent will harmonize with a delay</span>
+                </div>
+                <input type="checkbox" id="delay" name="delay"><br><br><br>
             </div>
 
             <div class="spacing">

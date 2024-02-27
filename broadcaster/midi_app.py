@@ -134,7 +134,8 @@ def set_params():
         "SCALE_MELODY": scale_melody,
         "DURATION_PREFERENCES_MELODY": duration_preferences_melody,
         # Harmony parameters
-        "INTERVAL_HARMONY": int(data.get("interval_harmony", 5)),
+        "INTERVAL": data.get("interval", False),
+        "DELAY": data.get("delay", False),
     }
     config_queue.put(global_config)
     current_loop_count = 0

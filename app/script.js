@@ -60,7 +60,8 @@ document.getElementById("control-form").onsubmit = function (event) {
         checkbox6_melody: document.getElementById("double_whole_note_melody").checked,
 
         // Harmony parameters
-        interval_harmony: document.getElementById("interval_harmony").value
+        interval: document.getElementById("interval").checked,
+        delay: document.getElementById("delay").checked
     };
 
     globalTempo = parseInt(document.getElementById("tempo").value);
