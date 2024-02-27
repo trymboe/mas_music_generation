@@ -72,7 +72,9 @@ def play_bass(
     return mid, bass_instrument, predicted_bass_sequence
 
 
-def play_normal_bass(predicted_bass_sequence, bass_instrument, config):
+def play_normal_bass(
+    predicted_bass_sequence: list, bass_instrument: pretty_midi.PrettyMIDI, config: dict
+) -> pretty_midi.Instrument:
     """
     Plays the predicted bass sequence without any specific playstyle, using the given bass instrument.
     Is not used
@@ -82,6 +84,7 @@ def play_normal_bass(predicted_bass_sequence, bass_instrument, config):
         predicted_bass_sequence (list): A list of tuples representing the predicted bass sequence.
             Each tuple contains the note index and duration of the note.
         bass_instrument (pretty_midi.Instrument): The bass instrument to play the sequence with.
+        config (dict): The configuration settings for playing the bass sequence.
 
     Returns:
     ----------
@@ -148,7 +151,10 @@ def play_known_bass(
 
 
 def play_bass_drum_style(
-    bass_drum_times, bass_instrument, predicted_bass_sequence, config
+    bass_drum_times: list,
+    bass_instrument: pretty_midi.PrettyMIDI,
+    predicted_bass_sequence: list,
+    config: dict,
 ) -> pretty_midi.Instrument:
     """
     Plays the bass drum style based on the bass drum hits.
@@ -202,7 +208,10 @@ def play_bass_drum_style(
 
 
 def play_transition_jam_style(
-    bass_drum_times, bass_instrument, predicted_bass_sequence, config
+    bass_drum_times: list,
+    bass_instrument: pretty_midi.PrettyMIDI,
+    predicted_bass_sequence: list,
+    config: dict,
 ) -> pretty_midi.Instrument:
     """
     Plays a transition jam style bass sequence.
@@ -210,7 +219,7 @@ def play_transition_jam_style(
     Args:
     ----------
         bass_drum_times (list): List of bass drum hit times.
-        bass_instrument (Instrument): The bass instrument to play.
+        bass_instrument (pretty_midi.Instrument): The bass instrument to play.
         predicted_bass_sequence (list): List of predicted bass notes and durations.
         note_mapping (dict): Mapping of note names to MIDI values.
         config (dict): Configuration parameters.
@@ -288,14 +297,19 @@ def play_transition_jam_style(
     return bass_instrument
 
 
-def play_transition_notes(transition_notes, bass_instrument, end_time, config):
+def play_transition_notes(
+    transition_notes: list,
+    bass_instrument: pretty_midi.Instrument,
+    end_time: float,
+    config: dict,
+) -> float:
     """
     Plays the transition notes using the specified bass instrument.
 
     Args:
     ----------
         transition_notes (list): A list of tuples containing the note and duration of each transition note.
-        bass_instrument (str): The name of the bass instrument to be used for playing the notes.
+        bass_instrument (pretty_midi.Instrument): The bass instrument to play the transition notes on.
         end_time (float): The end time of the previous note.
         config (dict): A dictionary containing configuration parameters.
 
@@ -316,13 +330,16 @@ def play_transition_notes(transition_notes, bass_instrument, end_time, config):
     return end_time
 
 
-def get_transition_note(note, next_note, shortes_distance, direction, transition):
+def get_transition_note(
+    note: int, next_note: int, shortes_distance: float, direction: str, transition: str
+) -> tuple[list, int]:
     """
     Get the transition notes and the number of beats for a given transition type.
 
     Parameters:
     ----------
     note (int): The starting note.
+    next_note (int): The next note.
     shortes_distance (float): The shortest distance between notes.
     direction (str): The direction of the transition.
     transition (str): The type of transition.
@@ -379,7 +396,7 @@ def get_transition_note(note, next_note, shortes_distance, direction, transition
     return transition_notes, num_beat_transition
 
 
-def find_shortes_distance(a, b):
+def find_shortes_distance(a: int, b: int) -> tuple[int, str]:
     """
     Calculates the shortest distance between two musical notes on a chromatic scale.
 

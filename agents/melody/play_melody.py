@@ -14,7 +14,23 @@ def play_melody(
     chord_sequence: list[tuple],
     melody_primer: int,
     config: dict,
-):
+) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument, list]:
+    """
+    Plays a melody based on the given chord sequence and configuration.
+
+    Args:
+    -----
+        mid (pretty_midi.PrettyMIDI): The MIDI object to add the melody to.
+        chord_sequence (list[tuple]): The sequence of chords to generate the melody from.
+        melody_primer (int): The primer note for the melody generation.
+        config (dict): The configuration settings for the melody generation.
+
+    Returns:
+    -----
+        tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument, list]: A tuple containing the modified MIDI object,
+        the melody instrument, and the generated note sequence.
+    """
+
     melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
     melody_agent.eval()
 
@@ -28,17 +44,46 @@ def play_melody(
 def play_known_melody(
     mid: pretty_midi.PrettyMIDI, note_sequence: list, config: dict
 ) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
+    """
+    Plays a known melody using the provided note sequence and configuration.
+    For when the melody is "kept" and not generated.
 
+    Args:
+    -----
+        mid (pretty_midi.PrettyMIDI): The PrettyMIDI object to add the melody to.
+        note_sequence (list): The sequence of notes to be played.
+        config (dict): The configuration settings for playing the melody.
+
+    Returns:
+    -----
+        tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]: The modified PrettyMIDI object and the melody instrument.
+    """
     mid, melody_instrument = play_melody_notes(note_sequence, mid, config)
 
     return mid, melody_instrument
 
 
-def play_melody_notes(note_sequence, mid: pretty_midi.PrettyMIDI, config: dict):
+def play_melody_notes(
+    note_sequence, mid: pretty_midi.PrettyMIDI, config: dict
+) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
+    """
+    Plays the melody notes by converting the note sequence into MIDI notes and adding them to the provided PrettyMIDI object.
+
+    Args:
+    -----
+        note_sequence (list[tuple[int, float]]): A list of tuples representing the notes and their durations.
+        mid (pretty_midi.PrettyMIDI): The PrettyMIDI object to which the melody notes will be added.
+        config (dict): A dictionary containing configuration parameters.
+
+    Returns:
+    -----
+        tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]: A tuple containing the updated PrettyMIDI object and the melody instrument.
+
+    """
     melody_instrument = pretty_midi.Instrument(program=0)
     running_time: float = 0.0
     for note, duration in note_sequence:
-        # get duration in beats, orignaly in quarter notes
+        # get duration in beats, originally in quarter notes
         duration = duration * 0.25
 
         # If the note is a pause, skip it

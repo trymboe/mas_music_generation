@@ -37,7 +37,9 @@ NEW_CHORD_PRIMER = None
 NEW_MELODY_PRIMER = None
 
 
-def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
+def play_agents(
+    config: dict, kept_instruments: list
+) -> tuple[pretty_midi.PrettyMIDI, list, list]:
     """
     Plays the different musical instruments (drum, bass, chord, melody, harmony) based on the given configuration and
     the previously kept instruments.
@@ -51,6 +53,7 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     ----------
         pretty_midi.PrettyMIDI: The generated MIDI file.
         list: The list of instruments used in the generated MIDI file.
+        chord_progression (list): The chord progression used in the generated MIDI file.
     """
     global NEW_BASS_PRIMER, NEW_CHORD_PRIMER, NEW_MELODY_PRIMER
 
@@ -183,7 +186,7 @@ def play_agents(config, kept_instruments) -> pretty_midi.PrettyMIDI:
     return mid, instruments, chord_progression
 
 
-def get_chord_progression(predicted_chord_sequence, config):
+def get_chord_progression(predicted_chord_sequence: list, config: dict) -> list:
     """
     Converts the predicted chord sequence into a list containing the strings of the chord progression.
 
@@ -191,6 +194,7 @@ def get_chord_progression(predicted_chord_sequence, config):
     ----------
         predicted_chord_sequence (list): A list of tuples representing the predicted chord sequence.
             Each tuple contains the chord index and its duration.
+        config (dict): A dictionary containing configuration parameters.
 
     Returns:
     ----------
@@ -210,12 +214,12 @@ def get_chord_progression(predicted_chord_sequence, config):
 
 
 def get_new_primer_sequences(
-    previous_bass_primer,
-    predicted_bass_sequence,
-    previous_chord_primer,
-    predicted_chord_sequence,
-    previous_melody_primer,
-    predicted_melody_sequence,
+    previous_bass_primer: list,
+    predicted_bass_sequence: list,
+    previous_chord_primer: list,
+    predicted_chord_sequence: list,
+    previous_melody_primer: list,
+    predicted_melody_sequence: list,
 ) -> tuple[list, list, list]:
     """
     Generates new primer sequences for bass, chord, and melody based on the previous primer sequences and predicted sequences.
@@ -284,9 +288,11 @@ def get_new_primer_sequences(
     return bass_primer, chord_primer, melody_primer
 
 
-def get_notes(predicted_melody_sequence, full_bass_events, full_chord_events):
+def get_notes(
+    predicted_melody_sequence: list, full_bass_events: list, full_chord_events: list
+) -> list:
     """
-    Generates a sequence of notes based on the predicted melody sequence. It uses the bass and chord events to determine the current, next chord, and the time left on the chord.
+    Generates a sequence of notes based on the predicted melody sequence. It uses the bass and chord events to determine the current: list, next chord, and the time left on the chord.
 
     Args:
     ----------
@@ -352,7 +358,7 @@ def get_notes(predicted_melody_sequence, full_bass_events, full_chord_events):
     return full_sequenece
 
 
-def get_full_chord(chord):
+def get_full_chord(chord: list) -> list:
     """
     Converts a chord to its corresponding one-hot representation for melody generation.
 
@@ -373,7 +379,7 @@ def get_full_chord(chord):
     return one_hot(chord_index, CHORD_SIZE_MELODY)
 
 
-def get_chord(triad):
+def get_chord(triad: list) -> list:
     """
     Converts a triad to a chord by finding the root note and the chord type.
 
@@ -393,7 +399,7 @@ def get_chord(triad):
             return [root, key]
 
 
-def one_hot(idx, length):
+def one_hot(idx: int, length: int) -> list:
     """
     Converts an index to a one-hot encoded list of the specified length.
 
@@ -411,19 +417,21 @@ def one_hot(idx, length):
     return one_hot
 
 
-def merge_pretty_midi(pm1, pm2):
+def merge_pretty_midi(
+    pm1: pretty_midi.PrettyMIDI, pm2: pretty_midi.PrettyMIDI
+) -> pretty_midi.PrettyMIDI:
     """
     Merge two PrettyMIDI objects by shifting the start and end times of the notes in the second object
     and then merging tracks with the same program and drum status.
 
     Args:
     ----------
-        pm1 (PrettyMIDI): The first PrettyMIDI object.
-        pm2 (PrettyMIDI): The second PrettyMIDI object.
+        pm1 (pretty_midi.PrettyMIDI): The first PrettyMIDI object.
+        pm2 (pretty_midi.PrettyMIDI): The second PrettyMIDI object.
 
     Returns:
     ----------
-        PrettyMIDI: The merged PrettyMIDI object.
+        pretty_midi.PrettyMIDI: The merged PrettyMIDI object.
     """
 
     # Find the end time of the last note in the first MIDI object
@@ -450,7 +458,7 @@ def merge_pretty_midi(pm1, pm2):
     return pm1
 
 
-def get_primer_sequences(attempt=0) -> tuple[list, list, list]:
+def get_primer_sequences(attempt: int = 0) -> tuple[list, list, list]:
     """
     Retrieves primer sequences for chord, bass, and melody from the datasets.
 

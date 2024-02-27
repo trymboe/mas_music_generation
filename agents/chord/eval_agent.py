@@ -1,8 +1,26 @@
 import torch
 import torch.nn.functional as F
 
+from chord_network import Chord_Network
 
-def predict_next_k_notes_chords(model, full_bass_sequence, dataset_primer):
+
+def predict_next_k_notes_chords(
+    model: Chord_Network, full_bass_sequence: list, dataset_primer: list
+):
+    """
+    Predicts the next notes of chords based on the given model, full bass sequence, and dataset primer.
+
+    Args:
+    -----
+        model (Chord_Network): The chord network model used for prediction.
+        full_bass_sequence (list): The full bass sequence.
+        dataset_primer (list): The dataset primer.
+
+    Returns:
+    -----
+        list: A list of tuples representing the predicted chords. Each tuple contains the current bass note and the predicted chord type.
+    """
+
     chord_primer = get_input_sequence_chords(dataset_primer, full_bass_sequence)
 
     predicted_chords = []
@@ -37,6 +55,20 @@ def predict_next_k_notes_chords(model, full_bass_sequence, dataset_primer):
 def update_input_sequence(
     input_sequence: torch.tensor, next_chord_type: int, next_note: int
 ) -> torch.tensor:
+    """
+    Update the input sequence with the next chord type and note.
+
+    Args:
+    -----
+        input_sequence (torch.tensor): The input sequence tensor.
+        next_chord_type (int): The next chord type.
+        next_note (int): The next note.
+
+    Returns:
+    -----
+        torch.tensor: The updated input sequence tensor.
+    """
+
     input_sequence_list = input_sequence.squeeze().tolist()
     input_sequence_list[-1] = [input_sequence_list[-1][0], next_chord_type]
 
@@ -47,6 +79,19 @@ def update_input_sequence(
 
 
 def get_input_sequence_chords(dataset_primer, full_bass_sequence):
+    """
+    Converts the dataset primer and full bass sequence into an input tensor for chord generation.
+
+    Args:
+    -----
+        dataset_primer (list): The dataset primer containing chord events.
+        full_bass_sequence (list): The full bass sequence.
+
+    Returns:
+    -----
+        torch.Tensor: The input tensor for chord generation.
+    """
+
     input_sequence = []
 
     for i, event in enumerate(dataset_primer):

@@ -7,6 +7,18 @@ from config import PITCH_SIZE_MELODY
 def play_harmony(
     mid: pretty_midi.PrettyMIDI, melody_sequence: list[list[int]], config: dict
 ) -> pretty_midi.PrettyMIDI:
+    """
+    Adds harmony to the given MIDI file based on the provided melody sequence and configuration.
+
+    Args:
+        mid (pretty_midi.PrettyMIDI): The input MIDI file.
+        melody_sequence (list[list[int]]): The melody sequence to harmonize.
+        config (dict): The configuration settings for harmonization.
+
+    Returns:
+        pretty_midi.PrettyMIDI: The modified MIDI file with added harmony.
+    """
+
     harmony_instrument = pretty_midi.Instrument(program=0)
 
     if config["INTERVAL"] and not config["DELAY"]:
@@ -26,7 +38,20 @@ def play_delay(
     melody_sequence: list[list[int]],
     config: dict,
     harmony_instrument: pretty_midi.Instrument,
-):
+) -> pretty_midi.Instrument:
+    """
+    Plays a delayed version of the melody sequence on the harmony instrument.
+    Also adds interval harmony if specified in the configuration.
+
+    Args:
+        melody_sequence (list[list[int]]): The melody sequence to be played, where each element is a list containing the pitch and duration of a note.
+        config (dict): Configuration settings for the playback, including tempo, interval, key, and length.
+        harmony_instrument (pretty_midi.Instrument): The harmony instrument to play the delayed melody on.
+
+    Returns:
+        pretty_midi.Instrument: The harmony instrument with the delayed melody notes added.
+    """
+
     running_duration = 0
     for pitch, duration in melody_sequence:
         duration *= 0.25
@@ -81,7 +106,19 @@ def play_interval(
     melody_sequence: list[list[int]],
     config: dict,
     harmony_instrument: pretty_midi.Instrument,
-):
+) -> pretty_midi.Instrument:
+    """
+    Plays the given melody sequence as harmony notes and adds them to the harmony_instrument.
+
+    Args:
+        melody_sequence (list[list[int]]): The melody sequence to be played as harmony notes.
+        config (dict): Configuration settings for the music generation.
+        harmony_instrument (pretty_midi.Instrument): The instrument to which the harmony notes will be added.
+
+    Returns:
+        pretty_midi.Instrument: The harmony_instrument with the added harmony notes.
+    """
+
     running_duration = 0
     for pitch, duration in melody_sequence:
         duration *= 0.25

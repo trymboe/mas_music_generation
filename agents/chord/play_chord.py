@@ -16,6 +16,22 @@ from config import (
 def play_chord(
     mid: pretty_midi.PrettyMIDI, predicted_bass_sequence, dataset_primer, config: dict
 ) -> tuple[pretty_midi.PrettyMIDI, list, pretty_midi.Instrument]:
+    """
+    Plays a chord sequence based on the predicted bass sequence and dataset primer.
+
+    Args:
+    -----
+        mid (pretty_midi.PrettyMIDI): The MIDI object to add the chord sequence to.
+        predicted_bass_sequence: The predicted bass sequence.
+        dataset_primer: The dataset primer.
+        config (dict): Configuration settings.
+
+    Returns:
+    -----
+        tuple[pretty_midi.PrettyMIDI, list, pretty_midi.Instrument]: A tuple containing the modified MIDI object,
+        the chord instrument, and the timed chord sequence.
+    """
+
     timed_chord_sequence = get_timed_chord_sequence(
         predicted_bass_sequence, dataset_primer
     )
@@ -38,11 +54,13 @@ def play_known_chord(
     a change in the playstyle.
 
     Args:
+    -----
         mid (MidiFile): midi file to be modified
         timed_chord_sequence (list): list of tuples containing the chord and its duration
         config (dict): configuration dictionary
 
     Returns:
+    -----
         tuple[MidiFile, pretty_midi.Instrument]: the modified midi file and the chord instrument
     """
     if config["ARPEGIATE_CHORD"]:
@@ -55,34 +73,46 @@ def play_known_chord(
     return mid, chord_instrument
 
 
-def play_chord_hold(pretty_midi_obj, chord_sequence, config):
+def play_chord_hold(
+    pretty_midi_obj: pretty_midi.PrettyMIDI, chord_sequence: list, config: dict
+) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
+    """
+    Adds a chord sequence to a PrettyMIDI object and returns the modified object.
+
+    Args:
+    -----
+        pretty_midi_obj (pretty_midi.PrettyMIDI): The PrettyMIDI object to modify.
+        chord_sequence (list): A list of tuples representing the chord sequence.
+            Each tuple contains a list of notes in the chord and the duration of the chord.
+        config (dict): A dictionary containing configuration parameters, including "KEY" and "TEMPO".
+
+    Returns:
+    -----
+        tuple: A tuple containing the modified PrettyMIDI object and the piano instrument.
+
+    """
+
     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord notes
     note_mapping = {i: 60 + i for i in range(24)}
 
-    # Create a new Instrument instance for an Acoustic Grand Piano
     piano_instrument = pretty_midi.Instrument(program=0)  # 0: Acoustic Grand Piano
 
-    current_time = 0.0  # Initialize a variable to keep track of time
+    current_time = 0.0
 
-    # Add chords to the piano_instrument
     for chord, duration in chord_sequence:
-        # Create a Note instance for each note in the chord
         for note in chord:
             note = adjust_for_key(note, config["KEY"])
             note = note % 12
             midi_note = note_mapping[note]
             piano_note = pretty_midi.Note(
-                velocity=64,  # volume
-                pitch=midi_note,  # MIDI note number
-                start=beats_to_seconds(current_time, config["TEMPO"]),  # start time
-                end=beats_to_seconds(
-                    current_time + duration, config["TEMPO"]
-                ),  # end time
+                velocity=64,
+                pitch=midi_note,
+                start=beats_to_seconds(current_time, config["TEMPO"]),
+                end=beats_to_seconds(current_time + duration, config["TEMPO"]),
             )
             # Add note to the piano_instrument
             piano_instrument.notes.append(piano_note)
 
-        # Move the current time cursor
         current_time += duration
 
     # Add the piano_instrument to the PrettyMIDI object
@@ -92,13 +122,28 @@ def play_chord_hold(pretty_midi_obj, chord_sequence, config):
     return pretty_midi_obj, piano_instrument
 
 
-def play_chord_arpeggiate(pm, chord_sequence, config):
+def play_chord_arpeggiate(
+    pm: pretty_midi.PrettyMIDI, chord_sequence: list, config: dict
+) -> tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument]:
+    """
+    Arpeggiates and plays a chord sequence using different arpeggiation techniques.
+    Using the provided PrettyMIDI object, chord sequence, and configuration.
+
+    Args:
+    -----
+        pm (pretty_midi.PrettyMIDI): The PrettyMIDI object to add the arpeggiated chord to.
+        chord_sequence (list): A list of tuples representing the chord sequence, where each tuple contains the chord and its duration.
+        config (dict): A dictionary containing the configuration parameters for the arpeggiation.
+
+    Returns:
+    -----
+        pretty_midi.PrettyMIDI: The updated PrettyMIDI object with the arpeggiated chord added.
+        pretty_midi.Instrument: The instrument used to play the arpeggiated chord.
+    """
     # Assuming the mapping starts from C4 (MIDI note number 60) for the chord chords
     note_mapping = {i: 60 + i for i in range(36)}
 
-    # Create an instrument instance for Acoustic Grand Piano
-    piano_program = pretty_midi.instrument_name_to_program("Acoustic Grand Piano")
-    piano = pretty_midi.Instrument(program=piano_program, is_drum=False)
+    piano_instrument = pretty_midi.Instrument(program=0)  # 0: Acoustic Grand Piano
 
     # Define the melodic pattern
     if config["ARP_STYLE"] == 0:
@@ -140,7 +185,7 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
                     start=beats_to_seconds(start_time, config["TEMPO"]),
                     end=beats_to_seconds(start_time + note_duration, config["TEMPO"]),
                 )
-                piano.notes.append(note)
+                piano_instrument.notes.append(note)
                 start_time += note_duration
         if remander:
             for part_druation in [1, 2, 3, 4, 5, 6]:
@@ -169,18 +214,32 @@ def play_chord_arpeggiate(pm, chord_sequence, config):
                                 start_time + note_duration, config["TEMPO"]
                             ),
                         )
-                        piano.notes.append(note)
+                        piano_instrument.notes.append(note)
                         start_time += note_duration
 
     # Append instrument to PrettyMIDI object
-    piano.name = "chord"
-    pm.instruments.append(piano)
-    return pm, piano
+    piano_instrument.name = "chord"
+    pm.instruments.append(piano_instrument)
+    return pm, piano_instrument
 
 
 def play_chord_bounce(
-    pm: pretty_midi.PrettyMIDI, chord_sequence, config: dict
+    pm: pretty_midi.PrettyMIDI, chord_sequence: list, config: dict
 ) -> pretty_midi.PrettyMIDI:
+    """
+    Plays a chord sequence with bouncing effect.
+
+    Args:
+    -----
+        pm (pretty_midi.PrettyMIDI): The PrettyMIDI object to add the chord notes to.
+        chord_sequence (list): A list of tuples representing the chord sequence. Each tuple contains a chord and its duration.
+        config (dict): A dictionary containing configuration parameters such as key and tempo.
+
+    Returns:
+    -----
+        tuple: A tuple containing the modified PrettyMIDI object and the piano instrument.
+
+    """
     note_mapping = {i: 60 + i for i in range(24)}
     piano_instrument = pretty_midi.Instrument(program=0)  # 0: Acoustic Grand Piano
     current_time = 0.0  # Initialize a variable to keep track of time
@@ -214,7 +273,20 @@ def play_chord_bounce(
     return pm, piano_instrument
 
 
-def get_timed_chord_sequence(full_bass_sequence, dataset_primer):
+def get_timed_chord_sequence(full_bass_sequence: list, dataset_primer: list) -> list:
+    """
+    Generates a timed chord sequence based on the given full bass sequence and dataset primer.
+
+    Args:
+    -----
+        full_bass_sequence (list): The full bass sequence.
+        dataset_primer (list): The dataset primer.
+
+    Returns:
+    -----
+        list: The generated timed chord sequence.
+    """
+
     chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
     chord_agent.eval()
 
