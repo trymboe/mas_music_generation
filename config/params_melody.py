@@ -41,6 +41,7 @@ MODEL_PATH_MELODY = (
 
 # MODEL_PATH_MELODY = "models/melody/checkpoint_no_reg2_15.pt"
 MODEL_PATH_MELODY = "models/melody/melody_model.pt"
+MODEL_NON_COOP_PATH_MELODY = "models/melody/melody_model_non_coop.pt"
 
 TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"
 TEST_DATASET_PATH_MELODY = "data/dataset/melody_dataset_test.pt"

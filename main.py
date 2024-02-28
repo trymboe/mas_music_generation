@@ -27,6 +27,13 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "-tc_nc",
+    "--train_chord_noncoop",
+    action="store_true",
+    help="Train the chord non cooperation agent",
+    default=False,
+)
+parser.add_argument(
     "-td",
     "--train_drum",
     action="store_true",
@@ -38,6 +45,13 @@ parser.add_argument(
     "--train_melody",
     action="store_true",
     help="Train the melody agent",
+    default=False,
+)
+parser.add_argument(
+    "-tm_nc",
+    "--train_melody_noncoop",
+    action="store_true",
+    help="Train the melody non cooperation agent",
     default=False,
 )
 
@@ -61,14 +75,24 @@ def main():
     args = parser.parse_args()
     train_bass: bool = parser.parse_args().train_bass
     train_chord: bool = parser.parse_args().train_chord
+    train_chord_non_coop: bool = parser.parse_args().train_chord_noncoop
     train_drum: bool = parser.parse_args().train_drum
     train_melody: bool = parser.parse_args().train_melody
+    train_melody_non_coop: bool = parser.parse_args().train_melody_noncoop
 
     # Process the datasets
     get_datasets()
 
     # Create and train the agents
-    create_agents(train_bass, train_chord, train_drum, train_melody)
+    create_agents(
+        train_bass,
+        train_chord,
+        train_chord_non_coop,
+        train_drum,
+        train_melody,
+        train_melody_non_coop,
+    )
+    exit()
 
     start_broadcaster()
     # Open the web browser

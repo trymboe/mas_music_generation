@@ -8,6 +8,7 @@ from ..utils import beats_to_seconds, adjust_for_key
 
 from config import (
     MODEL_PATH_CHORD,
+    MODEL_NON_COOP_PATH_CHORD,
     INT_TO_TRIAD,
     DEVICE,
 )
@@ -33,7 +34,7 @@ def play_chord(
     """
 
     timed_chord_sequence = get_timed_chord_sequence(
-        predicted_bass_sequence, dataset_primer
+        predicted_bass_sequence, dataset_primer, config
     )
     if config["ARPEGIATE_CHORD"]:
         mid, chord_instrument = play_chord_arpeggiate(mid, timed_chord_sequence, config)
@@ -273,7 +274,9 @@ def play_chord_bounce(
     return pm, piano_instrument
 
 
-def get_timed_chord_sequence(full_bass_sequence: list, dataset_primer: list) -> list:
+def get_timed_chord_sequence(
+    full_bass_sequence: list, dataset_primer: list, config: dict
+) -> list:
     """
     Generates a timed chord sequence based on the given full bass sequence and dataset primer.
 
@@ -286,8 +289,10 @@ def get_timed_chord_sequence(full_bass_sequence: list, dataset_primer: list) -> 
     -----
         list: The generated timed chord sequence.
     """
-
-    chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
+    if config["NON_COOPERATIVE"]:
+        chord_agent = torch.load(MODEL_NON_COOP_PATH_CHORD, DEVICE)
+    else:
+        chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(

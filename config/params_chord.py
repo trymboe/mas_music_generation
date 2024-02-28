@@ -18,6 +18,7 @@ MAX_BATCHES_CHORD = (
 
 
 MODEL_PATH_CHORD = "models/chord/chord_model.pt"
+MODEL_NON_COOP_PATH_CHORD = "models/chord/chord_model_non_coop.pt"
 TRAIN_DATASET_PATH_CHORD = "data/dataset/chord_dataset_train.pt"
 TEST_DATASET_PATH_CHORD = "data/dataset/chord_dataset_test.pt"
 VAL_DATASET_PATH_CHORD = "data/dataset/chord_dataset_val.pt"
