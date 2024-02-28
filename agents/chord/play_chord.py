@@ -175,7 +175,7 @@ def play_chord_arpeggiate(
                     if idx == 0 or idx == 1 or idx == 2:
                         midi_note -= 24
 
-                velocity = random.randint(65, 75)
+                velocity = random.randint(78, 88)
                 # Add note
                 midi_note = adjust_for_key(midi_note, config["KEY"])
 
@@ -253,7 +253,7 @@ def play_chord_bounce(
                 note = note % 12
                 midi_note = note_mapping[note]
                 piano_note = pretty_midi.Note(
-                    velocity=72,  # volume
+                    velocity=88,  # volume
                     pitch=midi_note,  # MIDI note number
                     start=beats_to_seconds(current_time, config["TEMPO"]),  # start time
                     end=beats_to_seconds(
