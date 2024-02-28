@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 
-from chord_network import Chord_Network
+from .chord_network import Chord_Network
 
 
 def predict_next_k_notes_chords(
