@@ -2,8 +2,7 @@ from .bass import Bass_Network
 from .chord import (
     Chord_Network,
     Chord_LSTM_Network,
-    Chord_Non_Coop_Network,
-    Chord_Coop_Network,
+    Chord_Network_Non_Coop,
 )
 from .drum import Drum_Network
 from .melody import Melody_Network
@@ -179,7 +178,7 @@ def create_chord_agent(
         )
     else:
         if train_chord_agent:
-            chord_network: Chord_Network = Chord_Coop_Network(
+            chord_network: Chord_Network = Chord_Network(
                 ROOT_VOAB_SIZE_CHORD,
                 CHORD_VOCAB_SIZE_CHORD,
                 EMBED_SIZE_CHORD,
@@ -187,7 +186,7 @@ def create_chord_agent(
                 NUM_LAYERS_CHORD,
             )
         if train_chord_non_coop_agent:
-            chord_network: Chord_Network = Chord_Non_Coop_Network(
+            chord_network: Chord_Network = Chord_Network_Non_Coop(
                 ROOT_VOAB_SIZE_CHORD,
                 CHORD_VOCAB_SIZE_CHORD,
                 EMBED_SIZE_CHORD,

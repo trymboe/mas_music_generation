@@ -36,10 +36,12 @@ def play_melody(
         the melody instrument, and the generated note sequence.
     """
 
-    if config["NON_COOPERATIVE"]:
-        melody_agent: Melody_Network = torch.load(MODEL_NON_COOP_PATH_MELODY, DEVICE)
-    else:
-        melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
+    # if config["NON_COOPERATIVE"]:
+    #     melody_agent: Melody_Network = torch.load(MODEL_NON_COOP_PATH_MELODY, DEVICE)
+    # else:
+    #     melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
+
+    melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
     melody_agent.eval()
 
     note_sequence = predict_next_notes(

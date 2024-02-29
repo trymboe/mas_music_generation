@@ -293,6 +293,7 @@ def get_timed_chord_sequence(
         chord_agent = torch.load(MODEL_NON_COOP_PATH_CHORD, DEVICE)
     else:
         chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
+    print("using model", chord_agent)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(

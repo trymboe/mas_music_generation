@@ -15,7 +15,7 @@ document.getElementById("control-form").onsubmit = function (event) {
 
     var formData = {
         advancedSettings: document.getElementById("advanced-option").checked,
-        togleSystem: document.getElementById("togle-system").checked,
+        toggleSystem: document.getElementById("toggle-system").checked,
 
         // General parameters
         tempo: document.getElementById("tempo").value,

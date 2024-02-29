@@ -92,7 +92,6 @@ def main():
         train_melody,
         train_melody_non_coop,
     )
-    exit()
 
     start_broadcaster()
     # Open the web browser
