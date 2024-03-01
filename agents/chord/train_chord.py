@@ -15,6 +15,8 @@ from config import (
     VAL_DATASET_PATH_CHORD,
     MAX_BATCHES_CHORD,
     DEVICE,
+    MODEL_NON_COOP_PATH_CHORD,
+    MODEL_PATH_CHORD,
 )
 
 
@@ -81,17 +83,25 @@ def train_chord(model: nn.Module) -> None:
         val_loss_list.append(val_loss)
 
         print(
-            f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 2)} Validation loss: {round(val_loss_list[-1],2)}"
+            f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 6)} Validation loss: {round(val_loss_list[-1],6)}"
         )
 
     with open(
-        "results/data/chord/training_data" + str(NUM_EPOCHS_CHORD) + ".json", "w"
+        "results/data/chord/"
+        + str(model)
+        + "/training_data"
+        + str(NUM_EPOCHS_CHORD)
+        + ".json",
+        "w",
     ) as file:
         json.dump(loss_list, file)
         json.dump(val_loss_list, file)
 
     plot_loss(loss_list, val_loss_list)
-    torch.save(model, MODEL_PATH_CHORD)
+    if "non_coop" in str(model):
+        torch.save(model, MODEL_NON_COOP_PATH_CHORD)
+    else:
+        torch.save(model, MODEL_PATH_CHORD)
 
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:

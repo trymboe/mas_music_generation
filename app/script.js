@@ -15,6 +15,7 @@ document.getElementById("control-form").onsubmit = function (event) {
 
     var formData = {
         advancedSettings: document.getElementById("advanced-option").checked,
+        toggleSystem: document.getElementById("toggle-system").checked,
 
         // General parameters
         tempo: document.getElementById("tempo").value,
@@ -159,6 +160,31 @@ document.getElementById('advanced-option').addEventListener('change', function (
         });
     }
 });
+
+document.getElementById('toggle-system').addEventListener('change', function () {
+    var header_text = document.getElementById('header-text');
+    var sections = document.querySelectorAll('.section');
+    var body = document.body;
+
+    if (this.checked) {
+        header_text.innerHTML = 'Music Generation Parameters - System 2';
+        body.style.backgroundColor = '#FFF8E3';
+
+
+        sections.forEach(function (section) {
+            section.style.backgroundColor = '#F3D7CA';
+        });
+
+    } else {
+        header_text.innerHTML = 'Music Generation Parameters - System 1';
+        body.style.backgroundColor = '#efead5';
+
+        sections.forEach(function (section) {
+            section.style.backgroundColor = '#C1D8C3';
+        });
+    }
+});
+
 
 // Disable or enable arpegiate chord based on bounce chord checkbox
 document.addEventListener('DOMContentLoaded', function () {

@@ -1,5 +1,9 @@
 from .bass import Bass_Network
-from .chord import Chord_Network, Chord_LSTM_Network
+from .chord import (
+    Chord_Network,
+    Chord_LSTM_Network,
+    Chord_Network_Non_Coop,
+)
 from .drum import Drum_Network
 from .melody import Melody_Network
 
@@ -48,37 +52,29 @@ from config import (
 def create_agents(
     train_bass_agent: bool,
     train_chord_agent: bool,
+    train_chord_non_coop_agent: bool,
     train_drum_agent: bool,
     train_melody_agent: bool,
+    train_melody_non_coop_agent: bool,
 ) -> None:
     """
-    Creates and optionally trains the bass, chord, and drum agents.
+    Creates and initializes the agents used for music generation.
 
-    This function handles the creation and training of the bass, chord, and drum agents.
-    If a training flag for an agent is set to False, the function attempts to load a pre-trained
-    model from the disk. If the training flag is set to True, it creates and trains a new agent.
+    Args:
+        train_bass_agent (bool): Whether to train the bass agent or load a pre-trained one.
+        train_chord_agent (bool): Whether to train the chord agent or load a pre-trained one.
+        train_chord_non_coop_agent (bool): Whether to train the chord non cooperation agent or load a pre-trained one.
+        train_drum_agent (bool): Whether to train the drum agent or load a pre-trained one.
+        train_melody_agent (bool): Whether to train the melody agent or load a pre-trained one.
+        train_melody_non_coop_agent (bool): Whether to train the melody non cooperation agent or load a pre-trained one.
 
-    Parameters
-    ----------
-    train_bass_agent : bool
-        Flag indicating whether to train the bass agent.
-    train_chord_agent : bool
-        Flag indicating whether to train the chord agent.
-    train_drum_agent : bool
-        Flag indicating whether to train the drum agent.
-
-    Returns
-    -------
-    None
+    Returns:
+        None
     """
 
     print("----Creating agents----")
-    # --- Creating bass agent ---
-    if not train_bass_agent:
-        print("  ----Loading bass agent----")
-        bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
-        bass_agent.eval()
-    else:
+
+    if train_bass_agent:
         print("  ----Creating bass agent----")
         bass_agent: Bass_Network = create_bass_agent()
         bass_agent.to(DEVICE)
@@ -86,36 +82,28 @@ def create_agents(
         bass_agent.eval()
 
     # --- Creating chord agent ---
-    if not train_chord_agent:
-        print("  ----Loading chord agent----")
-        chord_agent: Chord_Network = torch.load(MODEL_PATH_CHORD, DEVICE)
-        chord_agent.eval()
-    else:
+    if train_chord_agent or train_chord_non_coop_agent:
         print("  ----Creating chord agent----")
-        chord_agent: Chord_Network = create_chord_agent()
+        chord_agent: Chord_Network = create_chord_agent(
+            train_chord_agent, train_chord_non_coop_agent
+        )
         chord_agent.to(DEVICE)
         train_chord(chord_agent)
         chord_agent.eval()
 
     # --- Creating drum agent ---
-    if not train_drum_agent:
-        print("  ----Loading drum agent----")
-        drum_agent: Drum_Network = torch.load(MODEL_PATH_DRUM, DEVICE)
-        drum_agent.eval()
-    else:
+    if train_drum_agent:
         print("  ----Creating drum agent----")
         drum_agent: Drum_Network = create_drum_agent()
         drum_agent.eval()
         drum_agent.to(DEVICE)
 
     # --- Creating melody agent ---
-    if not train_melody_agent:
-        print("  ----Loading melody agent----")
-        melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
-        melody_agent.eval()
-    else:
+    if train_melody_agent or train_melody_non_coop_agent:
         print("  ----Creating melody agent----")
-        melody_agent: Melody_Network = create_melody_agent()
+        melody_agent: Melody_Network = create_melody_agent(
+            train_melody_agent, train_melody_non_coop_agent
+        )
         melody_agent.to(DEVICE)
         train_melody(melody_agent)
         melody_agent.eval()
@@ -137,15 +125,9 @@ def create_drum_agent():
     return model
 
 
-def create_melody_agent() -> Melody_Network:
-    """
-    Creates and returns an instance of the Melody_Network.
-
-    Returns
-    -------
-    Melody_Network
-        The initialized melody agent.
-    """
+def create_melody_agent(
+    train_melody_agent: bool, train_melody_non_coop_agent: bool
+) -> Melody_Network:
 
     melody_agent: Melody_Network = Melody_Network()
     return melody_agent
@@ -171,14 +153,19 @@ def create_bass_agent() -> Bass_Network:
     return bass_agent
 
 
-def create_chord_agent(LSTM: bool = False) -> Chord_Network:
+def create_chord_agent(
+    train_chord_agent: bool, train_chord_non_coop_agent: bool, LSTM: bool = False
+) -> Chord_Network:
     """
-    Creates and returns an instance of the Chord_Network.
+    Creates a chord agent based on the specified parameters.
 
-    Returns
-    -------
-    Chord_Network
-        The initialized chord agent.
+    Args:
+        train_chord_agent (bool): Whether to train the chord agent.
+        train_chord_non_coop_agent (bool): Whether to train the non-cooperative chord agent.
+        LSTM (bool, optional): Whether to use LSTM network architecture. Defaults to False.
+
+    Returns:
+        Chord_Network: The created chord agent.
     """
 
     if LSTM:
@@ -190,12 +177,21 @@ def create_chord_agent(LSTM: bool = False) -> Chord_Network:
             NUM_LAYERS_CHORD,
         )
     else:
-        chord_network: Chord_Network = Chord_Network(
-            ROOT_VOAB_SIZE_CHORD,
-            CHORD_VOCAB_SIZE_CHORD,
-            EMBED_SIZE_CHORD,
-            NHEAD_CHORD,
-            NUM_LAYERS_CHORD,
-        )
+        if train_chord_agent:
+            chord_network: Chord_Network = Chord_Network(
+                ROOT_VOAB_SIZE_CHORD,
+                CHORD_VOCAB_SIZE_CHORD,
+                EMBED_SIZE_CHORD,
+                NHEAD_CHORD,
+                NUM_LAYERS_CHORD,
+            )
+        if train_chord_non_coop_agent:
+            chord_network: Chord_Network = Chord_Network_Non_Coop(
+                ROOT_VOAB_SIZE_CHORD,
+                CHORD_VOCAB_SIZE_CHORD,
+                EMBED_SIZE_CHORD,
+                NHEAD_CHORD,
+                NUM_LAYERS_CHORD,
+            )
 
     return chord_network

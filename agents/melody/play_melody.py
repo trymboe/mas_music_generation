@@ -6,7 +6,12 @@ from .melody_network import Melody_Network
 from .eval_agent import predict_next_notes
 from ..utils import beats_to_seconds, adjust_for_key
 
-from config import MODEL_PATH_MELODY, DEVICE, PITCH_SIZE_MELODY
+from config import (
+    MODEL_PATH_MELODY,
+    MODEL_NON_COOP_PATH_MELODY,
+    DEVICE,
+    PITCH_SIZE_MELODY,
+)
 
 
 def play_melody(
@@ -30,6 +35,11 @@ def play_melody(
         tuple[pretty_midi.PrettyMIDI, pretty_midi.Instrument, list]: A tuple containing the modified MIDI object,
         the melody instrument, and the generated note sequence.
     """
+
+    # if config["NON_COOPERATIVE"]:
+    #     melody_agent: Melody_Network = torch.load(MODEL_NON_COOP_PATH_MELODY, DEVICE)
+    # else:
+    #     melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
 
     melody_agent: Melody_Network = torch.load(MODEL_PATH_MELODY, DEVICE)
     melody_agent.eval()

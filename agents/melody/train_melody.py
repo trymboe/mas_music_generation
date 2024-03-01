@@ -156,15 +156,15 @@ def train_melody(model: Melody_Network) -> None:
         )
 
     # Save the model
-    plot_loss(loss_list, val_loss_list)
+    plot_loss(loss_list, val_loss_list, model)
     torch.save(model, MODEL_PATH_MELODY)
 
-    save_to_json(loss_list, val_loss_list)
+    save_to_json(loss_list, val_loss_list, model)
 
     plt.show()
 
 
-def save_to_json(loss_list, val_loss_list):
+def save_to_json(loss_list: list, val_loss_list: list, model: Melody_Network):
     """
     Save the training data, including hyperparameters, loss list, and validation loss list, to a JSON file.
 
@@ -198,7 +198,16 @@ def save_to_json(loss_list, val_loss_list):
     }
 
     # Save the combined data as a JSON file
-    file_name = f"results/data/melody/training_data{hyperparameters['NUM_EPOCHS_MELODY']}_{COMMENT_MELODY}.json"
+    file_name = (
+        "results/data/melody/"
+        + str(model)
+        + "/training_data"
+        + str(hyperparameters["NUM_EPOCHS_MELODY"])
+        + "_"
+        + COMMENT_MELODY
+        + ".json"
+    )
+
     with open(file_name, "w") as file:
         json.dump(data_to_save, file, indent=4)
 
@@ -271,7 +280,9 @@ def get_gt(gt):
         return torch.argmax(gt, dim=1)
 
 
-def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
+def plot_loss(
+    loss_values: list[float], val_loss_values: list[float], model: Melody_Network
+) -> None:
     """
     Plots the training and validation loss over batches.
 
@@ -306,7 +317,9 @@ def plot_loss(loss_values: list[float], val_loss_values: list[float]) -> None:
 
     # Save the plot
     plt.savefig(
-        "figures/melody_training_loss"
+        "figures/melody/"
+        + str(model)
+        + "/"
         + str(NUM_EPOCHS_MELODY)
         + "_"
         + COMMENT_MELODY

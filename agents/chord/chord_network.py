@@ -5,29 +5,69 @@ from config import DEVICE
 
 
 class Chord_Network(nn.Module):
+    """
+    Chord network model. This version is cooperative, meaning that it takes the root note from the bass agent as input.
+    """
+
     def __init__(
         self, root_vocab_size, chord_vocab_size, embed_size, nhead, num_layers
     ):
-        super(Chord_Network, self).__init__()
+        """
+        Initializes the ChordNetwork class.
 
-        # Root note embedding
-        self.root_embedding = nn.Embedding(root_vocab_size, embed_size)
+        Args:
+            root_vocab_size (int): The size of the root vocabulary.
+            chord_vocab_size (int): The size of the chord vocabulary.
+            embed_size (int): The size of the embedding.
+            nhead (int): The number of attention heads.
+            num_layers (int): The number of transformer layers.
+        """
+        super().__init__()
+        self.root_vocab_size = root_vocab_size
+        self.chord_vocab_size = chord_vocab_size
+        self.embed_size = embed_size
+        self.nhead = nhead
+        self.num_layers = num_layers
+        self.create_chord_network()
 
-        # Chord type embedding
-        self.chord_embedding = nn.Embedding(chord_vocab_size, embed_size)
+    def __str__(self) -> str:
+        return "coop"
 
-        # Transformer block
+    def create_chord_network(self):
+        """
+        Creates the chord network model.
+
+        This method initializes the embedding layers for the root and chord vocabularies,
+        as well as the transformer and decoder layers of the network.
+
+        Args:
+            self (ChordNetwork): The ChordNetwork instance.
+
+        Returns:
+            None
+        """
+        self.root_embedding = nn.Embedding(self.root_vocab_size, self.embed_size)
+        self.chord_embedding = nn.Embedding(self.chord_vocab_size, self.embed_size)
+
         self.transformer = nn.Transformer(
-            2 * embed_size,  # Embedding size is doubled because we're concatenating
-            nhead,
-            num_layers,
+            2 * self.embed_size,
+            self.nhead,
+            self.num_layers,
             batch_first=True,
         )
 
-        # Decoder for chord types
-        self.decoder = nn.Linear(2 * embed_size, chord_vocab_size)
+        self.decoder = nn.Linear(2 * self.embed_size, self.chord_vocab_size)
 
     def forward(self, src):
+        """
+        Forward pass of the chord network.
+
+        Args:
+            src (torch.Tensor): Input tensor of shape (batch_size, sequence_length, 2).
+
+        Returns:
+            torch.Tensor: Output tensor of shape (batch_size, sequence_length, num_classes).
+        """
         # Split the input tensor into root notes and chord types
         src = src.long()
         roots, chords = src[:, :, 0], src[:, :, 1]
@@ -51,6 +91,54 @@ class Chord_Network(nn.Module):
         if x.dim() == 3:
             return x[:, -1, :]
         return x
+
+
+class Chord_Network_Non_Coop(Chord_Network):
+    """
+    Chord network model. This version is non cooperative, meaning that it does not take the root note from the bass agent as input.
+    """
+
+    def __init__(
+        self, root_vocab_size, chord_vocab_size, embed_size, nhead, num_layers
+    ):
+        super().__init__(
+            root_vocab_size, chord_vocab_size, embed_size, nhead, num_layers
+        )
+
+    def __str__(self) -> str:
+        return "non_coop"
+
+    def create_chord_network(self):
+        self.chord_embedding = nn.Embedding(self.chord_vocab_size, self.embed_size)
+
+        self.transformer = nn.Transformer(
+            self.embed_size,
+            self.nhead,
+            self.num_layers,
+            batch_first=True,
+        )
+
+        self.decoder = nn.Linear(self.embed_size, self.chord_vocab_size)
+
+    def forward(self, src):
+
+        src = src.long()
+        _, chords = src[:, :, 0], src[:, :, 1]
+
+        chords = chords.to(DEVICE)
+
+        x = self.chord_embedding(chords)
+        x = self.transformer(x, x)
+        x = self.decoder(x)
+
+        if x.dim() == 3:
+            return x[:, -1, :]
+        return x
+
+
+#################################################################
+# LSTM Model
+#################################################################
 
 
 class Chord_LSTM_Network(nn.Module):
