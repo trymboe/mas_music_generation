@@ -12,8 +12,11 @@ INPUT_SIZE_MELODY = (
     + CHORD_SIZE_MELODY * 2
 )
 
+# Non Coop parameters
+INPUT_SIZE_MELODY_NC = PITCH_SIZE_MELODY + DURATION_SIZE_MELODY
+
 # Training parameters
-NUM_EPOCHS_MELODY = 150
+NUM_EPOCHS_MELODY = 30
 HIDDEN_SIZE_LSTM_MELODY = 256
 ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
@@ -41,6 +44,7 @@ MODEL_PATH_MELODY = (
 
 # MODEL_PATH_MELODY = "models/melody/checkpoint_no_reg2_15.pt"
 MODEL_PATH_MELODY = "models/melody/melody_model.pt"
+MODEL_PATH_MELODY = "models/melody/melody_model_test.pt"
 MODEL_NON_COOP_PATH_MELODY = "models/melody/melody_model_non_coop.pt"
 
 TRAIN_DATASET_PATH_MELODY = "data/dataset/melody_dataset_train.pt"

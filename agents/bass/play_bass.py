@@ -44,7 +44,6 @@ def play_bass(
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
 
     # When playstyle is "bass_drum", synchronize the bass notes with bass drum hits
-    print("config['PLAYSTYLE']", config["PLAYSTYLE"])
     if config["PLAYSTYLE"] == "bass_drum":
         bass_instrument = play_bass_drum_style(
             bass_drum_times,

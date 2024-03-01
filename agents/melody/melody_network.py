@@ -14,6 +14,7 @@ from config import (
     NUM_LAYERS_LSTM_MELODY,
     DEVICE,
     DROPOUT_MELODY,
+    INPUT_SIZE_MELODY_NC,
 )
 
 CONCAT = True
@@ -226,6 +227,9 @@ class Melody_Network(nn.Module):
             out_features=DURATION_SIZE_MELODY,
         )
 
+    def __str__(self) -> str:
+        return "coop"
+
     def _create_predictive_networks(self):
         self.predictive_networks = nn.ModuleList()
         for i in range(16):
@@ -335,3 +339,171 @@ class Melody_Network(nn.Module):
         x_duration = self.FC_duration(predictive_outputs[-1])
 
         return x_pitch, x_duration
+
+
+class Melody_Network_Non_Coop(Melody_Network):
+    def __init__():
+        super().__init__()
+
+    def __str__(self) -> str:
+        return "non_coop"
+
+    class Tier3LSTM(nn.Module):
+        def __init__(self):
+            super(Melody_Network.Tier3LSTM, self).__init__()
+            self.lstm = nn.LSTM(
+                input_size=INPUT_SIZE_MELODY_NC,
+                hidden_size=HIDDEN_SIZE_LSTM_MELODY,
+                dropout=DROPOUT_MELODY,
+                num_layers=NUM_LAYERS_LSTM_MELODY,
+                bidirectional=True,
+                batch_first=True,
+            )
+            self.downscale = nn.Linear(
+                in_features=HIDDEN_SIZE_LSTM_MELODY * 2,
+                out_features=INPUT_SIZE_MELODY_NC,
+            )
+
+        def forward(self, input_sequence, previous_cell_output=None):
+            if previous_cell_output is not None:
+                if CONCAT:
+                    new_input = torch.cat(
+                        (input_sequence, previous_cell_output.unsqueeze(1)), dim=1
+                    )
+                else:
+                    new_input = input_sequence + previous_cell_output.unsqueeze(1)
+            else:
+                new_input = input_sequence
+            new_input.to(DEVICE)
+            x = self.lstm(new_input)[0][:, -1, :]
+            x = self.downscale(x)
+            return x
+
+    class Tier2LSTM(nn.Module):
+        def __init__(self):
+            super(Melody_Network.Tier2LSTM, self).__init__()
+            self.lstm = nn.LSTM(
+                input_size=INPUT_SIZE_MELODY_NC,
+                hidden_size=HIDDEN_SIZE_LSTM_MELODY,
+                dropout=DROPOUT_MELODY,
+                num_layers=NUM_LAYERS_LSTM_MELODY,
+                bidirectional=True,
+                batch_first=True,
+            )
+            self.downscale = nn.Linear(
+                in_features=HIDDEN_SIZE_LSTM_MELODY * 2,
+                out_features=INPUT_SIZE_MELODY_NC,
+            )
+
+        def forward(self, inputs_sequence, tier3_output, tier2_output=None):
+            if tier2_output is not None:
+                if CONCAT:
+                    new_input = torch.cat(
+                        (
+                            inputs_sequence,
+                            tier3_output.unsqueeze(1),
+                            tier2_output.unsqueeze(1),
+                        ),
+                        dim=1,
+                    )
+                else:
+                    new_input = (
+                        inputs_sequence
+                        + tier3_output.unsqueeze(1)
+                        + tier2_output.unsqueeze(1)
+                    )
+            else:
+                if CONCAT:
+                    new_input = torch.cat(
+                        (inputs_sequence, tier3_output.unsqueeze(1)), dim=1
+                    )
+                else:
+                    new_input = inputs_sequence + tier3_output.unsqueeze(1)
+            new_input.to(DEVICE)
+            x = self.lstm(new_input)[0][:, -1, :]
+            x = self.downscale(x)
+            return x
+
+    class PredictiveNetwork(nn.Module):
+        def __init__(self):
+            in_features2 = (
+                INPUT_SIZE_MELODY_NC if not CONCAT else INPUT_SIZE_MELODY_NC * 4
+            )
+            in_features1 = (
+                INPUT_SIZE_MELODY_NC if not CONCAT else INPUT_SIZE_MELODY_NC * 3
+            )
+
+            super(Melody_Network.PredictiveNetwork, self).__init__()
+            self.conv1d = nn.Conv1d(
+                in_channels=1, out_channels=INPUT_SIZE_MELODY_NC, kernel_size=4
+            )
+            self.relu = nn.ReLU()
+            self.downsample_conv = nn.Linear(
+                in_features=INPUT_SIZE_MELODY_NC, out_features=INPUT_SIZE_MELODY_NC
+            )
+
+            self.FC1 = nn.Linear(
+                in_features=in_features1, out_features=INPUT_SIZE_MELODY_NC
+            )
+            self.FC2 = nn.Linear(
+                in_features=in_features2, out_features=INPUT_SIZE_MELODY_NC
+            )
+
+        def forward(
+            self,
+            inputs_conv,
+            inputs_lstm_tier2,
+            inputs_lstm_tier3,
+            accumulated_time,
+            time_left_on_chord,
+            previous_pitch_tier1=None,
+        ):
+            # inputs_conv = F.adaptive_avg_pool1d(inputs_conv, 1).squeeze(2)
+
+            # print(inputs_conv.shape)
+            # print(inputs_lstm_tier2.shape)
+            # print(inputs_lstm_tier3.shape)
+            # print(accumulated_time.shape)
+            # print(time_left_on_chord.shape)
+            # print(previous_pitch_tier1.shape)
+
+            x_conv = self.conv1d(inputs_conv.unsqueeze(1))
+            x_conv = self.relu(x_conv)
+            x_conv = torch.mean(x_conv, dim=2)  # Shape: [64, 256]
+            x_conv = self.downsample_conv(x_conv)  # Shape: [64, INPUT_SIZE]
+
+            if CONCAT:
+                if previous_pitch_tier1 is not None:
+                    new_input = torch.cat(
+                        (
+                            x_conv,
+                            inputs_lstm_tier2,
+                            inputs_lstm_tier3,
+                            previous_pitch_tier1,
+                        ),
+                        dim=1,
+                    )
+                else:
+                    new_input = torch.cat(
+                        (x_conv, inputs_lstm_tier2, inputs_lstm_tier3), dim=1
+                    )
+            else:
+                if previous_pitch_tier1 is not None:
+                    new_input = (
+                        x_conv
+                        + inputs_lstm_tier2
+                        + inputs_lstm_tier3
+                        + previous_pitch_tier1
+                    )
+                else:
+                    new_input = x_conv + inputs_lstm_tier2 + inputs_lstm_tier3
+
+            if not CONCAT:
+                x = self.FC(new_input)
+                return x
+            else:
+                if previous_pitch_tier1 is None:
+                    x = self.FC1(new_input)
+                else:
+                    x = self.FC2(new_input)
+                return x
