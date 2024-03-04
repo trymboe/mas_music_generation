@@ -123,9 +123,10 @@ def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> 
     for batch_idx, (data, targets) in enumerate(dataloader):
         if batch_idx > MAX_BATCHES_CHORD / 10:
             break
+        targets = targets.to(DEVICE)
         # Separate note and duration targets
         output = model(data)
-
+        
         # Compute loss
         loss = criterion(output, targets)
 

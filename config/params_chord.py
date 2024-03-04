@@ -11,14 +11,14 @@ HIDDEN_SIZE_CHORD = 64
 
 NUM_EPOCHS_CHORD = 50  # Number of epochs
 MAX_BATCHES_CHORD = (
-    50  # Max number of batches to train on per Epoch, for shorter training
+    200  # Max number of batches to train on per Epoch, for shorter training
 )
 
 # Playing parameters
 
 
-MODEL_PATH_CHORD = "models/chord/chord_model_test.pt"
-MODEL_NON_COOP_PATH_CHORD = "models/chord/chord_model_non_coop.pt"
+MODEL_PATH_CHORD = "models/chord/chord_model_2.pt"
+MODEL_NON_COOP_PATH_CHORD = "models/chord/chord_model_non_coop_2.pt"
 TRAIN_DATASET_PATH_CHORD = "data/dataset/chord_dataset_train.pt"
 TEST_DATASET_PATH_CHORD = "data/dataset/chord_dataset_test.pt"
 VAL_DATASET_PATH_CHORD = "data/dataset/chord_dataset_val.pt"

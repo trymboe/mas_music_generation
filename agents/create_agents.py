@@ -5,7 +5,7 @@ from .chord import (
     Chord_Network_Non_Coop,
 )
 from .drum import Drum_Network
-from .melody import Melody_Network
+from .melody import Melody_Network, Melody_Network_Non_Coop
 
 from data_processing import (
     Bass_Dataset,
@@ -129,7 +129,10 @@ def create_melody_agent(
     train_melody_agent: bool, train_melody_non_coop_agent: bool
 ) -> Melody_Network:
 
-    melody_agent: Melody_Network = Melody_Network()
+    if train_melody_agent:
+        melody_agent: Melody_Network = Melody_Network()
+    if train_melody_non_coop_agent:
+        melody_agent: Melody_Network = Melody_Network_Non_Coop()
     return melody_agent
 
 

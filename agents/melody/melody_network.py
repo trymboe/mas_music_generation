@@ -27,6 +27,7 @@ import torch.nn.functional as F
 
 
 class Melody_Network(nn.Module):
+    
     class Tier3LSTM(nn.Module):
         def __init__(self):
             super(Melody_Network.Tier3LSTM, self).__init__()
@@ -213,6 +214,9 @@ class Melody_Network(nn.Module):
                     x = self.FC2(new_input)
                 return x
 
+    def __str__(self) -> str:
+        return "coop"
+
     def __init__(self):
         super(Melody_Network, self).__init__()
         self._create_tier2_lstms()
@@ -227,8 +231,7 @@ class Melody_Network(nn.Module):
             out_features=DURATION_SIZE_MELODY,
         )
 
-    def __str__(self) -> str:
-        return "coop"
+
 
     def _create_predictive_networks(self):
         self.predictive_networks = nn.ModuleList()
@@ -342,15 +345,22 @@ class Melody_Network(nn.Module):
 
 
 class Melody_Network_Non_Coop(Melody_Network):
-    def __init__():
+    def __init__(self):
         super().__init__()
+        self.FC_pitch = nn.Linear(
+            in_features=INPUT_SIZE_MELODY_NC, out_features=PITCH_SIZE_MELODY
+        )
+        self.FC_duration = nn.Linear(
+            in_features=INPUT_SIZE_MELODY_NC,
+            out_features=DURATION_SIZE_MELODY,
+        )
 
     def __str__(self) -> str:
         return "non_coop"
 
     class Tier3LSTM(nn.Module):
         def __init__(self):
-            super(Melody_Network.Tier3LSTM, self).__init__()
+            super().__init__()
             self.lstm = nn.LSTM(
                 input_size=INPUT_SIZE_MELODY_NC,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
@@ -381,7 +391,7 @@ class Melody_Network_Non_Coop(Melody_Network):
 
     class Tier2LSTM(nn.Module):
         def __init__(self):
-            super(Melody_Network.Tier2LSTM, self).__init__()
+            super().__init__()
             self.lstm = nn.LSTM(
                 input_size=INPUT_SIZE_MELODY_NC,
                 hidden_size=HIDDEN_SIZE_LSTM_MELODY,
@@ -426,6 +436,7 @@ class Melody_Network_Non_Coop(Melody_Network):
 
     class PredictiveNetwork(nn.Module):
         def __init__(self):
+            super().__init__()
             in_features2 = (
                 INPUT_SIZE_MELODY_NC if not CONCAT else INPUT_SIZE_MELODY_NC * 4
             )
@@ -433,7 +444,6 @@ class Melody_Network_Non_Coop(Melody_Network):
                 INPUT_SIZE_MELODY_NC if not CONCAT else INPUT_SIZE_MELODY_NC * 3
             )
 
-            super(Melody_Network.PredictiveNetwork, self).__init__()
             self.conv1d = nn.Conv1d(
                 in_channels=1, out_channels=INPUT_SIZE_MELODY_NC, kernel_size=4
             )

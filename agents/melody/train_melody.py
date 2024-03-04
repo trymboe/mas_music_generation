@@ -17,6 +17,7 @@ from config import (
     LEARNING_RATE_MELODY,
     BATCH_SIZE_MELODY,
     MODEL_PATH_MELODY,
+    MODEL_NON_COOP_PATH_MELODY,
     DEVICE,
     PITCH_SIZE_MELODY,
     DURATION_SIZE_MELODY,
@@ -126,6 +127,15 @@ def train_melody(model: Melody_Network) -> None:
                 ),
                 dim=2,
             )
+            
+            if "non_coop" in str(model):
+                x = torch.cat(
+                    (
+                        pitches,
+                        durations,
+                    ),
+                    dim=2,
+                )
 
             pitch_logits, duration_logits = model(
                 x, accumulated_time, time_left_on_chord
@@ -157,7 +167,8 @@ def train_melody(model: Melody_Network) -> None:
 
     # Save the model
     plot_loss(loss_list, val_loss_list, model)
-    torch.save(model, MODEL_PATH_MELODY)
+    model_path = MODEL_NON_COOP_PATH_MELODY if "non_coop" in str(model) else MODEL_PATH_MELODY
+    torch.save(model, model_path)
 
     save_to_json(loss_list, val_loss_list, model)
 
@@ -248,6 +259,8 @@ def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> 
             (pitches, durations, current_chord, next_chord, time_left_on_chord),
             dim=2,
         )
+        if "non_coop" in str(model):
+            x = torch.cat((pitches, durations), dim=2)
 
         pitch_logits, duration_logits = model(x, accumulated_time, time_left_on_chord)
 
