@@ -132,15 +132,6 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
         if attempt == 100:
             break
 
-    note_sequence = tokens_to_note_sequence(
-        in_tokens,
-        pitch_vocab,
-        simplified_pitches,
-        velocity_vocab,
-        time_vocab,
-        tempo,
-    )
-
     out_tokens = continue_sequence(
         model,
         seq=in_tokens[-primer_length:],
@@ -160,7 +151,7 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
         simplified_pitches,
         velocity_vocab,
         time_vocab,
-        60,
+        tempo / 2,
     )
 
     note_sequence = ns.quantize_note_sequence(
@@ -203,6 +194,8 @@ def loop_drum(
                         end=note_end,
                     )
                 )
+            else:
+                print(note.start, clip_duration)
         clipped_pm.instruments.append(clipped_instrument)
 
     # Loop the clipped section
