@@ -8,6 +8,7 @@ import os
 from broadcaster.midi_app import start_broadcaster
 from agents import create_agents
 from utils import get_datasets
+from agents import eval_all_agents
 
 
 parser = argparse.ArgumentParser(description="Choose how to run the program")
@@ -54,6 +55,13 @@ parser.add_argument(
     help="Train the melody non cooperation agent",
     default=False,
 )
+parser.add_argument(
+    "-e",
+    "--eval",
+    action="store_true",
+    help="evaluate the agents",
+    default=False,
+)
 
 
 def main():
@@ -79,6 +87,10 @@ def main():
     train_drum: bool = parser.parse_args().train_drum
     train_melody: bool = parser.parse_args().train_melody
     train_melody_non_coop: bool = parser.parse_args().train_melody_noncoop
+    eval_agents: bool = parser.parse_args().eval
+
+    if eval_agents:
+        eval_all_agents()
 
     # Process the datasets
     get_datasets()

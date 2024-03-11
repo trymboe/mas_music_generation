@@ -29,7 +29,7 @@ def predict_next_k_notes_chords(
     input_sequence = chord_primer.unsqueeze(0)
 
     model.eval()
-
+    print("Generating chords uding ", str(model))
     with torch.no_grad():
         for i in range(len(full_bass_sequence)):
             # Predict chord type

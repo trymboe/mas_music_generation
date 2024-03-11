@@ -43,6 +43,7 @@ def predict_next_notes(
         accumulated_time: int = 0
 
         sum_duration_in_beats: float = 0.0
+        print("Generating melody uding ", str(melody_agent))
         while True:
             x = torch.cat(
                 (
@@ -346,7 +347,14 @@ def get_chord_tensor(chord: list[int]) -> torch.Tensor:
 
     chord_vector = [0] * CHORD_SIZE_MELODY
 
-    chord_vector[chord_index] = 1
+    try:
+        chord_vector[chord_index] = 1
+    except:
+        print("Chord index", chord_index)
+        print("Chord", chord)
+        print("Root note", root_note)
+        print("Chord type", chord_type)
+        print("Chord vector", chord_vector)
     return torch.tensor(chord_vector)
 
 

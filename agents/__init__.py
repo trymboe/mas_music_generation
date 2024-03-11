@@ -38,3 +38,5 @@ from .utils import (
     seconds_to_beat,
     adjust_for_key,
 )
+
+from .eval_all_agents import eval_all_agents
