@@ -62,8 +62,8 @@ class Chord_Dataset(Dataset):
     def _process_songs(self, songs):
         data, labels = [], []
         for song in songs:
-            for i in range(len(song) - self.sequence_length):
-                seq = song[i : i + self.sequence_length]
+            for i in range(len(song) - (self.sequence_length + 1)):
+                seq = song[i : i + self.sequence_length + 1]
                 # Convert to pairs
                 chord = [
                     (
@@ -74,6 +74,7 @@ class Chord_Dataset(Dataset):
                     )
                     for pair in seq
                 ]
+                chord.pop(-1)
 
                 data.append(chord)
                 labels.append(CHORD_TO_INT[seq[-1][1]])
@@ -179,9 +180,7 @@ class Drum_Dataset:
                 self.val_data_fill.append(item)
 
         print("Processing dataset TRAIN...")
-        self.train_all = self.process_dataset(
-            self.train_data, conf=processing_conf
-        )
+        self.train_all = self.process_dataset(self.train_data, conf=processing_conf)
         self.train_beat = self.process_dataset(
             self.train_data_beat, conf=processing_conf
         )
