@@ -17,6 +17,7 @@ from config import (
     DEVICE,
     MODEL_NON_COOP_PATH_CHORD,
     MODEL_PATH_CHORD,
+    WEIGHT_DECAY_CHORD,
     TRAIN_DATASET_PATH_CHORD_BASS,
     VAL_DATASET_PATH_CHORD_BASS,
     MODEL_CHORD_BASS_PATH,
@@ -55,7 +56,7 @@ def train_chord(model: nn.Module) -> None:
 
     # Initialize model, loss function, and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE_CHORD)
+    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE_CHORD, weight_decay=WEIGHT_DECAY_CHORD)
     loss_list = []
     val_loss_list = []
     model.to(DEVICE)

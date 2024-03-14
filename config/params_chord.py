@@ -9,10 +9,11 @@ NUM_LAYERS_CHORD = 4  # Number of transformer layers
 BATCH_SIZE_CHORD = 8
 LEARNING_RATE_CHORD = 0.00001
 HIDDEN_SIZE_CHORD = 64
+WEIGHT_DECAY_CHORD = 0.001
 
 NUM_EPOCHS_CHORD = 50  # Number of epochs
 MAX_BATCHES_CHORD = (
-    1000  # Max number of batches to train on per Epoch, for shorter training
+    10000  # Max number of batches to train on per Epoch, for shorter training
 )
 
 # Playing parameters
