@@ -70,7 +70,7 @@ def train_chord(model: nn.Module) -> None:
             # Zero gradients
             optimizer.zero_grad()
             data = data.to(DEVICE)
-            targets = targets.to(DEVICE)
+            targets = targets.to(DEVICE).squeeze()
 
             # Forward pass
             output = model(data)
@@ -199,7 +199,7 @@ def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> 
     for batch_idx, (data, targets) in enumerate(dataloader):
         if batch_idx > MAX_BATCHES_CHORD / 10:
             break
-        targets = targets.to(DEVICE)
+        targets = targets.to(DEVICE).squeeze()
         output = model(data)
 
         # Compute loss
