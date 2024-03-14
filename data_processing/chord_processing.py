@@ -2,7 +2,7 @@ import os
 import re
 import torch
 
-from .datasets import Bass_Dataset, Chord_Dataset
+from .datasets import Bass_Dataset, Chord_Dataset, Chord_Dataset_Bass
 from .utils import get_timed_notes
 
 from config import (
@@ -12,6 +12,9 @@ from config import (
     TRAIN_DATASET_PATH_CHORD,
     TEST_DATASET_PATH_CHORD,
     VAL_DATASET_PATH_CHORD,
+    TRAIN_DATASET_PATH_CHORD_BASS,
+    TEST_DATASET_PATH_CHORD_BASS,
+    VAL_DATASET_PATH_CHORD_BASS,
 )
 
 
@@ -28,18 +31,20 @@ def get_bass_and_chord_dataset(root_directory: str) -> None:
     ----------
         None
     """
-    if not os.path.exists(TRAIN_DATASET_PATH_BASS) or not os.path.exists(
-        TRAIN_DATASET_PATH_CHORD
+    if (
+        not os.path.exists(TRAIN_DATASET_PATH_BASS)
+        or not os.path.exists(TRAIN_DATASET_PATH_CHORD)
+        or not os.path.exists(TRAIN_DATASET_PATH_CHORD_BASS)
     ):
         timed_notes_list: list[list[list[tuple[str, int]]]] = []
         chords_list: list[list[tuple[str, str]]] = []
+        chord_n_beat_list: list = []
         for split in ["train", "test", "val"]:
-            chords, notes, beats = extract_chords_from_files(
+            chords, notes, beats, chord_n_beat = extract_chords_from_files(
                 root_directory, True, split
             )
-            print(split)
-            print(len(chords[0]))
-            print(len(notes[0]))
+
+            chord_n_beat_list.append(chord_n_beat)
             chords_list.append(chords)
             timed_notes_list.append(get_timed_notes(notes, beats))
 
@@ -51,6 +56,21 @@ def get_bass_and_chord_dataset(root_directory: str) -> None:
             torch.save(chord_dataset_train, TRAIN_DATASET_PATH_CHORD)
             torch.save(chord_dataset_test, TEST_DATASET_PATH_CHORD)
             torch.save(chord_dataset_val, VAL_DATASET_PATH_CHORD)
+
+        if not os.path.exists(TRAIN_DATASET_PATH_CHORD_BASS):
+            chord_bass_dataset_train: Chord_Dataset = Chord_Dataset_Bass(
+                chord_n_beat_list[0]
+            )
+            chord_bass_dataset_test: Chord_Dataset = Chord_Dataset_Bass(
+                chord_n_beat_list[1]
+            )
+            chord_bass_dataset_val: Chord_Dataset = Chord_Dataset_Bass(
+                chord_n_beat_list[2]
+            )
+
+            torch.save(chord_bass_dataset_train, TRAIN_DATASET_PATH_CHORD_BASS)
+            torch.save(chord_bass_dataset_test, TEST_DATASET_PATH_CHORD_BASS)
+            torch.save(chord_bass_dataset_val, VAL_DATASET_PATH_CHORD_BASS)
 
         if not os.path.exists(TRAIN_DATASET_PATH_BASS):
             bass_dataset_train: Bass_Dataset = Bass_Dataset(timed_notes_list[0])
@@ -84,6 +104,7 @@ def extract_chords_from_files(root_dir, only_triads, split):
     print(root_dir, split)
     all_chords: list[list[tuple(str, str)]] = []
     all_beats: list[list[int]] = []
+    all_chord_n_beats: list = []
 
     # Traverse through the directory structure
     for dir_name, subdirs, file_list in os.walk(os.path.join(root_dir, split)):
@@ -137,10 +158,11 @@ def extract_chords_from_files(root_dir, only_triads, split):
 
                     all_chords.append(chords)
                     all_beats.append(num_beats_list)
+                    all_chord_n_beats.append([chords, num_beats_list])
 
     all_notes = get_notes_from_chords(all_chords)
 
-    return all_chords, all_notes, all_beats
+    return all_chords, all_notes, all_beats, all_chord_n_beats
 
 
 def find_chord_length(chord_start, chord_end, beat_list):
@@ -180,7 +202,7 @@ def find_chord_length(chord_start, chord_end, beat_list):
         beat_time = 2
     if beat_time > 8:
         beat_time = 8
-    return beat_time
+    return int(beat_time)
 
 
 def get_beat_info(dir_name, file_name):

@@ -5,6 +5,7 @@ from .chord_processing import (
 from .datasets import (
     Bass_Dataset,
     Chord_Dataset,
+    Chord_Dataset_Bass,
     Drum_Dataset,
     Melody_Dataset,
     Melody_Dataset_Combined,

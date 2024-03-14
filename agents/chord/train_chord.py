@@ -17,6 +17,9 @@ from config import (
     DEVICE,
     MODEL_NON_COOP_PATH_CHORD,
     MODEL_PATH_CHORD,
+    TRAIN_DATASET_PATH_CHORD_BASS,
+    VAL_DATASET_PATH_CHORD_BASS,
+    MODEL_CHORD_BASS_PATH,
 )
 
 
@@ -35,6 +38,9 @@ def train_chord(model: nn.Module) -> None:
     -------
     None
     """
+    if "full" in str(model):
+        train_chord_bass_model(model)
+        return
 
     chord_dataset_train = torch.load(TRAIN_DATASET_PATH_CHORD)
     chord_dataset_val = torch.load(VAL_DATASET_PATH_CHORD)
@@ -85,7 +91,6 @@ def train_chord(model: nn.Module) -> None:
         print(
             f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 6)} Validation loss: {round(val_loss_list[-1],6)}"
         )
-
     with open(
         "results/data/chord/"
         + str(model)
@@ -102,6 +107,76 @@ def train_chord(model: nn.Module) -> None:
         torch.save(model, MODEL_NON_COOP_PATH_CHORD)
     else:
         torch.save(model, MODEL_PATH_CHORD)
+
+
+def train_chord_bass_model(model: nn.Module) -> None:
+    chord_dataset_train = torch.load(TRAIN_DATASET_PATH_CHORD_BASS)
+    chord_dataset_train_2 = torch.load(TRAIN_DATASET_PATH_CHORD)
+    chord_dataset_val = torch.load(VAL_DATASET_PATH_CHORD_BASS)
+
+    # Create DataLoader
+    dataloader_train = DataLoader(
+        chord_dataset_train, batch_size=BATCH_SIZE_CHORD, shuffle=True
+    )
+    dataloader_val = DataLoader(
+        chord_dataset_val, batch_size=BATCH_SIZE_CHORD, shuffle=True
+    )
+
+    # Initialize model, loss function, and optimizer
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE_CHORD)
+    loss_list = []
+    val_loss_list = []
+    model.to(DEVICE)
+
+    # Training loop
+    for epoch in range(NUM_EPOCHS_CHORD):
+        batch_loss = []
+        for batch_idx, (data, targets) in enumerate(dataloader_train):
+            if batch_idx > MAX_BATCHES_CHORD:
+                break
+            # Zero gradients
+            optimizer.zero_grad()
+            data = data.to(DEVICE)
+            targets = targets.to(DEVICE)
+            target_chord = targets[:, 0]
+            target_duration = targets[:, 1]
+
+            # Forward pass
+            output_chord, output_duration = model(data)
+
+            loss_chord = criterion(output_chord, target_chord)
+            loss_duration = criterion(output_duration, target_duration)
+
+            combined_loss = (loss_chord + loss_duration) / 2
+
+            combined_loss.backward()
+            optimizer.step()
+
+            batch_loss.append(combined_loss.item())
+
+        val_loss = get_validation_loss_full(model, dataloader_val, criterion)
+
+        loss_list.append(np.mean(batch_loss))
+        val_loss_list.append(val_loss)
+
+        print(
+            f"Epoch:  {epoch + 1} Loss: {round(loss_list[-1], 6)} Validation loss: {round(val_loss_list[-1],6)}"
+        )
+
+    with open(
+        "results/data/chord/"
+        + str(model)
+        + "/training_data"
+        + str(NUM_EPOCHS_CHORD)
+        + ".json",
+        "w",
+    ) as file:
+        json.dump(loss_list, file)
+        json.dump(val_loss_list, file)
+
+    plot_loss(loss_list, val_loss_list)
+    torch.save(model, MODEL_CHORD_BASS_PATH)
 
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:
@@ -124,15 +199,37 @@ def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> 
         if batch_idx > MAX_BATCHES_CHORD / 10:
             break
         targets = targets.to(DEVICE)
-        # Separate note and duration targets
         output = model(data)
-        
+
         # Compute loss
         loss = criterion(output, targets)
 
-        # Backward pass and optimize
-        loss.backward()
         batch_loss.append(loss.item())
+
+    model.train()
+    return np.mean(batch_loss)
+
+
+def get_validation_loss_full(
+    model: nn.Module, dataloader: DataLoader, criterion
+) -> float:
+    model.eval()
+    batch_loss = []
+    for batch_idx, (data, targets) in enumerate(dataloader):
+        if batch_idx > MAX_BATCHES_CHORD / 10:
+            break
+        targets = targets.to(DEVICE)
+        target_chord = targets[:, 0]
+        target_duration = targets[:, 1]
+
+        output_chord, output_duration = model(data)
+
+        loss_chord = criterion(output_chord, target_chord)
+        loss_duration = criterion(output_duration, target_duration)
+        total_loss = (loss_chord + loss_duration) / 2
+
+        # Backward pass and optimize
+        batch_loss.append(total_loss.item())
 
     model.train()
     return np.mean(batch_loss)

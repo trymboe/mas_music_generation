@@ -28,10 +28,6 @@ from .coplay import play_agents
 
 from .create_agents import create_agents
 
-from .train_agents import train_agents
-
-from .create_segments import create_segments
-
 from .utils import (
     select_with_preference,
     beats_to_seconds,

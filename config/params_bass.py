@@ -8,9 +8,9 @@ NUM_LAYERS_BASS = 4  # Number of transformer layers
 BATCH_SIZE_BASS = 8
 LEARNING_RATE_BASS = 0.00001
 
-NUM_EPOCHS_BASS = 5  # Number of epochs
+NUM_EPOCHS_BASS = 50  # Number of epochs
 MAX_BATCHES_BASS = (
-    50  # Max number of batches to train on per Epoch, for shorter training
+    1000  # Max number of batches to train on per Epoch, for shorter training
 )
 
 MODEL_PATH_BASS = "models/bass/bass_model.pt"

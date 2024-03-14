@@ -22,7 +22,7 @@ ALPHA1_MELODY = 0.6
 ALPHA2_MELODY = 0.4
 LEARNING_RATE_MELODY = 0.0005
 BATCH_SIZE_MELODY = 64
-MAX_BATCHES_MELODY = float("inf") # 20  # Max batches per epoch
+MAX_BATCHES_MELODY = 20  # float("inf") # 20  # Max batches per epoch
 WEIGHT_DECAY_MELODY = 0.001
 DROPOUT_MELODY = 0.5
 NUM_LAYERS_LSTM_MELODY = 2
@@ -51,8 +51,8 @@ MODEL_NON_COOP_PATH_MELODY = (
     + ".pt"
 )
 
-# MODEL_PATH_MELODY = "models/melody/checkpoint_no_reg2_15.pt"
 # MODEL_PATH_MELODY = "models/melody/melody_model.pt"
+# MODEL_PATH_MELODY = "models/melody/checkpoint_no_reg2_15.pt"
 # MODEL_PATH_MELODY = "models/melody/melody_model_test.pt"
 # MODEL_NON_COOP_PATH_MELODY = "models/melody/melody_model_non_coop.pt"
 

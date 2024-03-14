@@ -127,8 +127,6 @@ def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> 
         # Combine the losses
         combined_loss = note_loss * ALPHA1_BASS + duration_loss * ALPHA2_BASS
 
-        # Backward pass and optimize
-        combined_loss.backward()
         batch_loss.append(combined_loss.item())
 
     model.train()

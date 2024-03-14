@@ -3,6 +3,7 @@ from .chord import (
     Chord_Network,
     Chord_LSTM_Network,
     Chord_Network_Non_Coop,
+    Chord_Network_Full,
 )
 from .drum import Drum_Network
 from .melody import Melody_Network, Melody_Network_Non_Coop
@@ -53,6 +54,7 @@ def create_agents(
     train_bass_agent: bool,
     train_chord_agent: bool,
     train_chord_non_coop_agent: bool,
+    train_chord_bass_agent: bool,
     train_drum_agent: bool,
     train_melody_agent: bool,
     train_melody_non_coop_agent: bool,
@@ -82,10 +84,10 @@ def create_agents(
         bass_agent.eval()
 
     # --- Creating chord agent ---
-    if train_chord_agent or train_chord_non_coop_agent:
+    if train_chord_agent or train_chord_non_coop_agent or train_chord_bass_agent:
         print("  ----Creating chord agent----")
         chord_agent: Chord_Network = create_chord_agent(
-            train_chord_agent, train_chord_non_coop_agent
+            train_chord_agent, train_chord_non_coop_agent, train_chord_bass_agent
         )
         chord_agent.to(DEVICE)
         train_chord(chord_agent)
@@ -157,7 +159,10 @@ def create_bass_agent() -> Bass_Network:
 
 
 def create_chord_agent(
-    train_chord_agent: bool, train_chord_non_coop_agent: bool, LSTM: bool = False
+    train_chord_agent: bool,
+    train_chord_non_coop_agent: bool,
+    train_chord_bass_agent: bool,
+    LSTM: bool = False,
 ) -> Chord_Network:
     """
     Creates a chord agent based on the specified parameters.
@@ -190,6 +195,14 @@ def create_chord_agent(
             )
         if train_chord_non_coop_agent:
             chord_network: Chord_Network = Chord_Network_Non_Coop(
+                ROOT_VOAB_SIZE_CHORD,
+                CHORD_VOCAB_SIZE_CHORD,
+                EMBED_SIZE_CHORD,
+                NHEAD_CHORD,
+                NUM_LAYERS_CHORD,
+            )
+        if train_chord_bass_agent:
+            chord_network: Chord_Network = Chord_Network_Full(
                 ROOT_VOAB_SIZE_CHORD,
                 CHORD_VOCAB_SIZE_CHORD,
                 EMBED_SIZE_CHORD,

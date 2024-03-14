@@ -35,6 +35,13 @@ parser.add_argument(
     default=False,
 )
 parser.add_argument(
+    "-tcb",
+    "--train_chord_bass",
+    action="store_true",
+    help="Train the chord-bass agent",
+    default=False,
+)
+parser.add_argument(
     "-td",
     "--train_drum",
     action="store_true",
@@ -84,6 +91,7 @@ def main():
     train_bass: bool = parser.parse_args().train_bass
     train_chord: bool = parser.parse_args().train_chord
     train_chord_non_coop: bool = parser.parse_args().train_chord_noncoop
+    train_chord_bass: bool = parser.parse_args().train_chord_bass
     train_drum: bool = parser.parse_args().train_drum
     train_melody: bool = parser.parse_args().train_melody
     train_melody_non_coop: bool = parser.parse_args().train_melody_noncoop
@@ -100,6 +108,7 @@ def main():
         train_bass,
         train_chord,
         train_chord_non_coop,
+        train_chord_bass,
         train_drum,
         train_melody,
         train_melody_non_coop,

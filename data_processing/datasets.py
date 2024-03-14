@@ -77,8 +77,7 @@ class Chord_Dataset(Dataset):
                 chord.pop(-1)
 
                 data.append(chord)
-                labels.append(CHORD_TO_INT[seq[-1][1]])
-
+                labels.append([CHORD_TO_INT[seq[-1][1]]])
         return data, labels
 
     def __len__(self):
@@ -90,6 +89,34 @@ class Chord_Dataset(Dataset):
         except TypeError as e:
             print(f"Error for index {idx}: {self.data[idx]}, {self.labels[idx]}")
             raise e
+
+
+class Chord_Dataset_Bass(Chord_Dataset):
+    def __init__(self, songs):
+        super().__init__(songs)
+
+    def _process_songs(self, songs):
+        data, labels = [], []
+
+        for song in songs:
+            for i in range(len(song[0]) - (self.sequence_length + 1)):
+                seq_chord = song[0][i : i + self.sequence_length + 1]
+                seq_duration = song[1][i : i + self.sequence_length + 1]
+                pairs = []
+                for j in range(len(seq_chord) - 1):
+                    full_chord = self.get_full_chord(seq_chord[j][0], seq_chord[j][1])
+                    pairs.append([full_chord, seq_duration[j]])
+
+                data.append(pairs)
+                full_chord = self.get_full_chord(seq_chord[-1][0], seq_chord[-1][1])
+                labels.append([full_chord, seq_duration[-1]])
+        return data, labels
+
+    def get_full_chord(self, root, chord):
+        return len(CHORD_TO_INT) * NOTE_TO_INT[root] + CHORD_TO_INT[chord]
+
+    def __getitem__(self, idx):
+        return super().__getitem__(idx)
 
 
 class Drum_Dataset:

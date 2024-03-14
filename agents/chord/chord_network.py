@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 
-from config import DEVICE
+from config import DEVICE, TOTAL_CHORD_INPUT_SIZE, DURATION_VOCAB_SIZE_BASS
 
 
 class Chord_Network(nn.Module):
@@ -136,6 +136,59 @@ class Chord_Network_Non_Coop(Chord_Network):
         return x
 
 
+class Chord_Network_Full(Chord_Network):
+    def __init__(
+        self, root_vocab_size, chord_vocab_size, embed_size, nhead, num_layers
+    ):
+        super().__init__(
+            root_vocab_size, chord_vocab_size, embed_size, nhead, num_layers
+        )
+
+    def __str__(self) -> str:
+        return "full"
+
+    def create_chord_network(self):
+        self.duration_embedding = nn.Embedding(
+            DURATION_VOCAB_SIZE_BASS, self.embed_size
+        )
+        self.chord_embedding = nn.Embedding(TOTAL_CHORD_INPUT_SIZE, self.embed_size)
+
+        self.transformer = nn.Transformer(
+            2 * self.embed_size,
+            self.nhead,
+            self.num_layers,
+            batch_first=True,
+        )
+
+        self.decoder_duration = nn.Linear(2 * self.embed_size, DURATION_VOCAB_SIZE_BASS)
+        self.decoder_chord = nn.Linear(2 * self.embed_size, TOTAL_CHORD_INPUT_SIZE)
+
+    def forward(self, src):
+        src = src.long()
+        chords, duration = src[:, :, 0], src[:, :, 1]
+
+        duration = duration.to(DEVICE)
+        chords = chords.to(DEVICE)
+
+        # Embed root notes and chord types
+        duration_embed = self.duration_embedding(duration)
+        chord_embed = self.chord_embedding(chords)
+
+        # Concatenate embeddings
+        x = torch.cat((duration_embed, chord_embed), dim=-1)
+
+        # Pass through transformer
+        x = self.transformer(x, x)
+
+        # Decode to get chord type predictions
+        x_chord = self.decoder_chord(x)
+        x_duration = self.decoder_duration(x)
+
+        # if x.dim() == 3:
+        #     return x[:, -1, :]
+        return x_chord[:, -1, :], x_duration[:, -1, :]
+
+
 #################################################################
 # LSTM Model
 #################################################################
@@ -164,6 +217,22 @@ class Chord_LSTM_Network(nn.Module):
 
         # Decoder for chord types
         self.decoder = nn.Linear(hidden_size, chord_vocab_size)
+
+    def create_chord_network(self):
+        """
+        Creates the chord network model.
+
+        This method initializes the embedding layers for the root and chord vocabularies,
+        as well as the transformer and decoder layers of the network.
+
+        Args:
+            self (ChordNetwork): The ChordNetwork instance.
+
+        Returns:
+            None
+        """
+        super().create_chord_network()
+        self.decoder
 
     def forward(self, src):
         # Split the input tensor into root notes and chord types
