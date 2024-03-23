@@ -115,6 +115,7 @@ def set_params():
         "LENGTH": int(data.get("length", 4)),
         "KEY": data.get("key", "C"),
         "NON_COOPERATIVE": data.get("toggleSystem", False),
+        "BAD_COMS": data.get("toggleSystem", False),
         # Drum parameters
         "KEEP_DRUM": data.get("keep_drum", False),
         "LOOP_MEASURES": int(data.get("loop_measures", 4)),

@@ -38,7 +38,7 @@ def play_bass(
     )
 
     if config["PLAYSTYLE"] == "bass_drum" or config["PLAYSTYLE"] == "transition":
-        bass_drum_times = find_bass_drum(mid, config["TEMPO"])
+        bass_drum_times = find_bass_drum(mid, config)
 
     # Create a new Instrument instance for an Electric Bass
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
@@ -457,7 +457,7 @@ def play_note(
     bass_instrument.notes.append(bass_note)
 
 
-def find_bass_drum(pm: pretty_midi.PrettyMIDI, tempo: int) -> list[float]:
+def find_bass_drum(pm: pretty_midi.PrettyMIDI, config: dict) -> list[float]:
     """
     Find every time step where the bass drum is played in a given PrettyMIDI object.
 
@@ -469,7 +469,15 @@ def find_bass_drum(pm: pretty_midi.PrettyMIDI, tempo: int) -> list[float]:
     ----------
     - List[float]: List of start times (in seconds) where the bass drum is played.
     """
+    tempo = config["TEMPO"]
+    bad_coms = config["BAD_COMS"]
     bass_drum_times = []
+
+    if bad_coms:
+        for i in range(config["LENGTH"]):
+            num = random.random() * 4
+            bass_drum_times.append(i * 4 + num)
+        return bass_drum_times
 
     # Assuming the drum track is the first track in the PrettyMIDI object
     drum_track = pm.instruments[0]

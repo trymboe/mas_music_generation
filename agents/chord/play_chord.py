@@ -289,14 +289,13 @@ def get_timed_chord_sequence(
     -----
         list: The generated timed chord sequence.
     """
-    if config["NON_COOPERATIVE"]:
-        chord_agent = torch.load(MODEL_NON_COOP_PATH_CHORD, DEVICE)
-    else:
-        chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
+    # if config["NON_COOPERATIVE"]:
+    #     chord_agent = torch.load(MODEL_NON_COOP_PATH_CHORD, DEVICE)
+    chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(
-        chord_agent, full_bass_sequence, dataset_primer
+        chord_agent, full_bass_sequence, dataset_primer, config
     )
 
     timed_chord_sequence = []

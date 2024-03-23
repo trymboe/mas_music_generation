@@ -1,4 +1,6 @@
+import copy
 import torch
+import random
 
 import torch.nn.functional as F
 
@@ -17,9 +19,18 @@ def predict_next_notes(
 ) -> list[list[int]]:
     with torch.no_grad():
         all_notes: list[list[int]] = []
-
         if config["SCALE_MELODY"]:
             pitch_preferences: list[int] = generate_scale_preferences(config)
+        if config["BAD_COMS"]:
+            for i in range(len(chord_sequence)):
+                root = random.randint(0, 11)
+                chord_type = random.randint(0, 1)
+                chord = (
+                    [root, root + 4, root + 7]
+                    if chord_type
+                    else [root, root + 3, root + 7]
+                )
+                chord_sequence[i] = (chord, random.randint(1, 4))
 
         running_time_on_chord_beats: float = 0
 

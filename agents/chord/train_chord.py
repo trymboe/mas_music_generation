@@ -56,7 +56,9 @@ def train_chord(model: nn.Module) -> None:
 
     # Initialize model, loss function, and optimizer
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE_CHORD, weight_decay=WEIGHT_DECAY_CHORD)
+    optimizer = torch.optim.Adam(
+        model.parameters(), lr=LEARNING_RATE_CHORD, weight_decay=WEIGHT_DECAY_CHORD
+    )
     loss_list = []
     val_loss_list = []
     model.to(DEVICE)
@@ -71,7 +73,6 @@ def train_chord(model: nn.Module) -> None:
             optimizer.zero_grad()
             data = data.to(DEVICE)
             targets = targets.to(DEVICE).squeeze()
-
             # Forward pass
             output = model(data)
 
