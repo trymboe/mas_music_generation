@@ -62,8 +62,8 @@ class Chord_Dataset(Dataset):
     def _process_songs(self, songs):
         data, labels = [], []
         for song in songs:
-            for i in range(len(song) - (self.sequence_length + 1)):
-                seq = song[i : i + self.sequence_length + 1]
+            for i in range(len(song) - (self.sequence_length)):
+                seq = song[i : i + self.sequence_length]
                 # Convert to pairs
                 chord = [
                     (
@@ -74,7 +74,9 @@ class Chord_Dataset(Dataset):
                     )
                     for pair in seq
                 ]
-                chord.pop(-1)
+
+                # Replace the chord type of the last pair with a placeholder (6)
+                chord[-1] = (chord[-1][0], 6, int(chord[-1][2]), chord[-1][3])
 
                 data.append(chord)
                 labels.append([CHORD_TO_INT[seq[-1][1]]])
