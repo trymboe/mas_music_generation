@@ -130,7 +130,7 @@ def play_known_bass(
 
     bass_instrument = pretty_midi.Instrument(program=33)  # 33: Electric Bass
     if config["PLAYSTYLE"] == "bass_drum" or config["PLAYSTYLE"] == "transition":
-        bass_drum_times = find_bass_drum(mid, config["TEMPO"])
+        bass_drum_times = find_bass_drum(mid, config)
     if config["PLAYSTYLE"] == "bass_drum":
         bass_instrument = play_bass_drum_style(
             bass_drum_times, bass_instrument, predicted_bass_sequence, config

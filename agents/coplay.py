@@ -1,7 +1,7 @@
 from .melody import play_melody, play_known_melody
 from .chord import play_chord, play_known_chord
 from .bass import play_bass, play_known_bass
-from .drum import play_drum
+from .drum import play_drum, play_known_drums
 from .harmony import play_harmony
 from .utils import adjust_for_key
 import random
@@ -74,12 +74,14 @@ def play_agents(
     if config["KEEP_DRUM"]:
         # If it is the first time, there are no drums to keep
         if not kept_instruments[0]:
-            new_mid, drum_mid = play_drum(config)
+            new_mid, drum_tokens = play_drum(config)
         else:
             drum_mid = kept_instruments[0][0]
-            new_mid = copy.deepcopy(drum_mid)
+            drum_tokens = kept_instruments[0][1]
+            new_mid, drum_tokens = play_known_drums(drum_tokens, config)
+            # new_mid = copy.deepcopy(drum_mid)
     else:
-        drum_mid = play_drum(config)
+        drum_mid, drum_tokens = play_drum(config)
         new_mid = copy.deepcopy(drum_mid)
     end = time.time()
 
@@ -176,7 +178,7 @@ def play_agents(
     )
 
     instruments = [
-        [drum_mid],
+        [drum_mid, drum_tokens],
         [bass_instrument, predicted_bass_sequence],
         [chord_instrument, predicted_chord_sequence],
         [melody_instrument, predicted_melody_sequence],

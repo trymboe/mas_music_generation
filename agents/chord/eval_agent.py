@@ -62,6 +62,7 @@ def predict_next_k_notes_chords(
         predicted_chords = merge_chords_and_bass(
             predicted_chords, actuall_bass_sequence
         )
+        print(predicted_chords)
 
     return predicted_chords
 

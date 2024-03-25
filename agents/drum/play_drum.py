@@ -21,14 +21,14 @@ import note_seq as ns
 def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
     drum_dataset: Drum_Dataset = get_drum_dataset()
     if config["STYLE"]:
-        mid = play_drum_from_style(
+        mid, tokens = play_drum_from_style(
             loop_measures=config["LOOP_MEASURES"],
             loops=int(config["LENGTH"] / config["LOOP_MEASURES"]),
             drum_dataset=drum_dataset,
             tempo=config["TEMPO"],
             style=config["STYLE"],
         )
-        return mid
+        return mid, tokens
     else:
         raise NotImplementedError
 
@@ -76,6 +76,49 @@ def play_drum(config: dict) -> pretty_midi.PrettyMIDI:
         # pm.write("results/drum/loop_gen.midi")
 
     return pm
+
+
+def play_known_drums(drum_tokens: list, config: dict):
+    loop_measures = config["LOOP_MEASURES"]
+    loops = int(config["LENGTH"] / config["LOOP_MEASURES"])
+    tempo = config["TEMPO"]
+    drum_dataset: Drum_Dataset = get_drum_dataset()
+    pitch_vocab: dict[int, int] = drum_dataset.reverse_vocab
+    velocity_vocab: dict[int, int] = {v: k for k, v in drum_dataset.vel_vocab.items()}
+    simplified_pitches: list[list[int]] = [
+        [36],
+        [38],
+        [42],
+        [46],
+        [45],
+        [48],
+        [50],
+        [49],
+        [51],
+    ]
+
+    conf: dict = load_yaml("config/bumblebeat/params.yaml")
+    time_vocab: dict[int, int] = load_yaml("config/bumblebeat/time_steps_vocab.yaml")
+
+    note_sequence = tokens_to_note_sequence(
+        drum_tokens,
+        pitch_vocab,
+        simplified_pitches,
+        velocity_vocab,
+        time_vocab,
+        tempo / 2,
+    )
+
+    note_sequence = ns.quantize_note_sequence(
+        note_sequence, conf["processing"]["steps_per_quarter"]
+    )
+
+    pm = ns.note_sequence_to_pretty_midi(note_sequence)
+
+    pm = loop_drum(pm, loop_measures, loops, tempo)
+    pm.instruments[0].name = "drum"
+
+    return pm, drum_tokens
 
 
 def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
@@ -163,7 +206,7 @@ def play_drum_from_style(loop_measures, loops, drum_dataset, tempo, style):
     pm = loop_drum(pm, loop_measures, loops, tempo)
     pm.instruments[0].name = "drum"
 
-    return pm
+    return pm, out_tokens
 
 
 def loop_drum(
