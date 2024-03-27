@@ -78,7 +78,7 @@ def predict_next_notes(
             note_probabilities = F.softmax(pitch_logits, dim=1).view(-1)
             duration_probabilities = F.softmax(duration_logits, dim=1).view(-1)
 
-            if config["SCALE_MELODY"]:
+            if config["SCALE_MELODY"] and not config["FULL_SCALE_MELODY"]:
                 note_probabilities = select_with_preference(
                     note_probabilities, pitch_preferences
                 )

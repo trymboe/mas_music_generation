@@ -136,6 +136,7 @@ def set_params():
         "NO_PAUSE": data.get("no_pause", False),
         "SCALE_MELODY": scale_melody,
         "DURATION_PREFERENCES_MELODY": duration_preferences_melody,
+        "FULL_SCALE_MELODY": data.get("full_scale_melody", False),
         # Harmony parameters
         "INTERVAL": data.get("interval", False),
         "DELAY": data.get("delay", False),

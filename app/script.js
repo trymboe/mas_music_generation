@@ -52,6 +52,7 @@ document.getElementById("control-form").onsubmit = function (event) {
         duration_creativity_melody: document.getElementById("duration_creativity_melody").value,
         note_temperature_melody: document.getElementById("note_temperature_melody").value,
         duration_temperature_melody: document.getElementById("duration_temperature_melody").value,
+        full_scale_melody: document.getElementById("full-scale-melody").checked,
         no_pause: document.getElementById("no_pause").checked,
         scale_melody: document.getElementById("scale_melody").value,
         checkbox1_melody: document.getElementById("16th_note_melody").checked,
