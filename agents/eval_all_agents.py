@@ -34,16 +34,16 @@ from config import (
     MODEL_CHORD_BASS_PATH,
 )
 
-NUM_EVAL_SAMPLES = 10000
+NUM_EVAL_SAMPLES = 1000
 
 
 def eval_all_agents():
     print("----Evaluating all agents")
-    # eval_chord()
+    eval_chord()
     # eval_bass()
     # eval_melody()
-    eval_chord_bass()
-    eval_chord_and_bass_separately()
+    # eval_chord_bass()
+    # eval_chord_and_bass_separately()
     exit()
 
 
