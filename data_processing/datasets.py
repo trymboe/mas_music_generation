@@ -106,12 +106,23 @@ class Chord_Dataset_Bass(Chord_Dataset):
                 seq_duration = song[1][i : i + self.sequence_length + 1]
                 pairs = []
                 for j in range(len(seq_chord) - 1):
-                    full_chord = self.get_full_chord(seq_chord[j][0], seq_chord[j][1])
-                    pairs.append([full_chord, seq_duration[j]])
-
+                    # full_chord = self.get_full_chord(seq_chord[j][0], seq_chord[j][1])
+                    pairs.append(
+                        [
+                            NOTE_TO_INT[seq_chord[j][0]],
+                            CHORD_TO_INT[seq_chord[j][1]],
+                            seq_duration[j],
+                        ]
+                    )
                 data.append(pairs)
-                full_chord = self.get_full_chord(seq_chord[-1][0], seq_chord[-1][1])
-                labels.append([full_chord, seq_duration[-1]])
+                # full_chord = self.get_full_chord(seq_chord[-1][0], seq_chord[-1][1])
+                labels.append(
+                    [
+                        NOTE_TO_INT[seq_chord[-1][0]],
+                        CHORD_TO_INT[seq_chord[-1][1]],
+                        seq_duration[-1],
+                    ]
+                )
         return data, labels
 
     def get_full_chord(self, root, chord):
