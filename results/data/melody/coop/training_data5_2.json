@@ -1,0 +1,31 @@
+{
+    "hyperparameters": {
+        "PITCH_VECTOR_SIZE": 36,
+        "SEQUENCE_LENGHT_MELODY": 16,
+        "CHORD_SIZE_MELODY": 24,
+        "DURATION_SIZE_MELODY": 16,
+        "NUM_EPOCHS_MELODY": 5,
+        "HIDDEN_SIZE_LSTM_MELODY": 256,
+        "ALPHA1_MELODY": 0.6,
+        "ALPHA2_MELODY": 0.4,
+        "LEARNING_RATE_MELODY": 0.0005,
+        "BATCH_SIZE_MELODY": 64,
+        "MAX_BATCHES_MELODY": 20,
+        "WEIGHT_DECAY_MELODY": 0.001,
+        "COMBINED": false
+    },
+    "loss_list": [
+        2.690365098771595,
+        2.1944155125390914,
+        2.1550928467795964,
+        2.130724850155058,
+        2.094393259003049
+    ],
+    "val_loss_list": [
+        2.327782313028971,
+        2.3033014138539634,
+        2.106886625289917,
+        2.221447706222534,
+        2.3619328339894614
+    ]
+}
