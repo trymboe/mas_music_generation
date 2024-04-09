@@ -21,6 +21,7 @@ from config import (
     TRAIN_DATASET_PATH_CHORD_BASS,
     VAL_DATASET_PATH_CHORD_BASS,
     MODEL_CHORD_BASS_PATH,
+    MODEL_PATH_CHORD_LSTM,
 )
 
 
@@ -107,6 +108,8 @@ def train_chord(model: nn.Module) -> None:
     plot_loss(loss_list, val_loss_list)
     if "non_coop" in str(model):
         torch.save(model, MODEL_NON_COOP_PATH_CHORD)
+    elif "lstm" in str(model):
+        torch.save(model, MODEL_PATH_CHORD_LSTM)
     else:
         torch.save(model, MODEL_PATH_CHORD)
 
@@ -115,6 +118,7 @@ def train_chord_bass_model(model: nn.Module) -> None:
     chord_dataset_train = torch.load(TRAIN_DATASET_PATH_CHORD_BASS)
     chord_dataset_train_2 = torch.load(TRAIN_DATASET_PATH_CHORD)
     chord_dataset_val = torch.load(VAL_DATASET_PATH_CHORD_BASS)
+    chord_dataset_val_2 = torch.load(VAL_DATASET_PATH_CHORD)
 
     # Create DataLoader
     dataloader_train = DataLoader(
@@ -141,16 +145,23 @@ def train_chord_bass_model(model: nn.Module) -> None:
             optimizer.zero_grad()
             data = data.to(DEVICE)
             targets = targets.to(DEVICE)
-            target_chord = targets[:, 0]
-            target_duration = targets[:, 1]
+
+            root = data[:, :, 0]
+            chord = data[:, :, 1]
+            duration = data[:, :, 2]
+
+            target_root = targets[:, 0]
+            target_chord = targets[:, 1]
+            target_duration = targets[:, 2]
 
             # Forward pass
-            output_chord, output_duration = model(data)
+            output_root, output_chord, output_duration = model(root, chord, duration)
 
+            loss_root = criterion(output_root, target_root)
             loss_chord = criterion(output_chord, target_chord)
             loss_duration = criterion(output_duration, target_duration)
 
-            combined_loss = (loss_chord + loss_duration) / 2
+            combined_loss = (loss_chord + loss_duration + loss_root) / 3
 
             combined_loss.backward()
             optimizer.step()
@@ -220,15 +231,24 @@ def get_validation_loss_full(
     for batch_idx, (data, targets) in enumerate(dataloader):
         if batch_idx > MAX_BATCHES_CHORD / 10:
             break
+        data = data.to(DEVICE)
+
+        root = data[:, :, 0]
+        chord = data[:, :, 1]
+        duration = data[:, :, 2]
+
         targets = targets.to(DEVICE)
-        target_chord = targets[:, 0]
-        target_duration = targets[:, 1]
 
-        output_chord, output_duration = model(data)
+        target_root = targets[:, 0]
+        target_chord = targets[:, 1]
+        target_duration = targets[:, 2]
 
+        output_root, output_chord, output_duration = model(root, chord, duration)
+
+        loss_root = criterion(output_root, target_root)
         loss_chord = criterion(output_chord, target_chord)
         loss_duration = criterion(output_duration, target_duration)
-        total_loss = (loss_chord + loss_duration) / 2
+        total_loss = (loss_root + loss_chord + loss_duration) / 3
 
         # Backward pass and optimize
         batch_loss.append(total_loss.item())

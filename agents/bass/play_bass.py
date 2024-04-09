@@ -4,7 +4,7 @@ import random
 from mido import MidiFile
 
 from .eval_agent import predict_next_k_notes_bass
-from config import MODEL_PATH_BASS, DEVICE
+from config import MODEL_PATH_BASS_LSTM, DEVICE
 from data_processing import Bass_Dataset
 from .bass_network import Bass_Network
 from ..utils import beats_to_seconds, seconds_to_beat, adjust_for_key
@@ -30,7 +30,7 @@ def play_bass(
         the bass instrument, and the predicted bass sequence.
     """
 
-    bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
+    bass_agent: Bass_Network = torch.load(MODEL_PATH_BASS_LSTM, DEVICE)
     bass_agent.eval()
 
     predicted_bass_sequence: list[int, int] = predict_next_k_notes_bass(

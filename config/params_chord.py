@@ -1,25 +1,27 @@
 # Hyperparameters
 SEQUENCE_LENGTH_CHORD = 8
-ROOT_VOAB_SIZE_CHORD = 12  # Number of root notes
+ROOT_VOCAB_SIZE_CHORD = 12  # Number of root notes
 CHORD_VOCAB_SIZE_CHORD = 7  # Number of chords variations
-TOTAL_CHORD_INPUT_SIZE = ROOT_VOAB_SIZE_CHORD * (CHORD_VOCAB_SIZE_CHORD - 1) + 1
+TOTAL_CHORD_INPUT_SIZE = ROOT_VOCAB_SIZE_CHORD * (CHORD_VOCAB_SIZE_CHORD - 1) + 1
 EMBED_SIZE_CHORD = 128  # Embedding size
-NHEAD_CHORD = 4  # Number of self-attention heads
-NUM_LAYERS_CHORD = 4  # Number of transformer layers
+NUM_LAYERS_CHORD = 4  # Number of  layers
 BATCH_SIZE_CHORD = 8
-LEARNING_RATE_CHORD = 0.00001
+LEARNING_RATE_CHORD = 0.0001
 HIDDEN_SIZE_CHORD = 64
-WEIGHT_DECAY_CHORD = 0.001
+
+WEIGHT_DECAY_CHORD = 0  # 0.001
+NHEAD_CHORD = 4  # Number of self-attention heads
 
 NUM_EPOCHS_CHORD = 50  # Number of epochs
 MAX_BATCHES_CHORD = (
-    10000  # Max number of batches to train on per Epoch, for shorter training
+    200  # Max number of batches to train on per Epoch, for shorter training
 )
 
 # Playing parameters
 
 
 MODEL_PATH_CHORD = "models/chord/chord_model_2.pt"
+MODEL_PATH_CHORD_LSTM = "models/chord/chord_model_lstm.pt"
 MODEL_NON_COOP_PATH_CHORD = "models/chord/chord_model_non_coop_2.pt"
 MODEL_CHORD_BASS_PATH = "models/chord/chord_bass_model_2.pt"
 

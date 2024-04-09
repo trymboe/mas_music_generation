@@ -1,7 +1,17 @@
 import torch
 import torch.nn as nn
 
-from config import DEVICE
+from config import (
+    DEVICE,
+    SEQUENCE_LENGTH_BASS,
+    NOTE_VOCAB_SIZE_BASS,
+    DURATION_VOCAB_SIZE_BASS,
+    EMBED_SIZE_BASS,
+    NUM_LAYERS_BASS,
+    BATCH_SIZE_BASS,
+    LEARNING_RATE_BASS,
+    HIDDEN_SIZE_BASS,
+)
 
 
 class Bass_Network(nn.Module):
@@ -26,6 +36,9 @@ class Bass_Network(nn.Module):
         self.note_decoder = nn.Linear(embed_size * 2, note_vocab_size)
         self.duration_decoder = nn.Linear(embed_size * 2, duration_vocab_size)
 
+    def __str__(self) -> str:
+        return "transformer"
+
     def forward(self, notes, durations):
         # Embed notes and durations
         notes = notes.to(DEVICE)
@@ -49,3 +62,49 @@ class Bass_Network(nn.Module):
             duration_output = duration_output[:, -1, :]
 
         return note_output, duration_output
+
+
+class Bass_Network_LSTM(nn.Module):
+    def __init__(self):
+        super(Bass_Network_LSTM, self).__init__()
+        self.embed_size = EMBED_SIZE_BASS
+
+        self.note_embedding = nn.Embedding(NOTE_VOCAB_SIZE_BASS, EMBED_SIZE_BASS)
+        self.duration_embedding = nn.Embedding(
+            DURATION_VOCAB_SIZE_BASS, EMBED_SIZE_BASS
+        )
+
+        # LSTM layer
+        self.lstm = nn.LSTM(
+            input_size=EMBED_SIZE_BASS * 2,
+            hidden_size=HIDDEN_SIZE_BASS,
+            num_layers=NUM_LAYERS_BASS,
+            batch_first=True,
+            bidirectional=True,
+        )
+
+        self.FC_note = nn.Linear(HIDDEN_SIZE_BASS * 2, NOTE_VOCAB_SIZE_BASS)
+        self.FC_duration = nn.Linear(HIDDEN_SIZE_BASS * 2, DURATION_VOCAB_SIZE_BASS)
+
+    def __str__(self) -> str:
+        return "lstm"
+
+    def forward(self, notes, durations):
+
+        note_embeds = self.note_embedding(notes.long())  # Embedding expects LongTensor
+        durations_embeds = self.duration_embedding(durations.long())
+
+        x = torch.cat(
+            (note_embeds, durations_embeds), dim=-1
+        )  # Concat along the embedding dimension
+
+        # Pass through LSTM
+        lstm_out, _ = self.lstm(x)
+
+        x_note = self.FC_note(lstm_out)
+        x_duration = self.FC_duration(lstm_out)
+
+        if x.dim() == 3:
+            x_note = x_note[:, -1, :]
+            x_duration = x_duration[:, -1, :]
+        return x_note, x_duration

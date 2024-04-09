@@ -1,5 +1,6 @@
 from .bass import (
     Bass_Network,
+    Bass_Network_LSTM,
     train_bass,
     predict_next_k_notes_bass,
     play_bass,

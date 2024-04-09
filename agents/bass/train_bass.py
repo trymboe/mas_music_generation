@@ -16,6 +16,7 @@ from config import (
     ALPHA2_BASS,
     MAX_BATCHES_BASS,
     DEVICE,
+    MODEL_PATH_BASS_LSTM,
 )
 
 
@@ -85,13 +86,21 @@ def train_bass(model: nn.Module) -> None:
         )
 
     with open(
-        "results/data/bass/training_data" + str(NUM_EPOCHS_BASS) + ".json", "w"
+        "results/data/bass/training_data"
+        + str(NUM_EPOCHS_BASS)
+        + "_"
+        + str(model)
+        + ".json",
+        "w",
     ) as file:
         json.dump(loss_list, file)
         json.dump(val_loss_list, file)
 
     plot_loss(loss_list, val_loss_list)
-    torch.save(model, MODEL_PATH_BASS)
+    if "lstm" in str(model):
+        torch.save(model, MODEL_PATH_BASS_LSTM)
+    else:
+        torch.save(model, MODEL_PATH_BASS)
 
 
 def get_validation_loss(model: nn.Module, dataloader: DataLoader, criterion) -> float:

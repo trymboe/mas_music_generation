@@ -32,6 +32,8 @@ from config import (
     MODEL_NON_COOP_PATH_CHORD,
     TEST_DATASET_PATH_CHORD_BASS,
     MODEL_CHORD_BASS_PATH,
+    MODEL_PATH_CHORD_LSTM,
+    MODEL_PATH_BASS_LSTM,
 )
 
 NUM_EVAL_SAMPLES = 1000
@@ -39,8 +41,8 @@ NUM_EVAL_SAMPLES = 1000
 
 def eval_all_agents():
     print("----Evaluating all agents")
-    eval_chord()
-    # eval_bass()
+    # eval_chord()
+    eval_bass()
     # eval_melody()
     # eval_chord_bass()
     # eval_chord_and_bass_separately()
@@ -50,55 +52,80 @@ def eval_all_agents():
 def eval_chord():
     chord_dataset: Chord_Dataset = torch.load(TEST_DATASET_PATH_CHORD, DEVICE)
     # chord_network: Chord_Network = torch.load(MODEL_PATH_CHORD, DEVICE)
-    chord_network: Chord_Network = torch.load(MODEL_NON_COOP_PATH_CHORD, DEVICE)
-    correct_predictions: int = 0
+    chord_network: Chord_Network = torch.load(MODEL_PATH_CHORD_LSTM, DEVICE)
+
+    log_likelihood = 0.0
+    correct_predictions = 0
+    distribution = [0, 0, 0, 0, 0, 0, 0]
+
     for _ in range(NUM_EVAL_SAMPLES):
-        random_index = random.randint(0, len(chord_dataset))
+        random_index = random.randint(0, len(chord_dataset) - 1)
         chord_primer = chord_dataset[random_index]
-        input_sequence = chord_primer[0].unsqueeze(0)
-        ground_truth = chord_primer[1]
+        input_sequence, ground_truth = chord_primer[0].unsqueeze(0), chord_primer[1]
 
         output = chord_network(input_sequence)
 
         # Apply softmax to get probabilities
         chord_probabilities = F.softmax(output[0, :], dim=-1)
 
-        # Sample from the distribution
+        # For accuracy calculation, sampling from the distribution
         next_chord_type = torch.multinomial(chord_probabilities, 1).item()
+        # for i in range(len(input_sequence[:, :, 0].tolist())):
+        #     print(
+        #         input_sequence[:, :, 0].tolist()[i], input_sequence[:, :, 1].tolist()[i]
+        #     )
 
+        # print(next_chord_type, ground_truth.item())
+        # exit()
+        # print(input_sequence[:, :, 0], input_sequence[:, :, 1], ground_truth.item())
         if next_chord_type == ground_truth.item():
             correct_predictions += 1
+        distribution[next_chord_type] = distribution[next_chord_type] + 1
 
+        # For log likelihood, use the probability of the true class directly
+        true_chord_probability = chord_probabilities[ground_truth.item()]
+        log_likelihood += torch.log(true_chord_probability).item()
+
+    # Convert log likelihood sum to mean log likelihood if desired
+    mean_log_likelihood = log_likelihood / NUM_EVAL_SAMPLES
+    print(distribution)
     print(
         "Chord agent predicted",
         correct_predictions / NUM_EVAL_SAMPLES * 100,
         "% of the chords correctly.",
     )
 
+    print("Mean Log Likelihood:", mean_log_likelihood)
+
 
 def eval_bass():
     bass_dataset: Bass_Dataset = torch.load(TEST_DATASET_PATH_BASS, DEVICE)
-    bass_network: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)
-    correct_predictions_note: int = 0
-    correct_predictions_duration: int = 0
-    for _ in range(NUM_EVAL_SAMPLES):
-        random_index = random.randint(0, len(bass_dataset))
-        bass_primer = bass_dataset[random_index]
-        input_note = bass_primer[0].unsqueeze(0)
-        input_duration = bass_primer[1].unsqueeze(0)
+    bass_network: Bass_Network = torch.load(MODEL_PATH_BASS_LSTM, DEVICE)
+    log_likelihood_notes = 0.0
+    log_likelihood_durations = 0.0
+    correct_predictions_note = 0
+    correct_predictions_duration = 0
 
-        ground_truth = bass_primer[2]
+    for _ in range(NUM_EVAL_SAMPLES):
+        random_index = random.randint(0, len(bass_dataset) - 1)
+        bass_primer = bass_dataset[random_index]
+        input_note, input_duration, ground_truth = (
+            bass_primer[0].unsqueeze(0),
+            bass_primer[1].unsqueeze(0),
+            bass_primer[2],
+        )
 
         with torch.no_grad():
             note_output, duration_output = bass_network(input_note, input_duration)
 
-            note_probabilities = F.softmax(note_output[0, :], dim=-1).view(-1)
+            note_probabilities = F.softmax(note_output[0, :], dim=-1)
+            duration_probabilities = F.softmax(
+                duration_output[0, :], dim=-1
+            )  # Ensure this is -1 for consistency
 
-            duration_probabilities = F.softmax(duration_output[0, :], dim=0)
-
-            # Sample from the distributions
-            next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
-            next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
+            # For accuracy, sampling from the distribution
+            next_note = torch.multinomial(note_probabilities, 1).item()
+            next_duration = torch.multinomial(duration_probabilities, 1).item()
 
             gt_note, gt_duration = ground_truth[0].item(), ground_truth[1].item()
 
@@ -106,6 +133,17 @@ def eval_bass():
                 correct_predictions_note += 1
             if next_duration == gt_duration:
                 correct_predictions_duration += 1
+
+            # For log likelihood
+            true_note_probability = note_probabilities[gt_note]
+            true_duration_probability = duration_probabilities[gt_duration]
+
+            log_likelihood_notes += torch.log(true_note_probability).item()
+            log_likelihood_durations += torch.log(true_duration_probability).item()
+
+    # Convert log likelihood sums to mean log likelihood
+    mean_log_likelihood_notes = log_likelihood_notes / NUM_EVAL_SAMPLES
+    mean_log_likelihood_durations = log_likelihood_durations / NUM_EVAL_SAMPLES
 
     print(
         "Bass agent predicted",
@@ -117,6 +155,8 @@ def eval_bass():
         correct_predictions_duration / NUM_EVAL_SAMPLES * 100,
         "% of the durations correctly.",
     )
+    print("Mean Log Likelihood for Notes:", mean_log_likelihood_notes)
+    print("Mean Log Likelihood for Durations:", mean_log_likelihood_durations)
 
 
 def eval_melody():
@@ -209,24 +249,41 @@ def eval_chord_bass():
         input_sequence = primer[0].unsqueeze(0)
         ground_truth = primer[1]
 
+        root = input_sequence[:, :, 0]
+        chord = input_sequence[:, :, 1]
+        duration = input_sequence[:, :, 2]
+
         with torch.no_grad():
-            chord_output, duration_output = chord_network_full(input_sequence)
+            root_output, chord_output, duration_output = chord_network_full(
+                root, chord, duration
+            )
+
+            root_probabilities = F.softmax(root_output[0, :], dim=-1).view(-1)
 
             note_probabilities = F.softmax(chord_output[0, :], dim=-1).view(-1)
 
             duration_probabilities = F.softmax(duration_output[0, :], dim=0)
 
             # Sample from the distributions
+            next_root = torch.multinomial(root_probabilities, 1).unsqueeze(1)
             next_note = torch.multinomial(note_probabilities, 1).unsqueeze(1)
             next_duration = torch.multinomial(duration_probabilities, 1).unsqueeze(1)
 
-            gt_note, gt_duration = ground_truth[0].item(), ground_truth[1].item()
+            gt_root, gt_note, gt_duration = (
+                ground_truth[0].item(),
+                ground_truth[1].item(),
+                ground_truth[2].item(),
+            )
 
             if next_note == gt_note:
                 correct_predictions_note += 1
             if next_duration == gt_duration:
                 correct_predictions_duration += 1
-            if next_note == gt_note and next_duration == gt_duration:
+            if (
+                next_root == gt_root
+                and next_note == gt_note
+                and next_duration == gt_duration
+            ):
                 correct_prediction_combined += 1
 
     print(
@@ -251,7 +308,7 @@ def eval_chord_bass():
 
 def eval_chord_and_bass_separately():
     chord_dataset: Chord_Dataset = torch.load(TEST_DATASET_PATH_CHORD, DEVICE)
-    chord_network: Chord_Network = torch.load(MODEL_PATH_CHORD, DEVICE)
+    chord_network: Chord_Network = torch.load(MODEL_PATH_CHORD_LSTM, DEVICE)
 
     bass_dataset: Bass_Dataset = torch.load(TEST_DATASET_PATH_BASS, DEVICE)
     bass_network: Bass_Network = torch.load(MODEL_PATH_BASS, DEVICE)

@@ -7,7 +7,7 @@ from .eval_agent import predict_next_k_notes_chords
 from ..utils import beats_to_seconds, adjust_for_key
 
 from config import (
-    MODEL_PATH_CHORD,
+    MODEL_PATH_CHORD_LSTM,
     MODEL_NON_COOP_PATH_CHORD,
     INT_TO_TRIAD,
     DEVICE,
@@ -291,7 +291,7 @@ def get_timed_chord_sequence(
     """
     # if config["NON_COOPERATIVE"]:
     #     chord_agent = torch.load(MODEL_NON_COOP_PATH_CHORD, DEVICE)
-    chord_agent = torch.load(MODEL_PATH_CHORD, DEVICE)
+    chord_agent = torch.load(MODEL_PATH_CHORD_LSTM, DEVICE)
     chord_agent.eval()
 
     full_chord_sequence = predict_next_k_notes_chords(

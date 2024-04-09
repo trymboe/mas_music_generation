@@ -1,4 +1,4 @@
-from .bass import Bass_Network
+from .bass import Bass_Network, Bass_Network_LSTM
 from .chord import (
     Chord_Network,
     Chord_LSTM_Network,
@@ -31,22 +31,12 @@ from config import (
     NHEAD_BASS,
     NUM_LAYERS_BASS,
     CHORD_VOCAB_SIZE_CHORD,
-    ROOT_VOAB_SIZE_CHORD,
+    ROOT_VOCAB_SIZE_CHORD,
     EMBED_SIZE_CHORD,
     NHEAD_CHORD,
     NUM_LAYERS_CHORD,
     HIDDEN_SIZE_CHORD,
-    WORK_DIR,
-    MODEL_PATH_CHORD,
-    MODEL_PATH_BASS,
-    MODEL_PATH_DRUM,
     DEVICE,
-    MODEL_PATH_MELODY,
-    PITCH_SIZE_MELODY,
-    DURATION_SIZE_MELODY,
-    CHORD_SIZE_MELODY,
-    TOTAL_INPUT_SIZE_MELODY,
-    PITCH_VECTOR_SIZE,
 )
 
 
@@ -138,7 +128,7 @@ def create_melody_agent(
     return melody_agent
 
 
-def create_bass_agent() -> Bass_Network:
+def create_bass_agent(LSTM: bool = True) -> Bass_Network:
     """
     Creates and returns an instance of the Bass_Network.
 
@@ -147,14 +137,16 @@ def create_bass_agent() -> Bass_Network:
     Bass_Network
         The initialized bass agent.
     """
-
-    bass_agent: Bass_Network = Bass_Network(
-        NOTE_VOCAB_SIZE_BASS,
-        DURATION_VOCAB_SIZE_BASS,
-        EMBED_SIZE_BASS,
-        NHEAD_BASS,
-        NUM_LAYERS_BASS,
-    )
+    if LSTM:
+        bass_agent: Bass_Network = Bass_Network_LSTM()
+    else:
+        bass_agent: Bass_Network = Bass_Network(
+            NOTE_VOCAB_SIZE_BASS,
+            DURATION_VOCAB_SIZE_BASS,
+            EMBED_SIZE_BASS,
+            NHEAD_BASS,
+            NUM_LAYERS_BASS,
+        )
     return bass_agent
 
 
@@ -177,17 +169,11 @@ def create_chord_agent(
     """
 
     if LSTM:
-        chord_network = Chord_LSTM_Network(
-            ROOT_VOAB_SIZE_CHORD,
-            CHORD_VOCAB_SIZE_CHORD,
-            EMBED_SIZE_CHORD,
-            HIDDEN_SIZE_CHORD,
-            NUM_LAYERS_CHORD,
-        )
+        chord_network = Chord_LSTM_Network()
     else:
         if train_chord_agent:
             chord_network: Chord_Network = Chord_Network(
-                ROOT_VOAB_SIZE_CHORD,
+                ROOT_VOCAB_SIZE_CHORD,
                 CHORD_VOCAB_SIZE_CHORD,
                 EMBED_SIZE_CHORD,
                 NHEAD_CHORD,
@@ -195,7 +181,7 @@ def create_chord_agent(
             )
         if train_chord_non_coop_agent:
             chord_network: Chord_Network = Chord_Network_Non_Coop(
-                ROOT_VOAB_SIZE_CHORD,
+                ROOT_VOCAB_SIZE_CHORD,
                 CHORD_VOCAB_SIZE_CHORD,
                 EMBED_SIZE_CHORD,
                 NHEAD_CHORD,
@@ -203,7 +189,7 @@ def create_chord_agent(
             )
         if train_chord_bass_agent:
             chord_network: Chord_Network = Chord_Network_Full(
-                ROOT_VOAB_SIZE_CHORD,
+                ROOT_VOCAB_SIZE_CHORD,
                 CHORD_VOCAB_SIZE_CHORD,
                 EMBED_SIZE_CHORD,
                 NHEAD_CHORD,
