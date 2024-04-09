@@ -78,7 +78,7 @@ def play_delay(
         max_length = (config["LENGTH"] * 4 / tempo) * 60
 
         # for i in range(config["DELAY_NUM"]):
-        velocity = 72
+        velocity = 60
         for _ in range(3):
             if start + delay > max_length:
                 start = start
