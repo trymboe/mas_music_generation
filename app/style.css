@@ -9,6 +9,13 @@
 
 }
 
+/* Hiding the checkboxes */
+#advanced-option,
+label[for="advanced-option"] {
+    display: none;
+}
+
+
 /* General Styles */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;

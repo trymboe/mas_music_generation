@@ -27,12 +27,12 @@
                     <label for="tempo" style="display: inline-block;">Tempo(bpm):</label>
                     <input type="range" name="tepo" id="tempo" min="60" max="180" value="120"><br><br>
 
-                    <label for="length" style="display: inline-block;">Length: </label>
+                    <label for="duration" style="display: inline-block;">Duration: </label>
                     <div class="tooltip" style="display: inline-block;">
                         &#9432;
                         <span class="tooltiptext">How many meassures the generated loop should be.</span>
                     </div>
-                    <input type="number" id="length" name="length" value="4"><br><br>
+                    <input type="number" id="duration" name="duration" value="4"><br><br>
 
                     <label for="Key" style="display: inline-block;">Key: </label>
                     <div class="tooltip" style="display: inline-block;">
@@ -68,6 +68,7 @@
 
                 <label for="style">Style:</label>
                 <select id="style" name="style">
+                    <option value="rock">Rock</option>
                     <option value="country">Country</option>
                     <option value="dance">Dance</option>
                     <option value="funk">Funk</option>
@@ -76,7 +77,6 @@
                     <option value="latin">Latin</option>
                     <option value="pop">Pop</option>
                     <option value="reggae">Reggae</option>
-                    <option value="rock">Rock</option>
                     <option value="soul">Soul</option>
                     <option value="afrobeat">Afrobeat</option>
                     <option value="afrocuban">Afro Cuban</option>
@@ -161,7 +161,7 @@
 
             <!-- Controller section 1 -->
             <div class="section">
-                <h2>Controller</h2>
+                <h2>Controller 1</h2>
 
                 <div class="volume-container-items">
                     <button type="button" class="mute-button" id="mute-drum"
@@ -363,6 +363,8 @@
 
             <!-- Controller section 2 -->
             <div class="section">
+                <h2>Controller 2</h2>
+                <br>
                 <input class="button-style" id="submit-button" type="submit" value="Generate Loop">
                 <br>
 
@@ -370,13 +372,12 @@
                     onclick="togglePlayPause()">&#9658;</button>
                 <br>
                 <div class="inner-controll-div">
-                    <p id="status-message"></p>
-                </div>
-                <br>
-                <div class="inner-controll-div">
                     <p>Chord Progression:</p>
                     <p id="chord-progression-message1"></p>
                     <p id="chord-progression-message2"></p>
+                </div>
+                <div class="inner-controll-div">
+                    <p id="status-message"></p>
                 </div>
 
             </div>

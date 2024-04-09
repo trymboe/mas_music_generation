@@ -1,7 +1,7 @@
 let isGeneratingMusic = false;
 
 let globalTempo = 120; // Default value, update as needed
-let globalLengthInMeasures = 4; // Default value, update as needed
+let globalDurationInMeasures = 4; // Default value, update as needed
 
 document.getElementById("control-form").onsubmit = function (event) {
     event.preventDefault();
@@ -19,7 +19,7 @@ document.getElementById("control-form").onsubmit = function (event) {
 
         // General parameters
         tempo: document.getElementById("tempo").value,
-        length: document.getElementById("length").value,
+        duration: document.getElementById("duration").value,
         key: document.getElementById("key").value,
 
         // Drum parameters
@@ -68,7 +68,7 @@ document.getElementById("control-form").onsubmit = function (event) {
     };
 
     globalTempo = parseInt(document.getElementById("tempo").value);
-    globalLengthInMeasures = parseInt(formData.length);
+    globalDurationInMeasures = parseInt(formData.duration);
 
 
     fetch('http://localhost:5005/set_params', {
