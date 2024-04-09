@@ -13,6 +13,7 @@ import torch
 
 
 from data_processing import Bass_Dataset, Chord_Dataset, Melody_Dataset
+import os
 
 
 from config import (
@@ -56,13 +57,18 @@ def play_agents(
         chord_progression (list): The chord progression used in the generated MIDI file.
     """
     global NEW_BASS_PRIMER, NEW_CHORD_PRIMER, NEW_MELODY_PRIMER
+    TESTING = False
 
-    if NEW_BASS_PRIMER is None:
+    # When testing, we always generate new random primer sequences
+    if TESTING:
         chord_primer, bass_primer, melody_primer = get_primer_sequences()
     else:
-        chord_primer = NEW_CHORD_PRIMER
-        bass_primer = NEW_BASS_PRIMER
-        melody_primer = NEW_MELODY_PRIMER
+        if NEW_BASS_PRIMER is None:
+            chord_primer, bass_primer, melody_primer = get_primer_sequences()
+        else:
+            chord_primer = NEW_CHORD_PRIMER
+            bass_primer = NEW_BASS_PRIMER
+            melody_primer = NEW_MELODY_PRIMER
 
     mid = None
 
@@ -183,7 +189,26 @@ def play_agents(
         [chord_instrument, predicted_chord_sequence],
         [melody_instrument, predicted_melody_sequence],
     ]
-    mid.write(SAVE_RESULT_PATH)
+
+    og_path = "results/coms_study/example"
+    coms = "_bc_" if config["BAD_COMS"] else "_gc_"
+    print("NOTE_TEMPERATURE_MELODY: ", config["NOTE_TEMPERATURE_MELODY"])
+    if config["NOTE_TEMPERATURE_MELODY"] == 1:
+        temp = "mid_"
+    elif config["NOTE_TEMPERATURE_MELODY"] > 1:
+        temp = "high_"
+    else:
+        temp = "low_"
+    version = 1
+
+    path = og_path + coms + temp + str(version) + ".mid"
+
+    while os.path.exists(path):
+        version += 1
+        path = og_path + coms + temp + str(version) + ".mid"
+
+    mid.write(path)
+    # mid.write(SAVE_RESULT_PATH)
     chord_progression = get_chord_progression(predicted_chord_sequence, config)
     return mid, instruments, chord_progression
 
