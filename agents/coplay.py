@@ -62,9 +62,12 @@ def play_agents(
     # When testing, we always generate new random primer sequences
     if TESTING:
         chord_primer, bass_primer, melody_primer = get_primer_sequences()
+        chord_primer, melody_primer = chord_primer[0], melody_primer[0]
+
     else:
         if NEW_BASS_PRIMER is None:
             chord_primer, bass_primer, melody_primer = get_primer_sequences()
+            chord_primer, melody_primer = chord_primer[0], melody_primer[0]
         else:
             chord_primer = NEW_CHORD_PRIMER
             bass_primer = NEW_BASS_PRIMER
@@ -534,8 +537,7 @@ def get_primer_sequences(attempt: int = 0) -> tuple[list, list, list]:
         print("Could not find primer end chord, trying again")
         return get_primer_sequences(attempt + 1)
 
-    chord_primer = chord_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD][0]
+    chord_primer = chord_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD]
     bass_primer = bass_dataset[primer_end_chord - SEQUENCE_LENGTH_CHORD]
-    melody_primer = melody_dataset[primer_start][0]
-
+    melody_primer = melody_dataset[primer_start]
     return chord_primer, bass_primer, melody_primer

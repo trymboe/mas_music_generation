@@ -22,6 +22,7 @@ from config import (
     VAL_DATASET_PATH_CHORD_BASS,
     MODEL_CHORD_BASS_PATH,
     MODEL_PATH_CHORD_LSTM,
+    MODEL_PATH_CHORD_LSTM_TEST1,
 )
 
 
@@ -109,7 +110,7 @@ def train_chord(model: nn.Module) -> None:
     if "non_coop" in str(model):
         torch.save(model, MODEL_NON_COOP_PATH_CHORD)
     elif "lstm" in str(model):
-        torch.save(model, MODEL_PATH_CHORD_LSTM)
+        torch.save(model, MODEL_PATH_CHORD_LSTM_TEST1)
     else:
         torch.save(model, MODEL_PATH_CHORD)
 

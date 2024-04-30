@@ -13,7 +13,12 @@ NHEAD_BASS = 4  # Number of self-attention heads for transformer
 
 NUM_EPOCHS_BASS = 100  # Number of epochs
 MAX_BATCHES_BASS = (
-    1000  # Max number of batches to train on per Epoch, for shorter training
+    500  # Max number of batches to train on per Epoch, for shorter training
+)
+
+NUM_EPOCHS_BASS = 50  # Number of epochs
+MAX_BATCHES_BASS = (
+    500  # Max number of batches to train on per Epoch, for shorter training
 )
 
 MODEL_PATH_BASS = "models/bass/bass_model.pt"
@@ -23,8 +28,8 @@ TRAIN_DATASET_PATH_BASS = "data/dataset/bass_dataset_train.pt"
 TEST_DATASET_PATH_BASS = "data/dataset/bass_dataset_test.pt"
 VAL_DATASET_PATH_BASS = "data/dataset/bass_dataset_val.pt"
 
-ALPHA1_BASS = 0.7
-ALPHA2_BASS = 0.3
+ALPHA1_BASS = 1  # 0.7
+ALPHA2_BASS = 1  # 0.3
 
 # Mappings
 NOTE_TO_INT = {

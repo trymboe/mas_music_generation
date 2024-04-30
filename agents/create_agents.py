@@ -154,7 +154,7 @@ def create_chord_agent(
     train_chord_agent: bool,
     train_chord_non_coop_agent: bool,
     train_chord_bass_agent: bool,
-    LSTM: bool = False,
+    LSTM: bool = True,
 ) -> Chord_Network:
     """
     Creates a chord agent based on the specified parameters.

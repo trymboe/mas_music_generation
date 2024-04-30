@@ -7,18 +7,25 @@ EMBED_SIZE_CHORD = 128  # Embedding size
 NUM_LAYERS_CHORD = 4  # Number of  layers
 BATCH_SIZE_CHORD = 8
 LEARNING_RATE_CHORD = 0.0001
-HIDDEN_SIZE_CHORD = 64
+# HIDDEN_SIZE_CHORD = 64
 
 WEIGHT_DECAY_CHORD = 0  # 0.001
 NHEAD_CHORD = 4  # Number of self-attention heads
 
+# NUM_EPOCHS_CHORD = 50  # Number of epochs
+# MAX_BATCHES_CHORD = (
+#     200  # Max number of batches to train on per Epoch, for shorter training
+# )
+
+
+# Testing parameters
+HIDDEN_SIZE_CHORD = 128
 NUM_EPOCHS_CHORD = 50  # Number of epochs
 MAX_BATCHES_CHORD = (
-    200  # Max number of batches to train on per Epoch, for shorter training
+    500  # Max number of batches to train on per Epoch, for shorter training
 )
 
-# Playing parameters
-
+MODEL_PATH_CHORD_LSTM_TEST1 = "models/chord/chord_model_lstm_test1.pt"
 
 MODEL_PATH_CHORD = "models/chord/chord_model_2.pt"
 MODEL_PATH_CHORD_LSTM = "models/chord/chord_model_lstm.pt"

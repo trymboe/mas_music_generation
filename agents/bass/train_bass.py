@@ -17,6 +17,7 @@ from config import (
     MAX_BATCHES_BASS,
     DEVICE,
     MODEL_PATH_BASS_LSTM,
+    MODEL_PATH_BASS_LSTM_TEST,
 )
 
 
@@ -98,7 +99,7 @@ def train_bass(model: nn.Module) -> None:
 
     plot_loss(loss_list, val_loss_list)
     if "lstm" in str(model):
-        torch.save(model, MODEL_PATH_BASS_LSTM)
+        torch.save(model, MODEL_PATH_BASS_LSTM_TEST)
     else:
         torch.save(model, MODEL_PATH_BASS)
 
