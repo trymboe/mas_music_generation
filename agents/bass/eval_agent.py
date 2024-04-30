@@ -9,7 +9,8 @@ from ..utils import select_with_preference
 def predict_next_k_notes_bass(model, dataset_primer, config) -> list[int, int]:
     predicted_notes_durations: list[tuple[int, int]] = []
 
-    note_sequence, duration_sequence = get_primer_sequence(dataset_primer)
+    primer, _ = get_primer_sequence_bass(dataset_primer)
+    note_sequence, duration_sequence = primer
     note_sequence = note_sequence.unsqueeze(0)  # Add a batch dimension
     duration_sequence = duration_sequence.unsqueeze(0)  # Add a batch dimension
 
@@ -56,11 +57,12 @@ def predict_next_k_notes_bass(model, dataset_primer, config) -> list[int, int]:
             )
 
 
-def get_primer_sequence(dataset_primer: int) -> tuple[int, int]:
+def get_primer_sequence_bass(dataset_primer: int) -> tuple[int, int]:
     # primer_part: int = dataset_primer_start
     primer_sequence: tuple[int, int] = (
         dataset_primer[0],
         dataset_primer[1],
     )
+    ground_truth = dataset_primer[2]
 
-    return primer_sequence
+    return primer_sequence, ground_truth
