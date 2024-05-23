@@ -66,7 +66,7 @@ def eval_all_agents():
     # eval_chord_and_bass_separately()
     # eval_multi_agent_vs_monolithic()
     exp3_scrambled_vs_unscrambled()
-    # eval_coop_vs_non_coop()
+    # eval_coop_vs_non_coop(True)
     exit()
 
 
@@ -668,27 +668,27 @@ def eval_coop_vs_non_coop(use_cache=True):
         ) = eval_all_melody_agents()
 
         accuracy_coop = {
-            "pitch": correct_predictions_pitch_coop,
+            "Pitch": correct_predictions_pitch_coop,
             "Duration": correct_predictions_duration_coop,
         }
         accuracy_non_coop = {
-            "pitch": correct_predictions_pitch_non_coop,
+            "Pitch": correct_predictions_pitch_non_coop,
             "Duration": correct_predictions_duration_non_coop,
         }
         log_likelihood_coop = {
-            "pitch": log_likelihood_pitch_coop,
+            "Pitch": log_likelihood_pitch_coop,
             "Duration": log_likelihood_duration_coop,
         }
         log_likelihood_non_coop = {
-            "pitch": log_likelihood_pitch_non_coop,
+            "Pitch": log_likelihood_pitch_non_coop,
             "Duration": log_likelihood_duration_non_coop,
         }
         nllLoss_coop = {
-            "pitch": nllLoss_pitch_coop,
+            "Pitch": nllLoss_pitch_coop,
             "Duration": nllLoss_duration_coop,
         }
         nllLoss_non_coop = {
-            "pitch": nllLoss_pitch_non_coop,
+            "Pitch": nllLoss_pitch_non_coop,
             "Duration": nllLoss_duration_non_coop,
         }
 
@@ -736,10 +736,10 @@ def eval_coop_vs_non_coop(use_cache=True):
             "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/exp2/nllLoss_non_coop.json"
         )
 
-    print("Coop, pitch ", sum(nllLoss_coop["pitch"]) / len(nllLoss_coop["pitch"]))
+    print("Coop, pitch ", sum(nllLoss_coop["Pitch"]) / len(nllLoss_coop["Pitch"]))
     print(
         "Non-coop, pitch ",
-        sum(nllLoss_non_coop["pitch"]) / len(nllLoss_non_coop["pitch"]),
+        sum(nllLoss_non_coop["Pitch"]) / len(nllLoss_non_coop["Pitch"]),
     )
     print(
         "Coop, duration ", sum(nllLoss_coop["Duration"]) / len(nllLoss_coop["Duration"])
@@ -748,12 +748,11 @@ def eval_coop_vs_non_coop(use_cache=True):
         "Non-coop, duration ",
         sum(nllLoss_non_coop["Duration"]) / len(nllLoss_non_coop["Duration"]),
     )
-    print()
-    exit()
 
     box_plot(
         log_likelihood_coop, log_likelihood_non_coop, name="exp2/coop_vs_non_coop_box"
     )
+    exit()
     violin_plot(
         log_likelihood_coop,
         log_likelihood_non_coop,
@@ -1166,19 +1165,19 @@ def eval_multi_agent_vs_monolithic(
         )
     else:
         log_likelihood_mono = read_from_json(
-            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/log_likelihood_mono_overfitting.json"
+            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/log_likelihood_mono.json"
         )
         log_likelihood_mas = read_from_json(
-            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/log_likelihood_mas_overfitting.json"
+            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/log_likelihood_mas.json"
         )
         accuracy_mono = read_from_json(
-            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/accuracy_mono_overfitting.json"
+            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/accuracy_mono.json"
         )
         accuracy_mas = read_from_json(
-            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/accuracy_mas_overfitting.json"
+            "/Users/trymbo/Documents/master/mas_music_generation/data/experiments/accuracy_mas.json"
         )
 
-    box_plot(log_likelihood_mono, log_likelihood_mas, name="exp1_box_plot_overfitting")
+    box_plot(log_likelihood_mono, log_likelihood_mas, name="exp1/box_plot")
     violin_plot(log_likelihood_mono, log_likelihood_mas)
 
     print("T-test results Log-likelihood:")
@@ -1243,7 +1242,7 @@ def plot_mean_values(dict1, dict2, dict3, dict4, name=""):
         linewidth=3,
     )
 
-    plt.xlabel("Gamma", fontsize=18)
+    plt.xlabel(r"$\gamma$", fontsize=18)
     plt.ylabel("Mean Log-Likelihood", fontsize=18)
     plt.title("Mean Log-Likelihood for Scrambled Communication", fontsize=20)
     plt.xticks(rotation=0)
@@ -1310,17 +1309,17 @@ def box_plot(group1_data, group2_data, name=""):
     shapiro_wilk_test(group1_data)
     shapiro_wilk_test(group2_data)
 
-    # for key in group1_data.keys():
-    #     group1_data[key] = winsorize(np.array(group1_data[key]), limits=[0.05, 0.05])
-    #     group2_data[key] = winsorize(np.array(group2_data[key]), limits=[0.05, 0.05])
+    for key in group1_data.keys():
+        group1_data[key] = winsorize(np.array(group1_data[key]), limits=[0.05, 0.05])
+        group2_data[key] = winsorize(np.array(group2_data[key]), limits=[0.05, 0.05])
 
     # Convert data to DataFrame
     group1_df = pd.DataFrame(group1_data)
     group2_df = pd.DataFrame(group2_data)
 
     # Add 'Group' column to identify the two groups
-    group1_df["Group"] = "Monolithic"
-    group2_df["Group"] = "Multi-Agent"
+    group1_df["Group"] = "Coop"
+    group2_df["Group"] = "Non-Coop"
 
     # Concatenate dataframes
     data = pd.concat([group1_df, group2_df])
@@ -1343,7 +1342,7 @@ def box_plot(group1_data, group2_data, name=""):
         palette=palette_colors,
     )
 
-    plt.title("Log-Likelihood: Train vs Test Dataset", fontsize=20)
+    plt.title("Log-Likelihood: Coop vs Non-Coop", fontsize=20)
 
     # Optionally set the font size for labels and ticks
     plt.xlabel("Metric", fontsize=18)
